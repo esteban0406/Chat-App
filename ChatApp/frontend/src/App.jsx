@@ -1,41 +1,22 @@
-//import { useState } from "react";
-import "./App.css";
-import React, { useEffect } from "react";
-import ChatMessages from "./features/messages/ChatMessages";
-import ChatInput from "./features/chat/ChatInput";
-import ServerSidebar from "./features/chat/Sidebar";
-import socket from "./services/socket";
-
-import { useDispatch } from "react-redux";
-import { addMessage } from "./reducers/addMessageReducer";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import AuthLayout from "./features/auth/AuthLayout";
+import ChatRoom from "./features/chat/ChatRoom";
+import { useSelector } from "react-redux";
 
 function App() {
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    socket.on("message", (msg) => {
-      dispatch(addMessage(msg));
-    });
-
-    // cleanup al desmontar
-    return () => {
-      socket.off("message");
-    };
-  }, [dispatch]);
+  const { user } = useSelector((state) => state.auth);
 
   return (
-    <>
-      <div className="app">
-        <aside className="sidebar">
-          <ServerSidebar />
-        </aside>
-
-        <main className="chat-section">
-          <ChatMessages className="message-list" />
-          <ChatInput className="message-input" />
-        </main>
-      </div>
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/auth" element={<AuthLayout />} />
+        <Route
+          path="/chat"
+          element={user ? <ChatRoom /> : <Navigate to="/auth" />}
+        />
+        <Route path="*" element={<Navigate to="/auth" />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

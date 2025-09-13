@@ -4,10 +4,11 @@ import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
-import messagesReducer from "./features/messages/messagesSlice.js"
+import messagesReducer from "./features/messages/messagesSlice.js";
+import authReducer from "./features/auth/authSlice.js";
 
 const store = configureStore({
-  reducer: { messages: messagesReducer },
+  reducer: { auth: authReducer, messages: messagesReducer },
 });
 
 createRoot(document.getElementById("root")).render(
