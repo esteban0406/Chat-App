@@ -1,11 +1,11 @@
-version: "3.8"
 services:
   frontend:
     build: ./frontend
     ports:
-      - "3000:80" # producción
-    depends_on:
-      - backend
+      - "5173:5173"
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+    volumes:
+      - ./frontend:/app
 
   backend:
     build: ./backend

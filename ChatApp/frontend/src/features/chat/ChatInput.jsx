@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
-import { addMessage } from "../reducers/addMessageReducer";
-import socket from "../services/socket";
+//import { useDispatch } from "react-redux";
+//import { addMessage } from "../reducers/addMessageReducer";
+import socket from "../../services/socket";
 
 export default function ChatInput() {
   const [text, setText] = useState("");
-  const dispatch = useDispatch();
+//  const dispatch = useDispatch();
 
   const handleSend = (e) => {
     e.preventDefault();
@@ -18,7 +18,6 @@ export default function ChatInput() {
       timestamp: new Date().toISOString(),
     };
 
-    dispatch(addMessage(newMessage));
     socket.emit("message", newMessage);
     setText("");
   };

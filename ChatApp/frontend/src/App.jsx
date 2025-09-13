@@ -1,9 +1,9 @@
 //import { useState } from "react";
 import "./App.css";
 import React, { useEffect } from "react";
-import ChatMessages from "./components/ChatMessages";
-import ChatInput from "./components/ChatInput";
-import ServerSidebar from "./components/ServerSidebar";
+import ChatMessages from "./features/messages/ChatMessages";
+import ChatInput from "./features/chat/ChatInput";
+import ServerSidebar from "./features/chat/Sidebar";
 import socket from "./services/socket";
 
 import { useDispatch } from "react-redux";

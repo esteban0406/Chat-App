@@ -8,7 +8,7 @@ export default function ChatMessages() {
     <div className="message-list">
       {messages.map((msg) => (
         <div key={msg.id} className="message">
-          <p>{msg.text}</p>
+          <p><strong>{msg.sender}:</strong> {msg.text}</p>
           <small>{new Date(msg.timestamp).toLocaleTimeString()}</small>
         </div>
       ))}

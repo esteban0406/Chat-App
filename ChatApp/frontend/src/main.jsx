@@ -1,13 +1,13 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
+//import "./index.css";
 import App from "./App.jsx";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
-import addMessageReducer from "./reducers/addMessageReducer.js";
+import messagesReducer from "./features/messages/messagesSlice.js"
 
 const store = configureStore({
-  reducer: {messages: addMessageReducer},
+  reducer: { messages: messagesReducer },
 });
 
 createRoot(document.getElementById("root")).render(
@@ -17,3 +17,24 @@ createRoot(document.getElementById("root")).render(
     </StrictMode>
   </Provider>
 );
+
+/*
+function App() {
+  const { user } = useAppSelector((state) => state.auth);
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route
+          path="/chat"
+          element={user ? <ChatRoom /> : <Navigate to="/login" />}
+        />
+        <Route path="*" element={<Navigate to="/login" />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+*/
