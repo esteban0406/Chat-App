@@ -1,0 +1,16 @@
+FROM node:20
+
+# Crear directorio de la app
+WORKDIR /app
+
+# Copiar package.json e instalar dependencias
+COPY package*.json ./
+RUN npm install
+
+# Copiar el resto del código
+COPY . .
+
+# Exponer puerto (Vite usa 5173 por defecto)
+EXPOSE 5173
+
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

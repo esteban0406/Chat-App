@@ -23,4 +23,14 @@ dist-ssr
 *.sln
 *.sw?
 
+# Docker image archives
+*.tar
+*.img
+*.gz
+*.tgz
+
+# Docker volumes / db data
+db_data/
+data/
+
 .env

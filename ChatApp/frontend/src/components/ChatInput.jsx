@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { addMessage } from "../reducers/addMessageReducer";
+import socket from "../services/socket";
 
 export default function ChatInput() {
   const [text, setText] = useState("");
   const dispatch = useDispatch();
 
   const handleSend = (e) => {
-     e.preventDefault();
+    e.preventDefault();
     if (text.trim() === "") return;
 
     const newMessage = {
@@ -18,6 +19,7 @@ export default function ChatInput() {
     };
 
     dispatch(addMessage(newMessage));
+    socket.emit("message", newMessage);
     setText("");
   };
 
