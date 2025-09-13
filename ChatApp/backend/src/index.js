@@ -4,7 +4,7 @@ import { Server } from "socket.io";
 import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-
+import {requestLogger} from "./utils/middleware.js";
 
 // Rutas
 import authRoutes from "./routes/auth.routes.js";
@@ -38,6 +38,7 @@ console.log("connecting to", MONGODB_URI);
 
 // Middlewares
 app.use(express.json());
+app.use(requestLogger)
 
 // Conectar DB
 mongoose
