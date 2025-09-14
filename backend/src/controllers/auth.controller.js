@@ -13,7 +13,14 @@ export const register = async (req, res) => {
     const user = new User({ username, email, password: hashed });
     await user.save();
 
-    res.status(201).json({ message: "User registered", user });
+    // Opcional: crear token al registrar directamente
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET, // ✅ usa secrets del .env
+      { expiresIn: "1d" }
+    );
+
+    res.status(201).json({ message: "User registered", user, token });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -29,7 +36,11 @@ export const login = async (req, res) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user._id }, "supersecret", { expiresIn: "1d" });
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET, 
+      { expiresIn: "1d" }
+    );
 
     res.json({ token, user });
   } catch (err) {

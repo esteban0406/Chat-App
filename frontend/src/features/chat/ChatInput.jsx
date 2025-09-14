@@ -5,7 +5,7 @@ import socket from "../../services/socket";
 
 export default function ChatInput() {
   const [text, setText] = useState("");
-//  const dispatch = useDispatch();
+  //const dispatch = useDispatch();
 
   const handleSend = (e) => {
     e.preventDefault();

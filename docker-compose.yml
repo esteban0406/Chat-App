@@ -3,11 +3,26 @@ services:
     build: ./frontend
     ports:
       - "5173:5173"
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_URL=http://localhost:4000/api
+      - VITE_SOCKET_URL=http://localhost:4000
+
     command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
     volumes:
-      - ./frontend:/app
+      - ./frontend/src:/app/src
+      - /app/node_modules
 
   backend:
     build: ./backend
     ports:
       - "4000:4000"
+    environment:
+      - CLIENT_URL=http://frontend:5173
+      - MONGODB_URI=${MONGODB_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - CLIENT_URL=${CLIENT_URL}
+    volumes:
+      - ./backend/src:/app/src
+    command: npm run dev

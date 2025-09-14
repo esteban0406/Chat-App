@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AuthLayout from "./features/auth/AuthLayout";
 import ChatRoom from "./features/chat/ChatRoom";
 import { useSelector } from "react-redux";
+import "./App.css"
 
 function App() {
   const { user } = useSelector((state) => state.auth);

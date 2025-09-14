@@ -5,11 +5,15 @@ import ChatInput from "./ChatInput";
 import Sidebar from "./Sidebar";
 import socket from "../../services/socket";
 import { addMessage } from "../messages/messagesSlice";
+import InviteList from "../invites/InviteList";
 
 export default function ChatRoom() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const [channelId, setChannelId] = useState(null);
+
+  // 👇 State to toggle invite panel
+  const [showInvites, setShowInvites] = useState(false);
 
   useEffect(() => {
     socket.on("message", (msg) => {
@@ -28,13 +32,17 @@ export default function ChatRoom() {
         <Sidebar onSelectChannel={setChannelId} />
       </aside>
 
-      {/* Chat principal */}
+      {/* Main chat section */}
       <main className="chat-section">
         <header className="chat-header">
           <h2>
             Bienvenido {user?.username || "Invitado"}{" "}
             {channelId ? `(Canal: ${channelId})` : ""}
           </h2>
+
+          {/* 🔔 Toggle Invite List */}
+          <button onClick={() => setShowInvites(!showInvites)}>🔔</button>
+          {showInvites && <InviteList />}
         </header>
 
         {channelId ? (
@@ -43,7 +51,9 @@ export default function ChatRoom() {
             <ChatInput channelId={channelId} />
           </>
         ) : (
-          <p style={{ padding: "20px" }}>Selecciona un canal para comenzar a chatear 💬</p>
+          <p style={{ padding: "20px" }}>
+            Selecciona un canal para comenzar a chatear 💬
+          </p>
         )}
       </main>
     </div>

@@ -4,7 +4,13 @@ import { Server } from "socket.io";
 import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import {requestLogger} from "./utils/middleware.js";
+import listEndpoints from "express-list-endpoints";
+
+import {
+  requestLogger,
+  unknownEndpoint,
+  errorHandler,
+} from "./utils/middleware.js";
 
 // Rutas
 import authRoutes from "./routes/auth.routes.js";
@@ -12,6 +18,8 @@ import userRoutes from "./routes/user.routes.js";
 import serverRoutes from "./routes/server.routes.js";
 import channelRoutes from "./routes/channel.routes.js";
 import messageRoutes from "./routes/message.routes.js";
+import friendRoutes from "./routes/friend.routes.js";
+import serverInviteRoutes from "./routes/serverInvite.routes.js";
 
 dotenv.config();
 
@@ -20,14 +28,14 @@ const server = http.createServer(app);
 
 app.use(
   cors({
-    origin: "http://localhost:5173", // frontend
+    origin: ["http://localhost:5173", "http://frontend:5173"],
     credentials: true,
   })
 );
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://frontend:5173"],
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -38,7 +46,7 @@ console.log("connecting to", MONGODB_URI);
 
 // Middlewares
 app.use(express.json());
-app.use(requestLogger)
+app.use(requestLogger);
 
 // Conectar DB
 mongoose
@@ -50,15 +58,21 @@ mongoose
     console.log("❌ error connection to MongoDB:", error.message);
   });
 
+
 // ✅ Registrar rutas REST
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/servers", serverRoutes);
 app.use("/api/channels", channelRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/friends", friendRoutes);
+app.use("/api/invites", serverInviteRoutes);
+
 
 // Ruta simple de prueba
 app.get("/", (req, res) => res.send("API funcionando 🚀"));
+
+console.log(listEndpoints(app));
 
 // 🔌 Sockets
 io.on("connection", (socket) => {
@@ -72,6 +86,9 @@ io.on("connection", (socket) => {
     console.log("❌ Cliente desconectado:", socket.id);
   });
 });
+
+app.use(unknownEndpoint);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {

@@ -6,9 +6,14 @@ import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import messagesReducer from "./features/messages/messagesSlice.js";
 import authReducer from "./features/auth/authSlice.js";
+import invitesReducer from "./features/invites/invitesSlice.js";
 
 const store = configureStore({
-  reducer: { auth: authReducer, messages: messagesReducer },
+  reducer: {
+    auth: authReducer,
+    messages: messagesReducer,
+    invites: invitesReducer,
+  },
 });
 
 createRoot(document.getElementById("root")).render(
@@ -18,24 +23,3 @@ createRoot(document.getElementById("root")).render(
     </StrictMode>
   </Provider>
 );
-
-/*
-function App() {
-  const { user } = useAppSelector((state) => state.auth);
-
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route
-          path="/chat"
-          element={user ? <ChatRoom /> : <Navigate to="/login" />}
-        />
-        <Route path="*" element={<Navigate to="/login" />} />
-      </Routes>
-    </BrowserRouter>
-  );
-}
-
-*/
