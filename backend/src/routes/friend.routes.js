@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.post("/send", authMiddleware, sendFriendRequest);
 router.post("/respond", authMiddleware, respondFriendRequest);
+router.post("/respond/:id", authMiddleware, respondFriendRequest);
 router.get("/pending", authMiddleware, getPendingFriendRequests);
 
 export default router;

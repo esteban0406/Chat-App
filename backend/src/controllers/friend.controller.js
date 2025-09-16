@@ -34,8 +34,10 @@ export const sendFriendRequest = async (req, res) => {
 // 📌 Responder a una solicitud (aceptar/rechazar)
 export const respondFriendRequest = async (req, res) => {
   try {
-    const { requestId, status } = req.body;
-    const request = await FriendRequest.findById(requestId);
+    const { id } = req.params; // id de la invitación
+    const { status } = req.body; // "accepted" o "rejected"
+
+    const request = await FriendRequest.findById(id);
 
     if (!request) {
       return res.status(404).json({ error: "Solicitud no encontrada" });
@@ -50,11 +52,12 @@ export const respondFriendRequest = async (req, res) => {
       await User.findByIdAndUpdate(request.to, { $push: { friends: request.from } });
     }
 
-    res.json(request);
+    res.json({ message: `Solicitud ${status}`, request });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // 📌 Obtener solicitudes pendientes del usuario autenticado
 export const getPendingFriendRequests = async (req, res) => {
@@ -63,8 +66,18 @@ export const getPendingFriendRequests = async (req, res) => {
     const requests = await FriendRequest.find({ to: userId, status: "pending" })
       .populate("from", "username email"); // mostrar info del remitente
 
-    res.json(requests);
+    // 🔹 Formateamos los resultados
+    const formatted = requests.map((r) => ({
+      _id: r._id,
+      from: r.from,        // aquí tienes username y email
+      type: "friend",      // 👈 para que InviteItem funcione
+      status: r.status,
+      createdAt: r.createdAt,
+    }));
+
+    res.json(formatted);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+

@@ -22,7 +22,7 @@ services:
       - CLIENT_URL=http://frontend:5173
       - MONGODB_URI=${MONGODB_URI}
       - JWT_SECRET=${JWT_SECRET}
-      - CLIENT_URL=${CLIENT_URL}
     volumes:
       - ./backend/src:/app/src
+      - ./backend/.env:/app/.env
     command: npm run dev

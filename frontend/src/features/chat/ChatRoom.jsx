@@ -12,9 +12,6 @@ export default function ChatRoom() {
   const { user } = useSelector((state) => state.auth);
   const [channelId, setChannelId] = useState(null);
 
-  // 👇 State to toggle invite panel
-  const [showInvites, setShowInvites] = useState(false);
-
   useEffect(() => {
     socket.on("message", (msg) => {
       dispatch(addMessage(msg));
@@ -39,10 +36,6 @@ export default function ChatRoom() {
             Bienvenido {user?.username || "Invitado"}{" "}
             {channelId ? `(Canal: ${channelId})` : ""}
           </h2>
-
-          {/* 🔔 Toggle Invite List */}
-          <button onClick={() => setShowInvites(!showInvites)}>🔔</button>
-          {showInvites && <InviteList />}
         </header>
 
         {channelId ? (

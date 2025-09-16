@@ -50,8 +50,10 @@ export const getMessages = (channelId) => API.get(`/messages/${channelId}`);
 ======================== */
 export const getFriendInvites = () => API.get("/friends/pending");
 export const sendFriendInvite = (data) => API.post("/friends/send", data);
-export const acceptFriendInvite = (inviteId) => API.post(`/friends/accept/${inviteId}`);
-export const rejectFriendInvite = (inviteId) => API.post(`/friends/reject/${inviteId}`);
+export const acceptFriendInvite = (inviteId) =>
+  API.post(`/friends/respond/${inviteId}`, { status: "accepted" });
+export const rejectFriendInvite = (inviteId) =>
+  API.post(`/friends/respond/${inviteId}`, { status: "rejected" });
 
 /* ========================
    🔹 Server Invites

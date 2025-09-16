@@ -4,7 +4,6 @@ import { Server } from "socket.io";
 import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import listEndpoints from "express-list-endpoints";
 
 import {
   requestLogger,
@@ -71,8 +70,6 @@ app.use("/api/invites", serverInviteRoutes);
 
 // Ruta simple de prueba
 app.get("/", (req, res) => res.send("API funcionando 🚀"));
-
-console.log(listEndpoints(app));
 
 // 🔌 Sockets
 io.on("connection", (socket) => {

@@ -1,20 +1,40 @@
 import React, { useEffect, useState } from "react";
-import { getFriendInvites } from "../../services/api";
+import {
+  getFriendInvites,
+  acceptFriendInvite,
+  rejectFriendInvite,
+} from "../../services/api";
+import InviteItem from "./InviteItem.jsx";
 
 export default function InviteList() {
   const [invites, setInvites] = useState([]);
 
+  const fetchInvites = async () => {
+    try {
+      const res = await getFriendInvites();
+      setInvites(res.data);
+    } catch (err) {
+      console.error("Error cargando invitaciones:", err);
+    }
+  };
+
   useEffect(() => {
-    const fetchInvites = async () => {
-      try {
-        const res = await getFriendInvites();
-        setInvites(res.data);
-      } catch (err) {
-        console.error("Error cargando invitaciones:", err);
-      }
-    };
     fetchInvites();
   }, []);
+
+  const handleRespond = async (inviteId, status) => {
+    try {
+      if (status === "accepted") {
+        await acceptFriendInvite(inviteId);
+      } else {
+        await rejectFriendInvite(inviteId);
+      }
+      // Recargar lista después de responder
+      fetchInvites();
+    } catch (err) {
+      console.error("Error respondiendo invitación:", err);
+    }
+  };
 
   return (
     <div>
@@ -23,9 +43,11 @@ export default function InviteList() {
         <p>No tienes invitaciones</p>
       ) : (
         invites.map((invite) => (
-          <div key={invite._id}>
-            <p>{invite.from.username}</p>
-          </div>
+          <InviteItem
+            key={invite._id}
+            invite={invite}
+            onRespond={handleRespond}
+          />
         ))
       )}
     </div>
