@@ -1,9 +1,11 @@
 import express from "express";
 import { createServer, joinServer, getServers } from "../controllers/server.controller.js";
+import { authMiddleware } from "../utils/middleware.js";
+
 
 const router = express.Router();
 
-router.post("/", createServer);
+router.post("/", authMiddleware, createServer);
 router.post("/join", joinServer);
 router.get("/", getServers);
 

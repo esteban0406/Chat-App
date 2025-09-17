@@ -1,0 +1,13 @@
+# Env files
+.env
+.env.local
+
+# Docker image archives
+*.tar
+*.img
+*.gz
+*.tgz
+
+# Docker volumes / db data
+db_data/
+data/

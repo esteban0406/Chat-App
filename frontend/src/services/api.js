@@ -54,6 +54,8 @@ export const acceptFriendInvite = (inviteId) =>
   API.post(`/friends/respond/${inviteId}`, { status: "accepted" });
 export const rejectFriendInvite = (inviteId) =>
   API.post(`/friends/respond/${inviteId}`, { status: "rejected" });
+export const getFriends = () => API.get("/friends/list");
+
 
 /* ========================
    🔹 Server Invites

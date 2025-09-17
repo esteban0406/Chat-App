@@ -1,15 +1,27 @@
 import ServerInvite from "../models/serverInvite.js";
 import Server from "../models/serverInvite.js";
 
+
 export const sendServerInvite = async (req, res) => {
   try {
-    const { from, to, serverId } = req.body;
+    const { serverId, to } = req.body;
+    const from = req.user._id; // 👈 lo tomamos del token (authMiddleware)
 
-    const invite = new ServerInvite({ from, to, server: serverId });
+    if (!serverId || !to) {
+      return res.status(400).json({ error: "serverId y destinatario son requeridos" });
+    }
+
+    const invite = new ServerInvite({
+      from,     // ✅ remitente
+      to,       // destinatario
+      server: serverId,
+      status: "pending"
+    });
+
     await invite.save();
-
     res.status(201).json(invite);
   } catch (err) {
+    console.error("Error enviando invitación:", err);
     res.status(500).json({ error: err.message });
   }
 };

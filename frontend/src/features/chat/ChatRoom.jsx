@@ -5,7 +5,7 @@ import ChatInput from "./ChatInput";
 import Sidebar from "./Sidebar";
 import socket from "../../services/socket";
 import { addMessage } from "../messages/messagesSlice";
-import InviteList from "../invites/InviteList";
+import UserMenu from "../user/UserMenu";
 
 export default function ChatRoom() {
   const dispatch = useDispatch();
@@ -36,6 +36,7 @@ export default function ChatRoom() {
             Bienvenido {user?.username || "Invitado"}{" "}
             {channelId ? `(Canal: ${channelId})` : ""}
           </h2>
+          <UserMenu />
         </header>
 
         {channelId ? (

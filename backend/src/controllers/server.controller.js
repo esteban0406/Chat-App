@@ -3,19 +3,22 @@ import Channel from "../models/Channel.js";
 
 export const createServer = async (req, res) => {
   try {
-    const { name, description, ownerId } = req.body;
+    const { name, description } = req.body;
 
-    // 🔹 Validar campos obligatorios
-    if (!name || !ownerId) {
-      return res.status(400).json({ error: "El nombre y el ownerId son requeridos" });
+    // 🔹 Validar campo obligatorio
+    if (!name) {
+      return res.status(400).json({ error: "El nombre es requerido" });
     }
+
+    // 🔹 Sacar el owner del token
+    const ownerId = req.user._id;
 
     // 🔹 Crear el servidor con el dueño como miembro inicial
     const server = new Server({
       name,
       description: description || "",
-      owner: ownerId,            // 👈 Consistencia: usamos "owner"
-      members: [ownerId]         // 👈 El dueño entra como miembro automáticamente
+      owner: ownerId,
+      members: [ownerId], // 👈 El dueño entra como miembro automáticamente
     });
 
     await server.save();
@@ -24,7 +27,7 @@ export const createServer = async (req, res) => {
     const channel = new Channel({
       name: "general",
       type: "text",
-      server: server._id
+      server: server._id,
     });
 
     await channel.save();
@@ -36,7 +39,7 @@ export const createServer = async (req, res) => {
     // 🔹 Devolver el servidor con su canal inicial
     res.status(201).json({
       ...server.toObject(),
-      defaultChannel: channel
+      defaultChannel: channel,
     });
   } catch (err) {
     console.error("Error creando servidor:", err);

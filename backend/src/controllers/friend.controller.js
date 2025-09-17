@@ -81,3 +81,30 @@ export const getPendingFriendRequests = async (req, res) => {
   }
 };
 
+// 📌 Obtener amigos de un usuario
+export const getFriends = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // Buscar todas las relaciones aceptadas
+    const requests = await FriendRequest.find({
+      status: "accepted",
+      $or: [{ from: userId }, { to: userId }],
+    });
+
+    // Extraer los IDs de los amigos
+    const friendIds = requests.map((req) =>
+      req.from.toString() === userId.toString() ? req.to : req.from
+    );
+
+    // Buscar usuarios con esos IDs
+    const friends = await User.find({ _id: { $in: friendIds } }).select(
+      "username email"
+    );
+
+    res.json(friends);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
