@@ -9,7 +9,10 @@ const messagesSlice = createSlice({
   initialState,
   reducers: {
     addMessage: (state, action) => {
-      state.items.push(action.payload);
+      const exists = state.items.find((msg) => msg._id === action.payload._id);
+      if (!exists) {
+        state.items.push(action.payload);
+      }
     },
     setMessages: (state, action) => {
       state.items = action.payload; // reemplaza mensajes (cuando cargas de la API)

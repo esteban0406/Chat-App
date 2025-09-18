@@ -1,25 +1,26 @@
 import React, { useState } from "react";
-//import { useDispatch } from "react-redux";
-//import { addMessage } from "../reducers/addMessageReducer";
-import socket from "../../services/socket";
+import { useSelector } from "react-redux";
+import { sendMessage } from "../../services/api";
 
-export default function ChatInput() {
+export default function ChatInput({ channelId }) {
   const [text, setText] = useState("");
-  //const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
 
-  const handleSend = (e) => {
+  const handleSend = async (e) => {
     e.preventDefault();
-    if (text.trim() === "") return;
+    if (text.trim() === "" || !channelId) return;
 
-    const newMessage = {
-      id: Date.now(),
-      text,
-      sender: "me",
-      timestamp: new Date().toISOString(),
-    };
-
-    socket.emit("message", newMessage);
-    setText("");
+    try {
+      // Enviar mensaje al backend
+      await sendMessage({
+        text,
+        senderId: user._id,
+        channelId,
+      });
+      setText("");
+    } catch (err) {
+      console.error("Error enviando mensaje:", err);
+    }
   };
 
   return (

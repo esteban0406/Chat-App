@@ -1,3 +1,4 @@
+// src/features/messages/useMessages.js
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getMessages } from "../../services/api";
@@ -11,10 +12,8 @@ export default function useMessages(channelId) {
   useEffect(() => {
     if (!channelId) return;
 
-    // 🔹 limpiar mensajes cuando cambias de canal
     dispatch(clearMessages());
 
-    // 🔹 cargar mensajes históricos desde API
     const fetchMessages = async () => {
       try {
         const res = await getMessages(channelId);
@@ -25,16 +24,19 @@ export default function useMessages(channelId) {
     };
     fetchMessages();
 
-    // 🔹 escuchar mensajes en tiempo real
-    socket.on("message", (msg) => {
+    socket.emit("joinChannel", channelId);
+
+    const handleMessage = (msg) => {
       if (msg.channel === channelId) {
         dispatch(addMessage(msg));
       }
-    });
+    };
 
-    // cleanup cuando se desmonta o cambia de canal
+    socket.on("message", handleMessage);
+
     return () => {
-      socket.off("message");
+      socket.emit("leaveChannel", channelId);
+      socket.off("message", handleMessage);
     };
   }, [channelId, dispatch]);
 

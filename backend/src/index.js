@@ -32,7 +32,7 @@ app.use(
   })
 );
 
-const io = new Server(server, {
+export const io = new Server(server, {
   cors: {
     origin: ["http://localhost:5173", "http://frontend:5173"],
     methods: ["GET", "POST"],
@@ -75,8 +75,14 @@ app.get("/", (req, res) => res.send("API funcionando 🚀"));
 io.on("connection", (socket) => {
   console.log("⚡ Cliente conectado:", socket.id);
 
-  socket.on("message", (msg) => {
-    io.emit("message", msg); // broadcast a todos los clientes
+  socket.on("joinChannel", (channelId) => {
+    socket.join(channelId);
+    console.log(`👤 ${socket.id} se unió al canal ${channelId}`);
+  });
+
+  socket.on("leaveChannel", (channelId) => {
+    socket.leave(channelId);
+    console.log(`👤 ${socket.id} salió del canal ${channelId}`);
   });
 
   socket.on("disconnect", () => {
