@@ -58,7 +58,6 @@ mongoose
     console.log("❌ error connection to MongoDB:", error.message);
   });
 
-
 // ✅ Registrar rutas REST
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -67,7 +66,6 @@ app.use("/api/channels", channelRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/friends", friendRoutes);
 app.use("/api/invites", serverInviteRoutes);
-
 
 // Ruta simple de prueba
 app.get("/", (req, res) => res.send("API funcionando 🚀"));
@@ -78,12 +76,10 @@ io.on("connection", (socket) => {
 
   socket.on("joinChannel", (channelId) => {
     socket.join(channelId);
-    console.log(`👤 ${socket.id} se unió al canal ${channelId}`);
   });
 
   socket.on("leaveChannel", (channelId) => {
     socket.leave(channelId);
-    console.log(`👤 ${socket.id} salió del canal ${channelId}`);
   });
 
   socket.on("disconnect", () => {

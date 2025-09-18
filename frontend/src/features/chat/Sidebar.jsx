@@ -1,3 +1,4 @@
+// src/features/chat/Sidebar.jsx
 import React, { useEffect, useState } from "react";
 import { getServers, getChannels } from "../../services/api";
 import InviteForm from "../invites/InviteForm";
@@ -93,10 +94,22 @@ export default function Sidebar({ onSelectChannel }) {
 
           {activeServer && (
             <>
-              <h2>
-                Channels{" "}
-                <button onClick={() => setShowCreateChannel(true)}>➕</button>
+              <h2
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                Channels
+                <button
+                  style={{ marginLeft: "10px", cursor: "pointer" }}
+                  onClick={() => setShowCreateChannel(true)}
+                >
+                  ➕
+                </button>
               </h2>
+
               <ul className="user-list">
                 {channels.map((ch) => (
                   <li
@@ -110,6 +123,16 @@ export default function Sidebar({ onSelectChannel }) {
                   </li>
                 ))}
               </ul>
+
+              {showCreateChannel && (
+                <CreateChannelModal
+                  serverId={activeServer._id}
+                  onClose={() => setShowCreateChannel(false)}
+                  onChannelCreated={(newChannel) =>
+                    setChannels([...channels, newChannel])
+                  }
+                />
+              )}
             </>
           )}
         </>
@@ -121,18 +144,11 @@ export default function Sidebar({ onSelectChannel }) {
         </div>
       )}
 
-      {/* Modales */}
+      {/* Modal Crear Servidor */}
       {showCreateServer && (
         <CreateServerModal
           onClose={() => setShowCreateServer(false)}
-          onServerCreated={(server) => setServers([...servers, server])}
-        />
-      )}
-      {showCreateChannel && (
-        <CreateChannelModal
-          serverId={activeServer._id}
-          onClose={() => setShowCreateChannel(false)}
-          onChannelCreated={(channel) => setChannels([...channels, channel])}
+          onServerCreated={(newServer) => setServers([...servers, newServer])}
         />
       )}
     </div>
