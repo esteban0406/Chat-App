@@ -10,7 +10,6 @@ export const createServer = async (req, res) => {
       return res.status(400).json({ error: "El nombre es requerido" });
     }
 
-    // 🔹 Sacar el owner del token
     const ownerId = req.user._id;
 
     // 🔹 Crear el servidor con el dueño como miembro inicial
@@ -18,12 +17,11 @@ export const createServer = async (req, res) => {
       name,
       description: description || "",
       owner: ownerId,
-      members: [ownerId], // 👈 El dueño entra como miembro automáticamente
+      members: [ownerId], 
     });
 
     await server.save();
 
-    // 🔹 Crear canal por defecto "general"
     const channel = new Channel({
       name: "general",
       type: "text",
@@ -32,7 +30,6 @@ export const createServer = async (req, res) => {
 
     await channel.save();
 
-    // 🔹 Asociar canal al servidor
     server.channels.push(channel._id);
     await server.save();
 

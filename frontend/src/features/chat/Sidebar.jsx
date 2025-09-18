@@ -4,7 +4,7 @@ import InviteForm from "../invites/InviteForm";
 import InviteList from "../invites/InviteList";
 import FriendList from "../invites/FriendList";
 import CreateServerModal from "../servers/CreateServerModal";
-import InviteFriendsModal from "../servers/InviteFriendsModal";
+import CreateChannelModal from "../channels/CreateChannelModal";
 
 export default function Sidebar({ onSelectChannel }) {
   const [activeTab, setActiveTab] = useState("servers");
@@ -13,8 +13,9 @@ export default function Sidebar({ onSelectChannel }) {
   const [activeServer, setActiveServer] = useState(null);
   const [activeChannel, setActiveChannel] = useState(null);
   const [showCreateServer, setShowCreateServer] = useState(false);
-  const [showInviteFriends, setShowInviteFriends] = useState(false);
+  const [showCreateChannel, setShowCreateChannel] = useState(false);
 
+  // 🔹 Cargar servidores
   useEffect(() => {
     if (activeTab !== "servers") return;
     const fetchServers = async () => {
@@ -28,6 +29,7 @@ export default function Sidebar({ onSelectChannel }) {
     fetchServers();
   }, [activeTab]);
 
+  // 🔹 Cargar canales
   useEffect(() => {
     if (!activeServer) return;
     const fetchChannels = async () => {
@@ -85,24 +87,16 @@ export default function Sidebar({ onSelectChannel }) {
                 }`}
               >
                 {server.name}
-                {activeServer?._id === server._id && (
-                  <button
-                    className="invite-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowInviteFriends(true);
-                    }}
-                  >
-                    ➕
-                  </button>
-                )}
               </li>
             ))}
           </ul>
 
           {activeServer && (
             <>
-              <h2>Channels</h2>
+              <h2>
+                Channels{" "}
+                <button onClick={() => setShowCreateChannel(true)}>➕</button>
+              </h2>
               <ul className="user-list">
                 {channels.map((ch) => (
                   <li
@@ -127,14 +121,18 @@ export default function Sidebar({ onSelectChannel }) {
         </div>
       )}
 
+      {/* Modales */}
       {showCreateServer && (
-        <CreateServerModal onClose={() => setShowCreateServer(false)} />
+        <CreateServerModal
+          onClose={() => setShowCreateServer(false)}
+          onServerCreated={(server) => setServers([...servers, server])}
+        />
       )}
-
-      {showInviteFriends && activeServer && (
-        <InviteFriendsModal
-          server={activeServer}
-          onClose={() => setShowInviteFriends(false)}
+      {showCreateChannel && (
+        <CreateChannelModal
+          serverId={activeServer._id}
+          onClose={() => setShowCreateChannel(false)}
+          onChannelCreated={(channel) => setChannels([...channels, channel])}
         />
       )}
     </div>
