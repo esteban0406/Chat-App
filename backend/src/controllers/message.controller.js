@@ -6,15 +6,11 @@ export const sendMessage = async (req, res) => {
   try {
     const { text, senderId, channelId } = req.body;
 
-    // Log para verificar datos recibidos
-    console.log("📝 Nuevo mensaje recibido:", { text, senderId, channelId });
-
     if (!text || !senderId || !channelId) {
       return res.status(400).json({ error: "Faltan campos obligatorios" });
     }
 
     const message = new Message({ text, sender: senderId, channel: channelId });
-    console.log("🔊 Emitiendo a canal:", channelId, message.text);
 
     await message.save();
 

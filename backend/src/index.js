@@ -42,6 +42,7 @@ export const io = new Server(server, {
 
 const MONGODB_URI = process.env.MONGODB_URI;
 console.log("connecting to", MONGODB_URI);
+console.log("NODE_ENV:", process.env.NODE_ENV);
 
 // Middlewares
 app.use(express.json());
