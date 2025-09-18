@@ -67,9 +67,14 @@ export const joinServer = async (req, res) => {
 
 export const getServers = async (req, res) => {
   try {
-    const servers = await Server.find().populate("members", "username").populate("channels");
+    const userId = req.user._id; // viene del authMiddleware
+    const servers = await Server.find({ members: userId })
+      .populate("members", "username")
+      .populate("channels");
+
     res.json(servers);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
