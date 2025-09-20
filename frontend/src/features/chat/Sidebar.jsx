@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { getServers, getChannels, deleteChannel, deleteServer } from "../../services/api";
+import {
+  getServers,
+  getChannels,
+  deleteChannel,
+  deleteServer,
+} from "../../services/api";
 import InviteForm from "../invites/InviteForm";
 import InviteList from "../invites/InviteList";
 import FriendList from "../invites/FriendList";
@@ -7,6 +12,7 @@ import CreateServerModal from "../servers/CreateServerModal";
 import CreateChannelModal from "../channels/CreateChannelModal";
 import InviteFriendsModal from "../servers/InviteFriendsModal";
 import ServerInviteList from "../servers/ServerInviteList";
+import "./Sidebar.css";
 
 export default function Sidebar({ onSelectChannel }) {
   const [activeTab, setActiveTab] = useState("servers");
@@ -53,7 +59,7 @@ export default function Sidebar({ onSelectChannel }) {
 
   const handleChannelClick = (channel) => {
     setActiveChannel(channel);
-    onSelectChannel(channel._id);
+    onSelectChannel(channel);
   };
 
   return (

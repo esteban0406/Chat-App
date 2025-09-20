@@ -1,0 +1,20 @@
+/* src/features/voice/VoiceControls.css */
+.voice-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  background: #2f3136;
+  border-top: 1px solid #99aab5;
+}
+
+.talk-indicator {
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: #444;
+  color: white;
+}
+
+.talk-indicator.active {
+  background: #43b581; /* verde cuando hablas */
+}

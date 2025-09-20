@@ -85,6 +85,26 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("❌ Cliente desconectado:", socket.id);
   });
+
+  socket.on("joinVoice", (channelId) => {
+    socket.join(channelId);
+  });
+
+  socket.on("offer", ({ to, offer }) => {
+    io.to(to).emit("offer", { from: socket.id, offer });
+  });
+
+  socket.on("answer", ({ to, answer }) => {
+    io.to(to).emit("answer", { from: socket.id, answer });
+  });
+
+  socket.on("candidate", ({ to, candidate }) => {
+    io.to(to).emit("candidate", { from: socket.id, candidate });
+  });
+
+  socket.on("leaveVoice", (channelId) => {
+    socket.leave(channelId);
+  });
 });
 
 app.use(unknownEndpoint);
