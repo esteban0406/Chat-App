@@ -4,7 +4,6 @@ import {
   getServerInvites,
   acceptFriendInvite,
   rejectFriendInvite,
-  respondServerInvite,
 } from "../../services/api";
 
 // 🔹 Fetch all invites (friends + servers)
@@ -30,9 +29,7 @@ export const respondInvite = createAsyncThunk(
       } else {
         await rejectFriendInvite(id);
       }
-    } else {
-      await respondServerInvite({ inviteId: id, status });
-    }
+    } 
     return { id, status, type };
   }
 );

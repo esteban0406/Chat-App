@@ -1,0 +1,33 @@
+.server-invite-list {
+  margin-top: 20px;
+}
+
+.server-invite-list .invite-item {
+  background: #40444b;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.server-invite-list .invite-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.server-invite-list button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.server-invite-list button:first-child {
+  background: #43b581;
+  color: white;
+}
+
+.server-invite-list button:last-child {
+  background: #f04747;
+  color: white;
+}

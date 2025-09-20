@@ -1,10 +1,13 @@
 // src/features/servers/InviteFriendsModal.jsx
 import React, { useEffect, useState } from "react";
 import { getFriends, sendServerInvite } from "../../services/api";
+import "./InviteFriendsModal.css";
 
 export default function InviteFriendsModal({ server, onClose }) {
   const [friends, setFriends] = useState([]);
   const [status, setStatus] = useState("");
+
+  if (!server) return null
 
   useEffect(() => {
     const fetchFriends = async () => {
@@ -30,6 +33,7 @@ export default function InviteFriendsModal({ server, onClose }) {
   return (
     <div className="modal-overlay">
       <div className="modal">
+        {console.log(server)}
         <h3>Invitar amigos a {server.name}</h3>
         <button className="close-btn" onClick={onClose}>X</button>
 

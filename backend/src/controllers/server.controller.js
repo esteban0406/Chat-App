@@ -75,3 +75,24 @@ export const getServers = async (req, res) => {
   }
 };
 
+export const deleteServer = async (req, res) => {
+  try {
+    const { serverId } = req.params;
+
+    if (!serverId) {
+      return res.status(400).json({ error: "Se requiere el serverId" });
+    }
+
+    // Eliminar todos los canales asociados
+    await Channel.deleteMany({ server: serverId });
+
+    // Eliminar el servidor
+    await Server.findByIdAndDelete(serverId);
+
+    res.json({ message: "Servidor eliminado con éxito" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+

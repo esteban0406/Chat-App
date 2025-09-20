@@ -1,11 +1,12 @@
-// src/features/chat/Sidebar.jsx
 import React, { useEffect, useState } from "react";
-import { getServers, getChannels } from "../../services/api";
+import { getServers, getChannels, deleteChannel, deleteServer } from "../../services/api";
 import InviteForm from "../invites/InviteForm";
 import InviteList from "../invites/InviteList";
 import FriendList from "../invites/FriendList";
 import CreateServerModal from "../servers/CreateServerModal";
 import CreateChannelModal from "../channels/CreateChannelModal";
+import InviteFriendsModal from "../servers/InviteFriendsModal";
+import ServerInviteList from "../servers/ServerInviteList";
 
 export default function Sidebar({ onSelectChannel }) {
   const [activeTab, setActiveTab] = useState("servers");
@@ -15,6 +16,7 @@ export default function Sidebar({ onSelectChannel }) {
   const [activeChannel, setActiveChannel] = useState(null);
   const [showCreateServer, setShowCreateServer] = useState(false);
   const [showCreateChannel, setShowCreateChannel] = useState(false);
+  const [showInviteFriends, setShowInviteFriends] = useState(false); // 👈 nuevo estado
 
   // 🔹 Cargar servidores
   useEffect(() => {
@@ -74,10 +76,50 @@ export default function Sidebar({ onSelectChannel }) {
 
       {activeTab === "servers" ? (
         <>
-          <h2>
-            Servers{" "}
-            <button onClick={() => setShowCreateServer(true)}>➕</button>
+          <h2
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            Servers
+            <div>
+              <button
+                style={{ marginLeft: "10px", cursor: "pointer" }}
+                onClick={() => setShowCreateServer(true)}
+              >
+                ➕
+              </button>
+              {activeServer && (
+                <button
+                  style={{ marginLeft: "5px", cursor: "pointer", color: "red" }}
+                  onClick={async () => {
+                    if (
+                      window.confirm(
+                        `¿Seguro que quieres eliminar ${activeServer.name}?`
+                      )
+                    ) {
+                      try {
+                        await deleteServer(activeServer._id);
+                        setServers(
+                          servers.filter((s) => s._id !== activeServer._id)
+                        );
+                        setActiveServer(null);
+                        setChannels([]);
+                      } catch (err) {
+                        console.error("Error eliminando servidor:", err);
+                        alert("No se pudo eliminar el servidor ❌");
+                      }
+                    }
+                  }}
+                >
+                  ➖
+                </button>
+              )}
+            </div>
           </h2>
+
           <ul className="user-list">
             {servers.map((server) => (
               <li
@@ -94,6 +136,7 @@ export default function Sidebar({ onSelectChannel }) {
 
           {activeServer && (
             <>
+              {/* Sección Channels */}
               <h2
                 style={{
                   display: "flex",
@@ -102,12 +145,47 @@ export default function Sidebar({ onSelectChannel }) {
                 }}
               >
                 Channels
-                <button
-                  style={{ marginLeft: "10px", cursor: "pointer" }}
-                  onClick={() => setShowCreateChannel(true)}
-                >
-                  ➕
-                </button>
+                <div>
+                  <button
+                    style={{ marginLeft: "10px", cursor: "pointer" }}
+                    onClick={() => setShowCreateChannel(true)}
+                  >
+                    ➕
+                  </button>
+                  <button
+                    style={{
+                      marginLeft: "5px",
+                      cursor: "pointer",
+                      color: "red",
+                    }}
+                    onClick={async () => {
+                      if (activeChannel) {
+                        if (
+                          window.confirm(
+                            `¿Seguro que deseas eliminar el canal #${activeChannel.name}?`
+                          )
+                        ) {
+                          try {
+                            await deleteChannel(activeChannel._id);
+                            setChannels(
+                              channels.filter(
+                                (ch) => ch._id !== activeChannel._id
+                              )
+                            );
+                            setActiveChannel(null);
+                            onSelectChannel(null);
+                          } catch (err) {
+                            console.error("Error eliminando canal:", err);
+                          }
+                        }
+                      } else {
+                        alert("Selecciona un canal para eliminar");
+                      }
+                    }}
+                  >
+                    ➖
+                  </button>
+                </div>
               </h2>
 
               <ul className="user-list">
@@ -124,6 +202,24 @@ export default function Sidebar({ onSelectChannel }) {
                 ))}
               </ul>
 
+              {/* Botón para invitar amigos */}
+              <button
+                style={{
+                  marginTop: "10px",
+                  padding: "6px",
+                  width: "100%",
+                  background: "#7289da",
+                  border: "none",
+                  color: "white",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+                onClick={() => setShowInviteFriends(true)}
+              >
+                Invitar amigos
+              </button>
+
+              {/* Modal Crear Canal */}
               {showCreateChannel && (
                 <CreateChannelModal
                   serverId={activeServer._id}
@@ -133,6 +229,14 @@ export default function Sidebar({ onSelectChannel }) {
                   }
                 />
               )}
+
+              {/* Modal Invitar Amigos */}
+              {showInviteFriends && (
+                <InviteFriendsModal
+                  server={activeServer}
+                  onClose={() => setShowInviteFriends(false)}
+                />
+              )}
             </>
           )}
         </>
@@ -140,6 +244,7 @@ export default function Sidebar({ onSelectChannel }) {
         <div className="friends-tab">
           <InviteForm />
           <InviteList />
+          <ServerInviteList />
           <FriendList />
         </div>
       )}

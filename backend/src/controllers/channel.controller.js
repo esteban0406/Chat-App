@@ -62,3 +62,25 @@ export const getChannels = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+export const deleteChannel = async (req, res) => {
+  try {
+    const { channelId } = req.params;
+
+    const channel = await Channel.findById(channelId);
+    if (!channel) {
+      return res.status(404).json({ error: "Canal no encontrado" });
+    }
+
+    // Eliminar referencia del servidor
+    await Server.findByIdAndUpdate(channel.server, {
+      $pull: { channels: channelId }
+    });
+
+    await Channel.findByIdAndDelete(channelId);
+
+    res.json({ message: "Canal eliminado correctamente", channelId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
