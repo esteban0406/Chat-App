@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import path from "path";
 
 import {
   requestLogger,
@@ -24,6 +25,12 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
+
+app.use(express.static(path.join(process.cwd(), "dist")));
+
+app.get((req, res) => {
+  res.sendFile(path.join(process.cwd(), "dist", "index.html"));
+});
 
 app.use(
   cors({
