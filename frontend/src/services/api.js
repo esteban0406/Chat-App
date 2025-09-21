@@ -1,7 +1,11 @@
 import axios from "axios";
 
+const baseURL =
+  import.meta.env.NODE_ENV === "production"
+    ? "/api"
+    : "http://localhost:4000/api";
 const API = axios.create({
-  baseURL: "http://localhost:4000/api",
+  baseURL,
   withCredentials: true,
 });
 
@@ -66,6 +70,8 @@ export const rejectFriendInvite = (inviteId) =>
   API.post(`/friends/respond/${inviteId}`, { status: "rejected" });
 export const getFriends = () => API.get("/friends/list");
 
-
+/* ========================
+   🔹 Server Invites
+======================== */
 
 export default API;

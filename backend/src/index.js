@@ -28,7 +28,7 @@ const server = http.createServer(app);
 
 app.use(express.static(path.join(process.cwd(), "dist")));
 
-app.get((req, res) => {
+app.get("/", (req, res) => {
   res.sendFile(path.join(process.cwd(), "dist", "index.html"));
 });
 
@@ -73,9 +73,6 @@ app.use("/api/channels", channelRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/friends", friendRoutes);
 app.use("/api/invites", serverInviteRoutes);
-
-// Ruta simple de prueba
-app.get("/", (req, res) => res.send("API funcionando 🚀"));
 
 // 🔌 Sockets
 io.on("connection", (socket) => {
