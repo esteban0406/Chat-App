@@ -63,7 +63,7 @@ export default function Sidebar({ onSelectChannel }) {
   };
 
   return (
-    <div className="sidebar">
+    <div className="sidebar-content">
       {/* Tabs */}
       <div className="sidebar-tabs">
         <button

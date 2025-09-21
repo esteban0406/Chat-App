@@ -33,6 +33,13 @@ export const searchUser = (username) =>
 export const createServer = (data) => API.post("/servers", data);
 export const joinServer = (data) => API.post("/servers/join", data);
 export const getServers = () => API.get("/servers");
+export const getServerInvites = () => API.get("/invites/pending");
+export const sendServerInvite = (data) => API.post("/invites/send", data);
+export const acceptServerInvite = (inviteId) =>
+  API.post(`/invites/accept/${inviteId}`);
+export const rejectServerInvite = (inviteId) =>
+  API.post(`/invites/reject/${inviteId}`);
+export const deleteServer = (serverId) => API.delete(`/servers/${serverId}`);
 
 /* ========================
    🔹 Channels
@@ -59,15 +66,6 @@ export const rejectFriendInvite = (inviteId) =>
   API.post(`/friends/respond/${inviteId}`, { status: "rejected" });
 export const getFriends = () => API.get("/friends/list");
 
-/* ========================
-   🔹 Server Invites
-======================== */
-export const getServerInvites = () => API.get("/invites/pending");
-export const sendServerInvite = (data) => API.post("/invites/send", data);
-export const acceptServerInvite = (inviteId) =>
-  API.post(`/invites/accept/${inviteId}`);
-export const rejectServerInvite = (inviteId) =>
-  API.post(`/invites/reject/${inviteId}`);
-export const deleteServer = (serverId) => API.delete(`/servers/${serverId}`);
+
 
 export default API;

@@ -1,7 +1,6 @@
 import ServerInvite from "../models/serverInvite.js";
 import Server from "../models/Server.js";
 
-// 📌 Enviar invitación
 export const sendServerInvite = async (req, res) => {
   try {
     const { serverId, to } = req.body;
@@ -27,7 +26,6 @@ export const sendServerInvite = async (req, res) => {
   }
 };
 
-// 📌 Responder invitación
 export const respondServerInvite = async (req, res) => {
   try {
     const { inviteId } = req.params;
@@ -52,7 +50,6 @@ export const respondServerInvite = async (req, res) => {
   }
 };
 
-// 📌 Obtener invitaciones pendientes del usuario
 export const getPendingServerInvites = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -60,11 +57,9 @@ export const getPendingServerInvites = async (req, res) => {
       .populate("from", "username")
       .populate("server", "name");
 
-    // 🔹 Filtrar invitaciones con servidor eliminado
     const validInvites = [];
     for (const invite of invites) {
       if (!invite.server) {
-        // marcar automáticamente como rechazado
         invite.status = "rejected";
         await invite.save();
       } else {
@@ -73,8 +68,6 @@ export const getPendingServerInvites = async (req, res) => {
     }
 
     res.json(validInvites);
-
-    res.json(invites);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -1,22 +1,15 @@
-.voice-controls {
+.chat-section {
+  flex: 1;
   display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 10px;
-  padding: 8px;
-  border-top: 1px solid #99aab5;
+  flex-direction: column;
+  background-color: #36393f;
+}
+
+.chat-header {
+  padding: 10px 20px;
+  border-bottom: 1px solid #99aab5;
   background-color: #2f3136;
-}
-
-.voice-controls button {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  color: white;
-  font-size: 1.2rem;
-}
-
-.voice-controls button:hover {
-  opacity: 0.8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { createServer } from "../../services/api";
+import "./InviteFriendsModal.css";
+
 
 export default function CreateServerModal({ onClose, onCreated }) {
   const [name, setName] = useState("");

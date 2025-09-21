@@ -3,10 +3,10 @@ import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import ChatMessages from "../messages/ChatMessages";
 import ChatInput from "./ChatInput";
-import Sidebar from "./Sidebar";
+import Sidebar from "../sidebar/Sidebar";
 import UserMenu from "../user/UserMenu";
 import VoiceControls from "../voice/VoiceControls";
-import "./chat.css"
+import "./chat.css";
 
 export default function ChatRoom() {
   const { user } = useSelector((state) => state.auth);
@@ -18,7 +18,9 @@ export default function ChatRoom() {
     const joinVoice = async () => {
       if (channel?.type === "voice") {
         try {
-          const userStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const userStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
           setStream(userStream);
         } catch (err) {
           console.error("Error accediendo al micrófono:", err);
@@ -54,7 +56,9 @@ export default function ChatRoom() {
         <header className="chat-header">
           <h2>
             Bienvenido {user?.username || "Invitado"}{" "}
-            {channel ? `(Canal: ${channel.name})` : ""}
+            {channel && channel.status !== "undenied" && channel.name
+              ? `(Canal: ${channel.name})`
+              : ""}
           </h2>
           <UserMenu />
         </header>

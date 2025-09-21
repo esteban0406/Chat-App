@@ -1,5 +1,6 @@
 import React from "react";
 import useMessages from "./useMessages"; // Import the hook
+import "./messages.css";
 
 export default function ChatMessages({ channelId }) {
   const messages = useMessages(channelId); // Use the hook

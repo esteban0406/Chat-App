@@ -1,4 +1,6 @@
 import React from "react";
+import "./invites.css";
+
 
 export default function InviteItem({ invite, onRespond }) {
   const isFriendInvite = invite.type === "friend";

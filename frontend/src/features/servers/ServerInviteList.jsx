@@ -4,6 +4,8 @@ import {
   acceptServerInvite,
   rejectServerInvite,
 } from "../../services/api";
+import "./InviteFriendsModal.css";
+
 
 export default function ServerInviteList() {
   const [invites, setInvites] = useState([]);

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { searchUser, sendFriendInvite } from "../../services/api";
 import { useSelector } from "react-redux";
+import "./invites.css";
+
 
 export default function InviteForm() {
   const [username, setUsername] = useState("");
