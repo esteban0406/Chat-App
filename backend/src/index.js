@@ -26,12 +26,6 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-app.use(express.static(path.join(process.cwd(), "dist")));
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(process.cwd(), "dist", "index.html"));
-});
-
 app.use(
   cors({
     origin: ["http://localhost:5173", "http://frontend:5173"],
@@ -109,6 +103,13 @@ io.on("connection", (socket) => {
   socket.on("leaveVoice", (channelId) => {
     socket.leave(channelId);
   });
+});
+
+const distPath = path.join(process.cwd(), "dist");
+app.use(express.static(distPath));
+
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(distPath, "index.html"));
 });
 
 app.use(unknownEndpoint);
