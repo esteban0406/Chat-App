@@ -2,7 +2,6 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "build": "cd ../frontend && npm install && npm run build && cp -r dist ../backend/dist",
     "start": "node src/index.js",
     "dev": "CHOKIDAR_USEPOLLING=true nodemon src/index.js"
   },
