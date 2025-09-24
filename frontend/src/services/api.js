@@ -40,6 +40,8 @@ export const acceptServerInvite = (inviteId) =>
 export const rejectServerInvite = (inviteId) =>
   API.post(`/invites/reject/${inviteId}`);
 export const deleteServer = (serverId) => API.delete(`/servers/${serverId}`);
+export const editServer = (serverId, data) => API.put(`/servers/${serverId}`, data);
+export const leaveServer = (serverId) => API.post(`/servers/${serverId}/leave`);
 
 /* ========================
    🔹 Channels
