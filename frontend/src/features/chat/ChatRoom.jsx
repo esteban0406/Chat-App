@@ -65,14 +65,7 @@ export default function ChatRoom() {
 
         {channel ? (
           channel.type === "voice" ? (
-            <VoiceControls
-              stream={stream}
-              onLeave={() => {
-                stream?.getTracks().forEach((track) => track.stop());
-                setStream(null);
-                setChannel(null);
-              }}
-            />
+            <VoiceControls channel={channel} user={user} />
           ) : (
             <>
               <ChatMessages channelId={channel._id} />
