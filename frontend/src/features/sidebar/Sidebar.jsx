@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import InviteForm from "../invites/InviteForm";
 import InviteList from "../invites/InviteList";
 import FriendList from "../invites/FriendList";
@@ -6,29 +6,21 @@ import ServerInviteList from "../servers/ServerInviteList";
 import CreateServerModal from "../servers/CreateServerModal";
 import ServerSection from "../servers/ServerSection";
 import ChannelSection from "../channels/ChannelSection";
-import { useServers } from "../../hooks/useServers";
-import { useChannels } from "../../hooks/useChannels";
+import { useServers } from "../servers/useServers";
 import "./Sidebar.css";
 
 export default function Sidebar({ onSelectChannel }) {
   const [activeTab, setActiveTab] = useState("servers");
   const [showCreateServer, setShowCreateServer] = useState(false);
 
-  const {
-    servers,
-    setServers,
-    activeServer,
-    setActiveServer,
-    removeServer,
-  } = useServers(activeTab);
+  const { activeServer, loadServers } = useServers();
 
-  const {
-    channels,
-    setChannels,
-    activeChannel,
-    setActiveChannel,
-    removeChannel,
-  } = useChannels(activeServer, onSelectChannel);
+  // ✅ Cargar servidores solo al entrar a la pestaña "servers"
+  useEffect(() => {
+    if (activeTab === "servers") {
+      loadServers();
+    }
+  }, [activeTab, loadServers]);
 
   return (
     <div className="sidebar-content">
@@ -50,30 +42,8 @@ export default function Sidebar({ onSelectChannel }) {
 
       {activeTab === "servers" ? (
         <>
-          {/* Sección de servidores */}
-          <ServerSection
-            servers={servers}
-            setServers={setServers}
-            activeServer={activeServer}
-            setActiveServer={setActiveServer}
-            removeServer={removeServer}
-            setChannels={setChannels}
-            setActiveChannel={setActiveChannel}
-            onOpenCreateServer={() => setShowCreateServer(true)}
-          />
-
-          {/* Sección de canales */}
-          {activeServer && (
-            <ChannelSection
-              channels={channels}
-              setChannels={setChannels}
-              activeServer={activeServer}
-              activeChannel={activeChannel}
-              setActiveChannel={setActiveChannel}
-              removeChannel={removeChannel}
-              onSelectChannel={onSelectChannel}
-            />
-          )}
+          <ServerSection onOpenCreateServer={() => setShowCreateServer(true)} />
+          {activeServer && <ChannelSection />}
         </>
       ) : (
         <div className="friends-tab">
@@ -84,12 +54,8 @@ export default function Sidebar({ onSelectChannel }) {
         </div>
       )}
 
-      {/* Modal Crear Servidor */}
       {showCreateServer && (
-        <CreateServerModal
-          onClose={() => setShowCreateServer(false)}
-          onServerCreated={(newServer) => setServers([...servers, newServer])}
-        />
+        <CreateServerModal onClose={() => setShowCreateServer(false)} />
       )}
     </div>
   );

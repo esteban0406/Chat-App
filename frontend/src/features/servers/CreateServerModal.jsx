@@ -1,47 +1,43 @@
 import React, { useState } from "react";
-import { createServer } from "../../services/api";
+import { useServers } from "./useServers";
 import "./InviteFriendsModal.css";
 
-
-export default function CreateServerModal({ onClose, onCreated }) {
+export default function CreateServerModal({ onClose }) {
   const [name, setName] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [description, setDescription] = useState("");
+
+  const { createServer } = useServers();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim()) {
-      setError("El nombre del servidor es obligatorio");
-      return;
-    }
     try {
-      setLoading(true);
-      await createServer({ name }); // 👈 solo mandamos el nombre
-      setLoading(false);
-      onClose();
-      if (onCreated) onCreated();
+      await createServer({ name, description }).unwrap();
+      onClose(); // cerramos modal si todo bien
     } catch (err) {
-      setError("Error al crear servidor");
-      setLoading(false);
+      console.error("Error creando servidor:", err);
+      alert("No se pudo crear el servidor ❌");
     }
   };
 
   return (
     <div className="modal-overlay">
       <div className="modal">
-        <h3>Crear nuevo servidor</h3>
+        <h2>Crear Servidor</h2>
         <form onSubmit={handleSubmit}>
           <input
             type="text"
             placeholder="Nombre del servidor"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            required
           />
-          {error && <p style={{ color: "red" }}>{error}</p>}
+          <textarea
+            placeholder="Descripción (opcional)"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
           <div className="modal-actions">
-            <button type="submit" disabled={loading}>
-              {loading ? "Creando..." : "Crear"}
-            </button>
+            <button type="submit">Crear</button>
             <button type="button" onClick={onClose}>
               Cancelar
             </button>

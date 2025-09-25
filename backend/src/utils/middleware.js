@@ -6,6 +6,9 @@ export const requestLogger = (request, response, next) => {
   logger.info("Method:", request.method);
   logger.info("Path:  ", request.path);
   logger.info("Body:  ", request.body);
+  logger.info("Query: ", request.query);
+  logger.info("Params:", request.params);
+  logger.info("Time: ", new Date().toISOString());
   logger.info("---");
   next();
 };

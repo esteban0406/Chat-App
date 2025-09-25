@@ -1,59 +1,43 @@
-import React from "react";
-import { deleteServer } from "../../services/api";
+import React, { useEffect } from "react";
+import { useServers } from "./useServers";
 
-export default function ServerSection({
-  servers,
-  setServers,
-  activeServer,
-  setActiveServer,
-  setChannels,
-  setActiveChannel,
-  onOpenCreateServer,
-}) {
+export default function ServerSection({ onOpenCreateServer }) {
+  const {
+    servers,
+    activeServer,
+    loading,
+    error,
+    loadServers,
+    deleteServerById,
+    setActive,
+  } = useServers();
+
+  useEffect(() => {
+    loadServers();
+  }, [loadServers]);
+
+  if (loading) return <p>Cargando servidores...</p>;
+  if (error) return <p>Error: {error}</p>;
+
+  const handleDelete = async () => {
+    if (
+      window.confirm(`¿Seguro que quieres eliminar ${activeServer.name}?`)
+    ) {
+      try {
+        await deleteServerById(activeServer._id).unwrap();
+      } catch (err) {
+        alert("No se pudo eliminar el servidor ❌");
+      }
+    }
+  };
+
   return (
     <>
-      <h2
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
+      <h2 style={{ display: "flex", justifyContent: "space-between" }}>
         Servers
         <div>
-          <button
-            style={{ marginLeft: "10px", cursor: "pointer" }}
-            onClick={onOpenCreateServer}
-          >
-            ➕
-          </button>
-          {activeServer && (
-            <button
-              style={{ marginLeft: "5px", cursor: "pointer", color: "red" }}
-              onClick={async () => {
-                if (
-                  window.confirm(
-                    `¿Seguro que quieres eliminar ${activeServer.name}?`
-                  )
-                ) {
-                  try {
-                    await deleteServer(activeServer._id);
-                    setServers(
-                      servers.filter((s) => s._id !== activeServer._id)
-                    );
-                    setActiveServer(null);
-                    setChannels([]);
-                    setActiveChannel(null);
-                  } catch (err) {
-                    console.error("Error eliminando servidor:", err);
-                    alert("No se pudo eliminar el servidor ❌");
-                  }
-                }
-              }}
-            >
-              ➖
-            </button>
-          )}
+          <button onClick={onOpenCreateServer}>➕</button>
+          {activeServer && <button onClick={handleDelete}>➖</button>}
         </div>
       </h2>
 
@@ -61,7 +45,7 @@ export default function ServerSection({
         {servers.map((server) => (
           <li
             key={server._id}
-            onClick={() => setActiveServer(server)}
+            onClick={() => setActive(server)}
             className={`server-item ${
               activeServer?._id === server._id ? "active" : ""
             }`}

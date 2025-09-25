@@ -1,87 +1,58 @@
 import React, { useEffect, useState } from "react";
-import { getChannels, deleteChannel } from "../../services/api";
+import { useChannels } from "./useChannels";
 import CreateChannelModal from "../channels/CreateChannelModal";
 import InviteFriendsModal from "../servers/InviteFriendsModal";
 
-export default function ChannelSection({
-  channels,
-  setChannels,
-  activeServer,
-  activeChannel,
-  setActiveChannel,
-  onSelectChannel,
-}) {
+export default function ChannelSection({ onSelectChannel }) {
+  const {
+    channels,
+    activeChannel,
+    activeServer,
+    loading,
+    loadChannels,
+    deleteChannelById,
+    setActive,
+  } = useChannels();
+
   const [showCreateChannel, setShowCreateChannel] = useState(false);
   const [showInviteFriends, setShowInviteFriends] = useState(false);
 
-  // 🔹 Cargar canales
+  // ✅ Cargar canales cuando cambia el servidor activo
   useEffect(() => {
-    if (!activeServer) return;
-    const fetchChannels = async () => {
-      try {
-        const res = await getChannels(activeServer._id);
-        setChannels(res.data);
+    if (activeServer) {
+      loadChannels(activeServer._id);
+    }
+  }, [activeServer, loadChannels]);
 
-        if (res.data.length > 0) {
-          setActiveChannel(res.data[0]);
-          onSelectChannel(res.data[0]._id);
-        }
-      } catch (err) {
-        console.error("Error cargando canales:", err);
-      }
-    };
-    fetchChannels();
-  }, [activeServer, setChannels, setActiveChannel, onSelectChannel]);
+  if (loading) return <p>Cargando canales...</p>;
 
   const handleChannelClick = (channel) => {
-    setActiveChannel(channel);
-    onSelectChannel(channel);
+    setActive(channel);
+  };
+
+  const handleDeleteChannel = async () => {
+    if (!activeChannel) return alert("Selecciona un canal para eliminar");
+    if (
+      window.confirm(
+        `¿Seguro que deseas eliminar el canal #${activeChannel.name}?`
+      )
+    ) {
+      try {
+        await deleteChannelById(activeChannel._id).unwrap();
+        onSelectChannel(null);
+      } catch {
+        alert("No se pudo eliminar el canal ❌");
+      }
+    }
   };
 
   return (
     <>
-      <h2
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
+      <h2 style={{ display: "flex", justifyContent: "space-between" }}>
         Channels
         <div>
-          <button
-            style={{ marginLeft: "10px", cursor: "pointer" }}
-            onClick={() => setShowCreateChannel(true)}
-          >
-            ➕
-          </button>
-          <button
-            style={{ marginLeft: "5px", cursor: "pointer", color: "red" }}
-            onClick={async () => {
-              if (activeChannel) {
-                if (
-                  window.confirm(
-                    `¿Seguro que deseas eliminar el canal #${activeChannel.name}?`
-                  )
-                ) {
-                  try {
-                    await deleteChannel(activeChannel._id);
-                    setChannels(
-                      channels.filter((ch) => ch._id !== activeChannel._id)
-                    );
-                    setActiveChannel(null);
-                    onSelectChannel(null);
-                  } catch (err) {
-                    console.error("Error eliminando canal:", err);
-                  }
-                }
-              } else {
-                alert("Selecciona un canal para eliminar");
-              }
-            }}
-          >
-            ➖
-          </button>
+          <button onClick={() => setShowCreateChannel(true)}>➕</button>
+          <button onClick={handleDeleteChannel}>➖</button>
         </div>
       </h2>
 
@@ -99,35 +70,20 @@ export default function ChannelSection({
         ))}
       </ul>
 
-      {/* Botón para invitar amigos */}
       <button
-        style={{
-          marginTop: "10px",
-          padding: "6px",
-          width: "100%",
-          background: "#7289da",
-          border: "none",
-          color: "white",
-          borderRadius: "4px",
-          cursor: "pointer",
-        }}
+        style={{ marginTop: "10px" }}
         onClick={() => setShowInviteFriends(true)}
       >
         Invitar amigos
       </button>
 
-      {/* Modal Crear Canal */}
       {showCreateChannel && (
         <CreateChannelModal
           serverId={activeServer._id}
           onClose={() => setShowCreateChannel(false)}
-          onChannelCreated={(newChannel) =>
-            setChannels([...channels, newChannel])
-          }
         />
       )}
 
-      {/* Modal Invitar Amigos */}
       {showInviteFriends && (
         <InviteFriendsModal
           server={activeServer}
