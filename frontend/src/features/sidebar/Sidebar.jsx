@@ -9,7 +9,7 @@ import ChannelSection from "../channels/ChannelSection";
 import { useServers } from "../servers/useServers";
 import "./Sidebar.css";
 
-export default function Sidebar({ onSelectChannel }) {
+export default function Sidebar() {
   const [activeTab, setActiveTab] = useState("servers");
   const [showCreateServer, setShowCreateServer] = useState(false);
 
