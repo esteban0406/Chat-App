@@ -20,6 +20,7 @@ import channelRoutes from "./routes/channel.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 import friendRoutes from "./routes/friend.routes.js";
 import serverInviteRoutes from "./routes/serverInvite.routes.js";
+import voiceRoutes from "./routes/voice.routes.js";
 
 dotenv.config();
 
@@ -73,6 +74,8 @@ app.use("/api/channels", channelRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/friends", friendRoutes);
 app.use("/api/invites", serverInviteRoutes);
+app.use("/api/voice", voiceRoutes);
+
 
 // Ruta simple de prueba
 app.get("/", (req, res) => res.send("API funcionando 🚀"));

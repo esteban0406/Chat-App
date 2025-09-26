@@ -1,19 +1,22 @@
 import React, { useState } from "react";
-import { createChannel } from "../../services/api";
-import "./CreateChannelModal.css"
+import { useChannels } from "./useChannels";
+import "./CreateChannelModal.css";
 
-export default function CreateChannelModal({ serverId, onClose, onChannelCreated }) {
+export default function CreateChannelModal({ serverId, onClose }) {
   const [name, setName] = useState("");
   const [type, setType] = useState("text");
+
+  const { createChannel } = useChannels();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await createChannel({ name, type, serverId });
-      onChannelCreated(res.data);
+      // 👇 Aquí está la clave: pasamos un objeto PLANO { name, type, serverId }
+      await createChannel({ name, type, serverId }).unwrap();
       onClose();
     } catch (err) {
       console.error("Error creando canal:", err);
+      alert("No se pudo crear el canal ❌");
     }
   };
 
