@@ -95,4 +95,52 @@ export const deleteServer = async (req, res) => {
   }
 };
 
+export const editServer = async (req, res) =>{
+  try{
+    const { serverId } = req.params;
 
+    if(!serverId){
+      return res.status(400).json({ error: "Se requiere el serverId" });
+    }
+
+    const { name, description, owner, members } = req.body;
+
+    const server = await Server.findById(serverId);
+    if (!server) {
+      return res.status(404).json({ error: "Servidor no encontrado" });
+    }
+
+    server.name = name || server.name;
+    server.description = description || server.description;
+    server.owner = owner || server.owner;
+    server.members = members || server.members;
+
+    await server.save();
+
+    res.json(server);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const leaveServer = async (req, res) => {
+  try {
+    const { serverId } = req.params;
+    const userId = req.user._id;
+
+    if (!serverId) {
+      return res.status(400).json({ error: "Se requiere el serverId" });
+    }
+
+    const server = await Server.findById(serverId);
+    if (!server) {
+      return res.status(404).json({ error: "Servidor no encontrado" });
+    }
+
+    server.members = server.members.filter(member => member.toString() !== userId);
+    await server.save();
+    res.json({ message: "Has salido del servidor" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}; 

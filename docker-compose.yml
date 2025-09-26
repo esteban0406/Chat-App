@@ -12,7 +12,6 @@ services:
     command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
     volumes:
       - ./frontend/src:/app/src
-      - /app/node_modules
 
   backend:
     build: ./backend
@@ -23,7 +22,23 @@ services:
       - MONGODB_URI=${MONGODB_URI}
       - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
+      - LIVEKIT_API_KEY=${LIVEKIT_API_KEY}
+      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET}
+      - LIVEKIT_URL=${LIVEKIT_URL}
     volumes:
       - ./backend/src:/app/src
       - ./backend/.env:/app/.env
     command: npm run dev
+  
+  livekit:
+   image: livekit/livekit-server
+   container_name: livekit
+   ports:
+    - "7880:7880"
+    - "7881:7881"
+   environment:
+    LIVEKIT_KEYS: "devkey: 9f62c0bb94e94b1b88d86fbb1c9c83d05c634fc9d8e56b431d8f3a11ab3e2a7c"
+    LIVEKIT_API_KEY: devkey
+    LIVEKIT_API_SECRET: 9f62c0bb94e94b1b88d86fbb1c9c83d05c634fc9d8e56b431d8f3a11ab3e2a7c
+    LIVEKIT_LOG_LEVEL: debug
+

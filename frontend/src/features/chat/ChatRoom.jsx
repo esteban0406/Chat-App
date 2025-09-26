@@ -1,22 +1,22 @@
-// src/features/chat/ChatRoom.jsx
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import ChatMessages from "../messages/ChatMessages";
 import ChatInput from "./ChatInput";
 import Sidebar from "../sidebar/Sidebar";
 import UserMenu from "../user/UserMenu";
 import VoiceControls from "../voice/VoiceControls";
+import { selectActiveChannel } from "../channels/channelSlice";
 import "./chat.css";
 
 export default function ChatRoom() {
   const { user } = useSelector((state) => state.auth);
-  const [channel, setChannel] = useState(null);
+  const activeChannel = useSelector(selectActiveChannel);
   const [stream, setStream] = useState(null);
 
   // 🔹 Capturar micrófono si es canal de voz
   useEffect(() => {
     const joinVoice = async () => {
-      if (channel?.type === "voice") {
+      if (activeChannel?.type === "voice") {
         try {
           const userStream = await navigator.mediaDevices.getUserMedia({
             audio: true,
@@ -36,19 +36,19 @@ export default function ChatRoom() {
 
     joinVoice();
 
-    // cleanup al salir del canal
+    // cleanup al desmontar o al salir del canal
     return () => {
       if (stream) {
         stream.getTracks().forEach((t) => t.stop());
       }
     };
-  }, [channel]);
+  }, [activeChannel]);
 
   return (
     <div className="app">
       {/* Sidebar */}
       <aside className="sidebar">
-        <Sidebar onSelectChannel={setChannel} />
+        <Sidebar /> {/* ✅ ya no pasamos onSelectChannel */}
       </aside>
 
       {/* Main chat section */}
@@ -56,27 +56,18 @@ export default function ChatRoom() {
         <header className="chat-header">
           <h2>
             Bienvenido {user?.username || "Invitado"}{" "}
-            {channel && channel.status !== "undenied" && channel.name
-              ? `(Canal: ${channel.name})`
-              : ""}
+            {activeChannel?.name ? `(Canal: ${activeChannel.name})` : ""}
           </h2>
           <UserMenu />
         </header>
 
-        {channel ? (
-          channel.type === "voice" ? (
-            <VoiceControls
-              stream={stream}
-              onLeave={() => {
-                stream?.getTracks().forEach((track) => track.stop());
-                setStream(null);
-                setChannel(null);
-              }}
-            />
+        {activeChannel ? (
+          activeChannel.type === "voice" ? (
+            <VoiceControls channel={activeChannel} user={user} />
           ) : (
             <>
-              <ChatMessages channelId={channel._id} />
-              <ChatInput channelId={channel._id} />
+              <ChatMessages channelId={activeChannel._id} />
+              <ChatInput channelId={activeChannel._id} />
             </>
           )
         ) : (

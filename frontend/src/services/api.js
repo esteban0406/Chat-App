@@ -42,11 +42,16 @@ export const acceptServerInvite = (inviteId) =>
 export const rejectServerInvite = (inviteId) =>
   API.post(`/invites/reject/${inviteId}`);
 export const deleteServer = (serverId) => API.delete(`/servers/${serverId}`);
+export const editServer = (serverId, data) =>
+  API.put(`/servers/${serverId}`, data);
+export const leaveServer = (serverId) => API.post(`/servers/${serverId}/leave`);
 
 /* ========================
    🔹 Channels
 ======================== */
-export const createChannel = (data) => API.post("/channels", data);
+export const createChannel = (data) => {
+  return API.post("/channels", data);
+};
 export const getChannels = (serverId) => API.get(`/channels/${serverId}`);
 export const deleteChannel = (channelId) =>
   API.delete(`/channels/${channelId}`);
@@ -68,8 +73,11 @@ export const rejectFriendInvite = (inviteId) =>
   API.post(`/friends/respond/${inviteId}`, { status: "rejected" });
 export const getFriends = () => API.get("/friends/list");
 
+<<<<<<< HEAD
 /* ========================
    🔹 Server Invites
 ======================== */
 
+=======
+>>>>>>> Test
 export default API;

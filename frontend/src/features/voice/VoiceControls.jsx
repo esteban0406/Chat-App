@@ -1,50 +1,48 @@
-// src/features/voice/VoiceControls.jsx
-import React, { useEffect, useState } from "react";
-import "./VoiceControls.css"
+import React, { useState } from "react";
+import { joinVoiceChannel } from "../../services/voice";
 
-export default function VoiceControls({ stream, onLeave }) {
+export default function VoiceControls({ channel, user }) {
+  const [room, setRoom] = useState(null);
   const [muted, setMuted] = useState(false);
-  const [isTalking, setIsTalking] = useState(false);
 
-  useEffect(() => {
-    if (!stream) return;
+  const handleJoin = async () => {
+    try {
+      const r = await joinVoiceChannel(channel._id, user.username);
+      setRoom(r);
+    } catch (err) {
+      console.error("Error uniéndose al canal de voz:", err);
+    }
+  };
 
-    const audioContext = new AudioContext();
-    const source = audioContext.createMediaStreamSource(stream);
-    const analyser = audioContext.createAnalyser();
-    analyser.fftSize = 512;
-
-    source.connect(analyser);
-
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-    const detectTalking = () => {
-      analyser.getByteFrequencyData(dataArray);
-      const volume = dataArray.reduce((a, b) => a + b) / dataArray.length;
-      setIsTalking(volume > 20); // umbral de voz
-      requestAnimationFrame(detectTalking);
-    };
-
-    detectTalking();
-
-    return () => {
-      audioContext.close();
-    };
-  }, [stream]);
+  const handleLeave = () => {
+    if (room) {
+      room.disconnect();
+      setRoom(null);
+    }
+  };
 
   const toggleMute = () => {
-    if (!stream) return;
-    stream.getAudioTracks().forEach((track) => (track.enabled = muted));
+    if (!room) return;
+    room.localParticipant.audioTracks.forEach((pub) => {
+      if (pub.track) {
+        pub.track.muted = !muted;
+      }
+    });
     setMuted(!muted);
   };
 
   return (
     <div className="voice-controls">
-      <button onClick={onLeave}>🚪 Salir</button>
-      <button onClick={toggleMute}>{muted ? "🔇 Activar" : "🎤 Silenciar"}</button>
-      <span className={`talk-indicator ${isTalking ? "active" : ""}`}>
-        {isTalking ? "🟢 Hablando" : "⚪️ Silencio"}
-      </span>
+      {!room ? (
+        <button onClick={handleJoin}>🎙️ Unirse a voz</button>
+      ) : (
+        <>
+          <button onClick={handleLeave}>❌ Salir</button>
+          <button onClick={toggleMute}>
+            {muted ? "🔇 Mutear" : "🎤 Desmutear"}
+          </button>
+        </>
+      )}
     </div>
   );
 }
