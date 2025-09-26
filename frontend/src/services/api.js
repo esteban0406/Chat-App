@@ -1,9 +1,7 @@
 import axios from "axios";
 
-const baseURL ="/api";
-
 const API = axios.create({
-  baseURL,
+  baseURL: import.meta.env.VITE_API_URL || "/api",
   withCredentials: true,
 });
 
@@ -73,11 +71,4 @@ export const rejectFriendInvite = (inviteId) =>
   API.post(`/friends/respond/${inviteId}`, { status: "rejected" });
 export const getFriends = () => API.get("/friends/list");
 
-<<<<<<< HEAD
-/* ========================
-   🔹 Server Invites
-======================== */
-
-=======
->>>>>>> Test
 export default API;
