@@ -9,7 +9,7 @@ export const NODE_ENV = process.env.NODE_ENV || "development";
 export const corsConfig = {
   origin: [
     "http://localhost:5173", // dev
-    "https://your-frontend.onrender.com", // production frontend
+    "https://chatapp-frontend-020n.onrender.com", // production frontend
   ],
   credentials: true,
 };
