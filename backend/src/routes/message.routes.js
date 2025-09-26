@@ -1,9 +1,12 @@
-import express from "express";
-import { sendMessage, getMessages } from "../controllers/message.controller.js";
+import { Router } from "express";
+import { messageController } from "../controllers/message.controller.js";
 
-const router = express.Router();
+export default function createMessageRoutes(io) {
+  const router = Router();
+  const { sendMessage, getMessages } = messageController(io);
 
-router.post("/", sendMessage);
-router.get("/:channelId", getMessages);
+  router.post("/", sendMessage);
+  router.get("/:channelId", getMessages);
 
-export default router;
+  return router;
+}
