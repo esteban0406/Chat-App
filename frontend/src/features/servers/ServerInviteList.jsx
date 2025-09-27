@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import {
   getServerInvites,
-  acceptServerInvite,
   rejectServerInvite,
-} from "../../services/api";
+  acceptServerInvite
+} from "../invites/invite.service";
 import "./InviteFriendsModal.css";
 
 

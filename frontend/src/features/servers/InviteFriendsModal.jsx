@@ -1,6 +1,6 @@
 // src/features/servers/InviteFriendsModal.jsx
 import React, { useEffect, useState } from "react";
-import { getFriends, sendServerInvite } from "../../services/api";
+import {getFriends, sendServerInvite} from "../invites/invite.service"
 import "./InviteFriendsModal.css";
 
 export default function InviteFriendsModal({ server, onClose }) {

@@ -1,9 +1,12 @@
 import React from "react";
-import useMessages from "./useMessages"; // Import the hook
+import useMessages from "./useMessages"; 
 import "./messages.css";
 
 export default function ChatMessages({ channelId }) {
-  const messages = useMessages(channelId); // Use the hook
+  const { messages, loading, error } = useMessages(channelId);
+
+  if (loading) return <p>Cargando mensajes...</p>;
+  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <div className="message-list">
@@ -22,3 +25,4 @@ export default function ChatMessages({ channelId }) {
     </div>
   );
 }
+

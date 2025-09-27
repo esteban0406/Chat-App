@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getFriends } from "../../services/api";
+import { getFriends } from "./invite.service";
 
 export default function FriendList() {
   const [friends, setFriends] = useState([]);

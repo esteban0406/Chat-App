@@ -26,7 +26,7 @@ export default function ServerSection({ onOpenCreateServer }) {
       try {
         await deleteServerById(activeServer._id).unwrap();
       } catch (err) {
-        alert("No se pudo eliminar el servidor ❌");
+        alert("No se pudo eliminar el servidor ❌", console.error(err));
       }
     }
   };

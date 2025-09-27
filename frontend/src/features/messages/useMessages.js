@@ -1,28 +1,17 @@
-// src/features/messages/useMessages.js
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getMessages } from "../../services/api";
+import { fetchMessages, addMessage, clearMessages } from "./messagesSlice";
 import socket from "../../services/socket";
-import { addMessage, setMessages, clearMessages } from "./messagesSlice";
 
 export default function useMessages(channelId) {
   const dispatch = useDispatch();
-  const messages = useSelector((state) => state.messages.items);
+  const { items: messages, loading, error } = useSelector((state) => state.messages);
 
   useEffect(() => {
     if (!channelId) return;
 
     dispatch(clearMessages());
-
-    const fetchMessages = async () => {
-      try {
-        const res = await getMessages(channelId);
-        dispatch(setMessages(res.data));
-      } catch (err) {
-        console.error("Error cargando mensajes:", err);
-      }
-    };
-    fetchMessages();
+    dispatch(fetchMessages(channelId)); 
 
     socket.emit("joinChannel", channelId);
 
@@ -40,5 +29,5 @@ export default function useMessages(channelId) {
     };
   }, [channelId, dispatch]);
 
-  return messages;
+  return { messages, loading, error };
 }

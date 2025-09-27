@@ -1,12 +1,37 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { getMessages, sendMessage } from "./message.service";
 
-const initialState = {
-  items: [], // lista de mensajes
-};
+// 🔹 Thunks
+export const fetchMessages = createAsyncThunk(
+  "messages/fetchMessages",
+  async (channelId, { rejectWithValue }) => {
+    try {
+      return await getMessages(channelId); // devuelve lista
+    } catch (err) {
+      return rejectWithValue(err.message || "Error cargando mensajes");
+    }
+  }
+);
 
+export const postMessage = createAsyncThunk(
+  "messages/postMessage",
+  async (data, { rejectWithValue }) => {
+    try {
+      return await sendMessage(data); // devuelve mensaje creado
+    } catch (err) {
+      return rejectWithValue(err.message || "Error enviando mensaje");
+    }
+  }
+);
+
+// 🔹 Slice
 const messagesSlice = createSlice({
   name: "messages",
-  initialState,
+  initialState: {
+    items: [],
+    loading: false,
+    error: null,
+  },
   reducers: {
     addMessage: (state, action) => {
       const exists = state.items.find((msg) => msg._id === action.payload._id);
@@ -14,18 +39,31 @@ const messagesSlice = createSlice({
         state.items.push(action.payload);
       }
     },
-    setMessages: (state, action) => {
-      state.items = action.payload; // reemplaza mensajes (cuando cargas de la API)
-    },
     clearMessages: (state) => {
       state.items = [];
     },
-    setError: (state, action) => {
-      state.error = action.payload;
-    },
+  },
+  extraReducers: (builder) => {
+    builder
+      // fetchMessages
+      .addCase(fetchMessages.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchMessages.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload;
+      })
+      .addCase(fetchMessages.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // postMessage
+      .addCase(postMessage.fulfilled, (state, action) => {
+        state.items.push(action.payload);
+      });
   },
 });
 
-export const { addMessage, setMessages, clearMessages } = messagesSlice.actions;
-
+export const { addMessage, clearMessages } = messagesSlice.actions;
 export default messagesSlice.reducer;

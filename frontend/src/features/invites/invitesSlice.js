@@ -4,7 +4,7 @@ import {
   getServerInvites,
   acceptFriendInvite,
   rejectFriendInvite,
-} from "../../services/api";
+} from "./invite.service";
 
 // 🔹 Fetch all invites (friends + servers)
 export const fetchInvites = createAsyncThunk("invites/fetchInvites", async () => {

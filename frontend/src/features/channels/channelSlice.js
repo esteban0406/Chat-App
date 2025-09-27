@@ -1,15 +1,16 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { getChannels, deleteChannel, createChannel } from "../../services/api";
+import { getChannels, deleteChannel, createChannel } from "./channel.service";
 
 // --- THUNKS ---
 export const fetchChannels = createAsyncThunk(
   "channels/fetchChannels",
   async (serverId, { rejectWithValue }) => {
     try {
-      const res = await getChannels(serverId);
-      return res.data;
+      const res = await getChannels(serverId); // res = canales directamente
+      return res;
     } catch (err) {
-      return rejectWithValue(err.response?.data || "Error cargando canales");
+      console.error("❌ Error fetchChannels:", err);
+      return rejectWithValue(err.message || "Error cargando canales");
     }
   }
 );
@@ -18,11 +19,11 @@ export const addChannel = createAsyncThunk(
   "channels/addChannel",
   async ({ name, type, serverId }, { rejectWithValue }) => {
     try {
-      // 👈 ahora enviamos el body como lo espera el backend
-      const res = await createChannel({ name, type, serverId });
-      return res.data;
+      const res = await createChannel({ name, type, serverId }); // res = canal creado
+      return res;
     } catch (err) {
-      return rejectWithValue(err.response?.data || "Error creando canal");
+      console.error("❌ Error addChannel:", err);
+      return rejectWithValue(err.message || "Error creando canal");
     }
   }
 );
@@ -31,13 +32,15 @@ export const removeChannel = createAsyncThunk(
   "channels/removeChannel",
   async (channelId, { rejectWithValue }) => {
     try {
-      await deleteChannel(channelId);
+      await deleteChannel(channelId); // no devuelve nada
       return channelId;
     } catch (err) {
-      return rejectWithValue(err.response?.data || "Error eliminando canal");
+      console.error("❌ Error removeChannel:", err);
+      return rejectWithValue(err.message || "Error eliminando canal");
     }
   }
 );
+
 
 // --- SLICE ---
 const channelSlice = createSlice({

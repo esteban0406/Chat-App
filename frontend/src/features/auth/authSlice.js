@@ -1,30 +1,28 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { loginUser, registerUser } from "../../services/api";
+import { loginUser, registerUser } from "./auth.service";
 
-// 🔹 Thunks (acciones async)
 export const login = createAsyncThunk("auth/login", async (data, thunkAPI) => {
   try {
-    const res = await loginUser(data);
-    // Guardar token en localStorage
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
-    return res.data;
+    const res = await loginUser(data); 
+    localStorage.setItem("token", res.token);
+    localStorage.setItem("user", JSON.stringify(res.user));
+    return res; 
   } catch (err) {
-    return thunkAPI.rejectWithValue(err.response?.data?.message || "Login failed");
+    return thunkAPI.rejectWithValue(err.message || "Login failed");
   }
 });
 
 export const signup = createAsyncThunk("auth/signup", async (data, thunkAPI) => {
   try {
-    const res = await registerUser(data);
-    // Opcional: login automático después de registrarse
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
-    return res.data;
+    const res = await registerUser(data); 
+    localStorage.setItem("token", res.token);
+    localStorage.setItem("user", JSON.stringify(res.user));
+    return res;
   } catch (err) {
-    return thunkAPI.rejectWithValue(err.response?.data?.message || "Signup failed");
+    return thunkAPI.rejectWithValue(err.message || "Signup failed");
   }
 });
+
 
 // 🔹 Estado inicial
 const initialState = {

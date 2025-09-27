@@ -1,5 +1,5 @@
 import * as LiveKit from "livekit-client";
-import API from "./api";
+import {API} from "./api";
 
 export async function joinVoiceChannel(channelId, userId) {
   // pedir token al backend

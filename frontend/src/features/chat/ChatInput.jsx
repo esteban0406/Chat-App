@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
-import { sendMessage } from "../../services/api";
+import { sendMessage } from "../messages/message.service";
 
 export default function ChatInput({ channelId }) {
   const [text, setText] = useState("");

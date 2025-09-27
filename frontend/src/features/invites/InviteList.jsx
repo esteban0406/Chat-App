@@ -4,7 +4,7 @@ import {
   getFriendInvites,
   acceptFriendInvite,
   rejectFriendInvite,
-} from "../../services/api";
+} from "./invite.service";
 import "./invites.css";
 
 export default function InviteList() {

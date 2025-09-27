@@ -1,15 +1,15 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { getServers, deleteServer, createServer } from "../../services/api";
+import { getServers, deleteServer, createServer } from "./server.service";
 
-// --- THUNKS ---
 export const fetchServers = createAsyncThunk(
   "servers/fetchServers",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await getServers();
-      return res.data;
+      const res = await getServers(); 
+      return res;
     } catch (err) {
-      return rejectWithValue(err.response?.data || "Error cargando servidores");
+      console.error("❌ Error fetchServers:", err);
+      return rejectWithValue(err.message || "Error cargando servidores");
     }
   }
 );
@@ -18,26 +18,28 @@ export const addServer = createAsyncThunk(
   "servers/addServer",
   async (serverData, { rejectWithValue }) => {
     try {
-      const res = await createServer(serverData);
-      return res.data;
+      const res = await createServer(serverData); 
+      return res;
     } catch (err) {
-      return rejectWithValue(err.response?.data || "Error creando servidor");
+      console.error("❌ Error addServer:", err);
+      return rejectWithValue(err.message || "Error creando servidor");
     }
   }
 );
-
 
 export const removeServer = createAsyncThunk(
   "servers/removeServer",
   async (serverId, { rejectWithValue }) => {
     try {
-      await deleteServer(serverId);
+      await deleteServer(serverId); 
       return serverId;
     } catch (err) {
-      return rejectWithValue(err.response?.data || "Error eliminando servidor");
+      console.error("❌ Error removeServer:", err);
+      return rejectWithValue(err.message || "Error eliminando servidor");
     }
   }
 );
+
 
 // --- SLICE ---
 const serverSlice = createSlice({
