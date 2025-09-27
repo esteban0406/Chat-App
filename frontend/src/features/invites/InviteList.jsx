@@ -1,57 +1,34 @@
-
-import React, { useEffect, useState } from "react";
-import {
-  getFriendInvites,
-  acceptFriendInvite,
-  rejectFriendInvite,
-} from "./invite.service";
-import "./invites.css";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchInvites, respondInvite } from "./invitesSlice";
 
 export default function InviteList() {
-  const [invites, setInvites] = useState([]);
+  const dispatch = useDispatch();
+  const { items: invites, loading, error } = useSelector((state) => state.invites);
 
   useEffect(() => {
-    const fetchInvites = async () => {
-      try {
-        const res = await getFriendInvites();
-        setInvites(res.data);
-      } catch (err) {
-        console.error("Error cargando invitaciones:", err);
-      }
-    };
-    fetchInvites();
-  }, []);
+    dispatch(fetchInvites());
+  }, [dispatch]);
 
-  const handleRespond = async (inviteId, status) => {
-    try {
-      if (status === "accepted") {
-        await acceptFriendInvite(inviteId);
-      } else {
-        await rejectFriendInvite(inviteId);
-      }
-      const res = await getFriendInvites();
-      setInvites(res.data);
-    } catch (err) {
-      console.error("Error respondiendo invitación:", err);
-    }
-  };
+  if (loading) return <p>Cargando invitaciones...</p>;
+  if (error) return <p>Error: {error}</p>;
+
+  const friendInvites = invites.filter((i) => i.type === "friend");
 
   return (
     <div className="friend-list">
-      <h3>Solicitudes pendientes</h3>
-      {invites.length === 0 ? (
+      <h3>Solicitudes de amistad</h3>
+      {friendInvites.length === 0 ? (
         <p>No tienes invitaciones</p>
       ) : (
         <ul>
-          {invites.map((invite) => (
+          {friendInvites.map((invite) => (
             <li key={invite._id}>
               {invite.from?.username || "Desconocido"}{" "}
-              <span style={{ color: "gray" }}>
-                ({invite.from?.email || "Sin email"})
-              </span>
-              <div className="invite-actions" style={{ marginTop: "8px" }}>
-                <button onClick={() => handleRespond(invite._id, "accepted")}>Aceptar</button>
-                <button onClick={() => handleRespond(invite._id, "rejected")}>Rechazar</button>
+              <span style={{ color: "gray" }}>({invite.from?.email || "Sin email"})</span>
+              <div style={{ marginTop: "8px" }}>
+                <button onClick={() => dispatch(respondInvite({ id: invite._id, status: "accepted", type: invite.type }))}>Aceptar</button>
+                <button onClick={() => dispatch(respondInvite({ id: invite._id, status: "rejected", type: invite.type }))}>Rechazar</button>
               </div>
             </li>
           ))}

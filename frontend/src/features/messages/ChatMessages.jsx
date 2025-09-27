@@ -1,9 +1,9 @@
 import React from "react";
-import useMessages from "./useMessages"; 
+import useMessages from "./useMessages";
 import "./messages.css";
 
-export default function ChatMessages({ channelId }) {
-  const { messages, loading, error } = useMessages(channelId);
+export default function ChatMessages() {
+  const { messages, loading, error } = useMessages();
 
   if (loading) return <p>Cargando mensajes...</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
@@ -25,4 +25,3 @@ export default function ChatMessages({ channelId }) {
     </div>
   );
 }
-

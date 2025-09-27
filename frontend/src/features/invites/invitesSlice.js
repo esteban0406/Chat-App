@@ -1,12 +1,15 @@
+// src/features/invites/invitesSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import {
   getFriendInvites,
   getServerInvites,
   acceptFriendInvite,
   rejectFriendInvite,
+  acceptServerInvite,
+  rejectServerInvite,
 } from "./invite.service";
 
-// 🔹 Fetch all invites (friends + servers)
+// Fetch both friend + server invites
 export const fetchInvites = createAsyncThunk("invites/fetchInvites", async () => {
   const [friendRes, serverRes] = await Promise.all([
     getFriendInvites(),
@@ -19,22 +22,22 @@ export const fetchInvites = createAsyncThunk("invites/fetchInvites", async () =>
   ];
 });
 
-// 🔹 Respond to an invite
+// Accept / Reject invite
 export const respondInvite = createAsyncThunk(
   "invites/respondInvite",
   async ({ id, status, type }) => {
     if (type === "friend") {
-      if (status === "accepted") {
-        await acceptFriendInvite(id);
-      } else {
-        await rejectFriendInvite(id);
-      }
-    } 
+      if (status === "accepted") await acceptFriendInvite(id);
+      else await rejectFriendInvite(id);
+    } else if (type === "server") {
+      if (status === "accepted") await acceptServerInvite(id);
+      else await rejectServerInvite(id);
+    }
     return { id, status, type };
   }
 );
 
-const inviteSlice = createSlice({
+const invitesSlice = createSlice({
   name: "invites",
   initialState: {
     items: [],
@@ -48,7 +51,6 @@ const inviteSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // fetchInvites
       .addCase(fetchInvites.pending, (state) => {
         state.loading = true;
       })
@@ -60,13 +62,11 @@ const inviteSlice = createSlice({
         state.loading = false;
         state.error = action.error.message;
       })
-
-      // respondInvite
       .addCase(respondInvite.fulfilled, (state, action) => {
         state.items = state.items.filter((i) => i._id !== action.payload.id);
       });
   },
 });
 
-export const { clearInvites } = inviteSlice.actions;
-export default inviteSlice.reducer;
+export const { clearInvites } = invitesSlice.actions;
+export default invitesSlice.reducer;

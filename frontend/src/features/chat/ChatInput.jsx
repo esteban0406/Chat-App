@@ -1,26 +1,25 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
-import { sendMessage } from "../messages/message.service";
+import { useDispatch, useSelector } from "react-redux";
+import { postMessage } from "../messages/messagesSlice";
+import { selectActiveChannel } from "../channels/channelSlice";
 
-export default function ChatInput({ channelId }) {
+export default function ChatInput() {
   const [text, setText] = useState("");
+  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const activeChannel = useSelector(selectActiveChannel);
 
-  const handleSend = async (e) => {
+  const handleSend = (e) => {
     e.preventDefault();
-    if (text.trim() === "" || !channelId) return;
+    if (text.trim() === "" || !activeChannel?._id) return;
 
-    try {
-      // Enviar mensaje al backend
-      await sendMessage({
-        text,
-        senderId: user._id,
-        channelId,
-      });
-      setText("");
-    } catch (err) {
-      console.error("Error enviando mensaje:", err);
-    }
+    dispatch(postMessage({
+      text,
+      senderId: user._id,
+      channelId: activeChannel._id,
+    }));
+
+    setText("");
   };
 
   return (

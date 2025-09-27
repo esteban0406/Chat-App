@@ -1,72 +1,38 @@
-import React, { useEffect, useState } from "react";
-import {
-  getServerInvites,
-  rejectServerInvite,
-  acceptServerInvite
-} from "../invites/invite.service";
-import "./InviteFriendsModal.css";
-
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchInvites, respondInvite } from "../invites/invitesSlice";
 
 export default function ServerInviteList() {
-  const [invites, setInvites] = useState([]);
-  const [status, setStatus] = useState("");
+  const dispatch = useDispatch();
+  const { items: invites, loading, error } = useSelector((state) => state.invites);
 
   useEffect(() => {
-    const fetchInvites = async () => {
-      try {
-        const res = await getServerInvites();
-        setInvites(res.data);
-      } catch (err) {
-        console.error("Error cargando invitaciones de servidor:", err);
-      }
-    };
-    fetchInvites();
-  }, []);
+    dispatch(fetchInvites());
+  }, [dispatch]);
 
-  const handleRespond = async (inviteId, action) => {
-    try {
-      if (action === "accepted") {
-        await acceptServerInvite(inviteId);
-        setStatus("Invitación aceptada ✅");
-      } else {
-        await rejectServerInvite(inviteId);
-        setStatus("Invitación rechazada ❌");
-      }
+  if (loading) return <p>Cargando invitaciones...</p>;
+  if (error) return <p>Error: {error}</p>;
 
-      // 🔹 Quitar la invitación de la lista después de responder
-      setInvites(invites.filter((i) => i._id !== inviteId));
-    } catch (err) {
-      console.error("Error respondiendo invitación:", err);
-      setStatus("Error al responder la invitación ❌");
-    }
-  };
+  const serverInvites = invites.filter((i) => i.type === "server");
 
   return (
     <div className="invite-list">
-      <h3>Invitaciones a Servidores</h3>
-
-      {invites.length === 0 ? (
+      <h3>Invitaciones a servidores</h3>
+      {serverInvites.length === 0 ? (
         <p>No tienes invitaciones pendientes</p>
       ) : (
         <ul>
-          {invites.map((invite) => (
+          {serverInvites.map((invite) => (
             <li key={invite._id}>
-              Invitación al servidor{" "}
-              {invite.server?.name || "Servidor eliminado"}
+              Invitación al servidor {invite.server?.name || "Servidor eliminado"}
               <div>
-                <button onClick={() => handleRespond(invite._id, "accepted")}>
-                  Aceptar
-                </button>
-                <button onClick={() => handleRespond(invite._id, "rejected")}>
-                  Rechazar
-                </button>
+                <button onClick={() => dispatch(respondInvite({ id: invite._id, status: "accepted", type: invite.type }))}>Aceptar</button>
+                <button onClick={() => dispatch(respondInvite({ id: invite._id, status: "rejected", type: invite.type }))}>Rechazar</button>
               </div>
             </li>
           ))}
         </ul>
       )}
-
-      {status && <p>{status}</p>}
     </div>
   );
 }

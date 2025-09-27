@@ -1,20 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { getFriends } from "./invite.service";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchFriends } from "./friendsSlice";
 
 export default function FriendList() {
-  const [friends, setFriends] = useState([]);
+  const dispatch = useDispatch();
+  const { items: friends, loading, error } = useSelector((state) => state.friends);
 
   useEffect(() => {
-    const fetchFriends = async () => {
-      try {
-        const res = await getFriends();
-        setFriends(res.data);
-      } catch (err) {
-        console.error("Error cargando amigos:", err);
-      }
-    };
-    fetchFriends();
-  }, []);
+    dispatch(fetchFriends());
+  }, [dispatch]);
+
+  if (loading) return <p>Cargando amigos...</p>;
+  if (error) return <p>Error: {error}</p>;
 
   return (
     <div className="friend-list">
