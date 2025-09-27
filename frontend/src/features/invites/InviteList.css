@@ -1,5 +1,59 @@
+/* Contenedor general */
+.invite-list-container {
+  margin-top: 1rem;
+}
+
+/* Lista de invitaciones */
 .invite-list {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+}
+
+/* Ítem individual */
+.invite-item {
+  background: #2c2f33;
+  border: 1px solid #3a3f45;
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Texto del remitente */
+.invite-item strong {
+  color: #fff;
+}
+
+.invite-item span {
+  color: #99aab5;
+  font-size: 0.9rem;
+}
+
+/* Acciones */
+.invite-actions {
+  display: flex;
   gap: 10px;
+  justify-content: flex-end;
+}
+
+.invite-actions button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.invite-actions button.accept {
+  background-color: #43b581;
+  color: white;
+}
+
+.invite-actions button.reject {
+  background-color: #f04747;
+  color: white;
 }

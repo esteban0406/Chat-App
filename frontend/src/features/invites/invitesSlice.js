@@ -1,39 +1,28 @@
-// src/features/invites/invitesSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import {
-  getFriendInvites,
-  getServerInvites,
-  acceptFriendInvite,
-  rejectFriendInvite,
-  acceptServerInvite,
-  rejectServerInvite,
-} from "./invite.service";
+import { getInvites, respondToInvite } from "./invite.service";
 
-// Fetch both friend + server invites
-export const fetchInvites = createAsyncThunk("invites/fetchInvites", async () => {
-  const [friendRes, serverRes] = await Promise.all([
-    getFriendInvites(),
-    getServerInvites(),
-  ]);
+export const fetchInvites = createAsyncThunk(
+  "invites/fetchInvites",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await getInvites();
+      if (Array.isArray(res)) return res;
+      return [];
+    } catch (err) {
+      return rejectWithValue(err.message || "Error al cargar invitaciones");
+    }
+  }
+);
 
-  return [
-    ...friendRes.data.map((i) => ({ ...i, type: "friend" })),
-    ...serverRes.data.map((i) => ({ ...i, type: "server" })),
-  ];
-});
-
-// Accept / Reject invite
 export const respondInvite = createAsyncThunk(
   "invites/respondInvite",
-  async ({ id, status, type }) => {
-    if (type === "friend") {
-      if (status === "accepted") await acceptFriendInvite(id);
-      else await rejectFriendInvite(id);
-    } else if (type === "server") {
-      if (status === "accepted") await acceptServerInvite(id);
-      else await rejectServerInvite(id);
+  async ({ id, status, type }, { rejectWithValue }) => {
+    try {
+      const res = await respondToInvite(id, status, type);
+      return { id, status, type, res };
+    } catch (err) {
+      return rejectWithValue(err.message || "Error al responder invitación");
     }
-    return { id, status, type };
   }
 );
 
@@ -44,15 +33,12 @@ const invitesSlice = createSlice({
     loading: false,
     error: null,
   },
-  reducers: {
-    clearInvites: (state) => {
-      state.items = [];
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchInvites.pending, (state) => {
         state.loading = true;
+        state.error = null; 
       })
       .addCase(fetchInvites.fulfilled, (state, action) => {
         state.loading = false;
@@ -60,13 +46,15 @@ const invitesSlice = createSlice({
       })
       .addCase(fetchInvites.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message;
+        state.error = action.payload;
       })
       .addCase(respondInvite.fulfilled, (state, action) => {
         state.items = state.items.filter((i) => i._id !== action.payload.id);
+      })
+      .addCase(respondInvite.rejected, (state, action) => {
+        state.error = action.payload;
       });
   },
 });
 
-export const { clearInvites } = invitesSlice.actions;
 export default invitesSlice.reducer;

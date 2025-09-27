@@ -3,10 +3,14 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { getFriends } from "./invite.service";
 
 // Fetch all friends
-export const fetchFriends = createAsyncThunk("friends/fetchFriends", async () => {
-  const res = await getFriends();
-  return res.data || [];
-});
+export const fetchFriends = createAsyncThunk(
+  "friends/fetchFriends",
+  async () => {
+    const res = await getFriends();
+    if (Array.isArray(res)) return res;
+    return [];
+  }
+);
 
 const friendsSlice = createSlice({
   name: "friends",
@@ -20,6 +24,7 @@ const friendsSlice = createSlice({
     builder
       .addCase(fetchFriends.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(fetchFriends.fulfilled, (state, action) => {
         state.loading = false;

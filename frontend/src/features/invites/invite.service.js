@@ -1,3 +1,4 @@
+// invite.service.js
 import { API, request } from "../../services/api";
 
 // 🔹 Server Invites
@@ -18,3 +19,34 @@ export const acceptFriendInvite = (inviteId) =>
 export const rejectFriendInvite = (inviteId) =>
   request(API.post(`/friends/respond/${inviteId}`, { status: "rejected" }));
 export const getFriends = () => request(API.get("/friends/list"));
+
+// 🔹 Genérico
+export const respondToInvite = (id, status, type) => {
+  if (type === "friend") {
+    return status === "accepted"
+      ? acceptFriendInvite(id)
+      : rejectFriendInvite(id);
+  }
+
+  if (type === "server") {
+    return status === "accepted"
+      ? acceptServerInvite(id)
+      : rejectServerInvite(id);
+  }
+
+  throw new Error("Tipo de invitación desconocido");
+};
+
+export const getInvites = async () => {
+  // Llamar ambas en paralelo
+  const [serverInvites, friendInvites] = await Promise.all([
+    getServerInvites(),
+    getFriendInvites(),
+  ]);
+
+  // Normalizar y devolver en un solo array
+  return [
+    ...serverInvites.map((i) => ({ ...i, type: "server" })),
+    ...friendInvites.map((i) => ({ ...i, type: "friend" })),
+  ];
+};
