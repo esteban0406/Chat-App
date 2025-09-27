@@ -1,0 +1,35 @@
+/* Contenedor principal de Auth */
+.auth-layout {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #2c2f33;
+  color: white;
+}
+
+/* Caja del formulario */
+.auth-box {
+  background: #23272a;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 350px;
+}
+
+/* Pie con el switch login/signup */
+.auth-footer {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.auth-footer button {
+  background: none;
+  border: none;
+  color: #7289da;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.auth-footer button:hover {
+  text-decoration: underline;
+}

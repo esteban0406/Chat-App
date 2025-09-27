@@ -1,0 +1,11 @@
+.server-invite-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.server-invite-item {
+  background: #2c2f33;
+  padding: 10px;
+  border-radius: 4px;
+}

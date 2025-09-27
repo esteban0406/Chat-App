@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useServers } from "./useServers";
+import "./ServerSection.css";
 
 export default function ServerSection({ onOpenCreateServer }) {
   const {

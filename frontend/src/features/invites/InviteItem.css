@@ -19,11 +19,11 @@
 }
 
 .invite-actions button:first-child {
-  background-color: #43b581;
+  background-color: #43b581; /* aceptar */
   color: white;
 }
 
 .invite-actions button:last-child {
-  background-color: #f04747;
+  background-color: #f04747; /* rechazar */
   color: white;
 }

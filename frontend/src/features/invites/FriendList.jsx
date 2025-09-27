@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFriends } from "./friendsSlice";
+import "./FriendList.css";
 
 export default function FriendList() {
   const dispatch = useDispatch();

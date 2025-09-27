@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { sendFriendInvite } from "./invite.service";
 import { searchUser } from "../user/user.service";
-import "./invites.css";
+import "./InviteForm.css";
 
 
 export default function InviteForm() {
@@ -15,16 +15,16 @@ export default function InviteForm() {
       setResult(res.data);
       setStatus("");
     } catch (err) {
-      setStatus("Usuario no encontrado");
+      setStatus("Usuario no encontrado", console.error(err));
     }
   };
 
   const handleInvite = async () => {
     try {
-      await sendFriendInvite({ to: result._id }); // ✅ solo enviamos el destinatario
+      await sendFriendInvite({ to: result._id }); 
       setStatus("Invitación enviada ✅");
     } catch (err) {
-      setStatus("Error al enviar invitación ❌");
+      setStatus("Error al enviar invitación ❌", console.error(err));
     }
   };
 
