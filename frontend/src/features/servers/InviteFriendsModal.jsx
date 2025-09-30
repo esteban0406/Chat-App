@@ -1,4 +1,3 @@
-// src/features/servers/InviteFriendsModal.jsx
 import React, { useEffect, useState } from "react";
 import {getFriends, sendServerInvite} from "../invites/invite.service"
 import "./InviteFriendsModal.css";
@@ -26,7 +25,7 @@ export default function InviteFriendsModal({ server, onClose }) {
       await sendServerInvite({ serverId: server._id, to: friendId });
       setStatus("Invitación enviada ✅");
     } catch (err) {
-      setStatus("Error enviando invitación ❌");
+      setStatus("Error enviando invitación ❌"), console.error(err);
     }
   };
 

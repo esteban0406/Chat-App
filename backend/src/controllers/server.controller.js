@@ -95,33 +95,37 @@ export const deleteServer = async (req, res) => {
   }
 };
 
-export const editServer = async (req, res) =>{
-  try{
-    const { serverId } = req.params;
-
-    if(!serverId){
-      return res.status(400).json({ error: "Se requiere el serverId" });
-    }
-
-    const { name, description, owner, members } = req.body;
+export const removeMember = async (req, res) => {
+  try {
+    const { serverId, memberId } = req.params;
 
     const server = await Server.findById(serverId);
     if (!server) {
       return res.status(404).json({ error: "Servidor no encontrado" });
     }
 
-    server.name = name || server.name;
-    server.description = description || server.description;
-    server.owner = owner || server.owner;
-    server.members = members || server.members;
+    // Validar permisos: solo el dueño puede eliminar miembros
+    if (req.user._id.toString() !== server.owner.toString()) {
+      return res.status(403).json({ error: "No tienes permisos para eliminar miembros" });
+    }
+
+    // Verificar si el miembro está en el servidor
+    if (!server.members.includes(memberId)) {
+      return res.status(400).json({ error: "El miembro no pertenece al servidor" });
+    }
+
+    // Eliminar al miembro
+    server.members = server.members.filter(
+      (m) => m.toString() !== memberId
+    );
 
     await server.save();
-
     res.json(server);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 export const leaveServer = async (req, res) => {
   try {

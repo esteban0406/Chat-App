@@ -1,11 +1,16 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { getServers, deleteServer, createServer } from "./server.service";
+import {
+  getServers,
+  deleteServer,
+  createServer,
+  removeMember as removeMemberApi,
+} from "./server.service";
 
 export const fetchServers = createAsyncThunk(
   "servers/fetchServers",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await getServers(); 
+      const res = await getServers();
       return res;
     } catch (err) {
       console.error("❌ Error fetchServers:", err);
@@ -18,7 +23,7 @@ export const addServer = createAsyncThunk(
   "servers/addServer",
   async (serverData, { rejectWithValue }) => {
     try {
-      const res = await createServer(serverData); 
+      const res = await createServer(serverData);
       return res;
     } catch (err) {
       console.error("❌ Error addServer:", err);
@@ -31,7 +36,7 @@ export const removeServer = createAsyncThunk(
   "servers/removeServer",
   async (serverId, { rejectWithValue }) => {
     try {
-      await deleteServer(serverId); 
+      await deleteServer(serverId);
       return serverId;
     } catch (err) {
       console.error("❌ Error removeServer:", err);
@@ -40,6 +45,13 @@ export const removeServer = createAsyncThunk(
   }
 );
 
+export const removeMember = createAsyncThunk(
+  "servers/removeMember",
+  async ({ serverId, memberId }) => {
+    const res = await removeMemberApi(serverId, memberId);
+    return res.data;
+  }
+);
 
 // --- SLICE ---
 const serverSlice = createSlice({
@@ -76,6 +88,16 @@ const serverSlice = createSlice({
         state.list = state.list.filter((s) => s._id !== action.payload);
         if (state.activeServer?._id === action.payload) {
           state.activeServer = null;
+        }
+      })
+      .addCase(removeMember.fulfilled, (state, action) => {
+        const updatedServer = action.payload;
+        const index = state.list.findIndex((s) => s._id === updatedServer._id);
+        if (index !== -1) {
+          state.list[index] = updatedServer;
+        }
+        if (state.activeServer?._id === updatedServer._id) {
+          state.activeServer = updatedServer;
         }
       });
   },

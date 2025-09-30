@@ -1,6 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useServers } from "./useServers";
 import "./ServerSection.css";
+import EditServerModal from "./editServerModal";
 
 export default function ServerSection({ onOpenCreateServer }) {
   const {
@@ -12,6 +13,8 @@ export default function ServerSection({ onOpenCreateServer }) {
     deleteServerById,
     setActive,
   } = useServers();
+
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     loadServers();
@@ -32,6 +35,10 @@ export default function ServerSection({ onOpenCreateServer }) {
     }
   };
 
+  const handleEdit = () => {
+    setShowEditModal(true);
+  };
+
   return (
     <>
       <h2 style={{ display: "flex", justifyContent: "space-between" }}>
@@ -39,6 +46,7 @@ export default function ServerSection({ onOpenCreateServer }) {
         <div>
           <button onClick={onOpenCreateServer}>➕</button>
           {activeServer && <button onClick={handleDelete}>➖</button>}
+          {activeServer && <button onClick={handleEdit}>✏️</button>}
         </div>
       </h2>
 
@@ -55,6 +63,13 @@ export default function ServerSection({ onOpenCreateServer }) {
           </li>
         ))}
       </ul>
+
+      {showEditModal && (
+        <EditServerModal
+          onClose={() => setShowEditModal(false)}
+          onSave={loadServers}
+        />
+      )}
     </>
   );
 }

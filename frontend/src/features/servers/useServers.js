@@ -9,6 +9,7 @@ import {
   selectActiveServer,
   selectServersLoading,
   selectServersError,
+  removeMember,
 } from "./serverSlice";
 
 export function useServers() {
@@ -33,6 +34,8 @@ export function useServers() {
     (server) => dispatch(setActiveServer(server)),
     [dispatch]
   );
+  const removeMemberById = (serverId, memberId) =>
+    dispatch(removeMember({ serverId, memberId }));
 
   return {
     servers,
@@ -43,5 +46,6 @@ export function useServers() {
     createServer,
     deleteServerById,
     setActive,
+    removeMemberById,
   };
 }

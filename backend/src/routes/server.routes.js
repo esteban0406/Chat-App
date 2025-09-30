@@ -4,7 +4,7 @@ import {
   joinServer,
   getServers,
   deleteServer,
-  editServer,
+  removeMember,
   leaveServer
 } from "../controllers/server.controller.js";
 import { authMiddleware } from "../utils/middleware.js";
@@ -15,7 +15,7 @@ router.post("/", authMiddleware, createServer);
 router.get("/", authMiddleware, getServers);
 router.post("/join", joinServer);
 router.delete("/:serverId", authMiddleware, deleteServer);
-router.put("/:serverId", authMiddleware, editServer);
+router.delete("/:serverId/members/:memberId", authMiddleware, removeMember);
 router.post("/:serverId/leave", authMiddleware, leaveServer);
 
 export default router;
