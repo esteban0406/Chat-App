@@ -14,4 +14,6 @@ const serverInviteSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+serverInviteSchema.index({ from: 1, to: 1, server: 1 }, { unique: true });
+
 export default mongoose.model("ServerInvite", serverInviteSchema);

@@ -38,6 +38,8 @@ export const authMiddleware = async (req, res, next) => {
       return res.status(401).json({ error: "Usuario no encontrado" });
     }
 
+    console.log("🔑 Usuario autenticado:", req.user);
+
     next();
   } catch (err) {
     res.status(401).json({ error: "Token inválido o expirado" });

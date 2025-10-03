@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import {getFriends, sendServerInvite} from "../invites/invite.service"
-import { useServers } from "./useServers";
+import {getFriends, sendServerInvite} from "../../invites/invite.service"
+import { useServers } from "../useServers";
 import "./InviteFriendsModal.css";
 
 export default function InviteFriendsModal({ onClose }) {

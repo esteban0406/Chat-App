@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useChannels } from "./useChannels";
 import CreateChannelModal from "../channels/CreateChannelModal";
-import InviteFriendsModal from "../servers/InviteFriendsModal";
+import InviteFriendsModal from "../servers/modals/InviteFriendsModal";
 import "./ChannelSection.css";
 
 export default function ChannelSection({ onSelectChannel }) {

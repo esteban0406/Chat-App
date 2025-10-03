@@ -22,6 +22,7 @@ export default function ServerInviteList() {
         <ul>
           {invites.map((invite) => (
             <li key={invite._id}>
+              {console.log(invite)}
               Invitación al servidor {invite.server?.name || "Servidor eliminado"}
               <div>
                 <button onClick={() => dispatch(respondInvite({ id: invite._id, status: "accepted", type: invite.type }))}>Aceptar</button>

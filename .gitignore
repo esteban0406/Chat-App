@@ -11,3 +11,6 @@
 # Docker volumes / db data
 db_data/
 data/
+
+#vscode
+.vscode/

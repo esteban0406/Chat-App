@@ -38,15 +38,17 @@ export const respondToInvite = (id, status, type) => {
 };
 
 export const getInvites = async () => {
-  // Llamar ambas en paralelo
   const [serverInvites, friendInvites] = await Promise.all([
     getServerInvites(),
     getFriendInvites(),
   ]);
 
-  // Normalizar y devolver en un solo array
+  console.log("Server Invites: ", serverInvites);
+  console.log("Friend Invites: ", friendInvites);
+
   return [
     ...serverInvites.map((i) => ({ ...i, type: "server" })),
     ...friendInvites.map((i) => ({ ...i, type: "friend" })),
   ];
 };
+

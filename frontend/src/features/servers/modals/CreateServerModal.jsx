@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useServers } from "./useServers";
+import { useServers } from "../useServers";
 import "./InviteFriendsModal.css";
 
 export default function CreateServerModal({ onClose }) {

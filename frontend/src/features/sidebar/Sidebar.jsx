@@ -3,7 +3,7 @@ import InviteForm from "../invites/InviteForm";
 import InviteList from "../invites/InviteList";
 import FriendList from "../invites/FriendList";
 import ServerInviteList from "../servers/ServerInviteList";
-import CreateServerModal from "../servers/CreateServerModal";
+import CreateServerModal from "../servers/modals/CreateServerModal";
 import ServerSection from "../servers/ServerSection";
 import ChannelSection from "../channels/ChannelSection";
 import { useServers } from "../servers/useServers";

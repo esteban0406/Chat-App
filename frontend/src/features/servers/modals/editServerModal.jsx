@@ -1,5 +1,5 @@
 import React from "react";
-import { useServers } from "./useServers";
+import { useServers } from "../useServers";
 import "./EditServerModal.css";
 
 export default function EditServerModal({ onClose, onSave }) {

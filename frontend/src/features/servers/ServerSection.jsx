@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useServers } from "./useServers";
 import "./ServerSection.css";
-import EditServerModal from "./editServerModal";
+import EditServerModal from "./modals/editServerModal";
 
 export default function ServerSection({ onOpenCreateServer }) {
   const {
