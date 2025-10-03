@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from "react";
 import {getFriends, sendServerInvite} from "../invites/invite.service"
+import { useServers } from "./useServers";
 import "./InviteFriendsModal.css";
 
-export default function InviteFriendsModal({ server, onClose }) {
+export default function InviteFriendsModal({ onClose }) {
   const [friends, setFriends] = useState([]);
   const [status, setStatus] = useState("");
-
-  if (!server) return null
+  const { activeServer: server } = useServers();
 
   useEffect(() => {
     const fetchFriends = async () => {
       try {
         const res = await getFriends();
-        setFriends(res.data);
+        setFriends(Array.isArray(res) ? res : []);
+        console.log("Amigos cargados:", res);
       } catch (err) {
         console.error("Error cargando amigos:", err);
+        setFriends([]);
       }
     };
     fetchFriends();
@@ -22,21 +24,33 @@ export default function InviteFriendsModal({ server, onClose }) {
 
   const handleInvite = async (friendId) => {
     try {
+      if (!server) return; // 🔒 protección extra
       await sendServerInvite({ serverId: server._id, to: friendId });
       setStatus("Invitación enviada ✅");
     } catch (err) {
-      setStatus("Error enviando invitación ❌"), console.error(err);
+      setStatus("Error enviando invitación ❌");
+      console.error(err);
     }
   };
+
+  if (!server) {
+    return (
+      <div className="modal-overlay">
+        <div className="modal">
+          <p>Cargando servidor...</p>
+          <button className="close-btn" onClick={onClose}>X</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="modal-overlay">
       <div className="modal">
-        {console.log(server)}
         <h3>Invitar amigos a {server.name}</h3>
         <button className="close-btn" onClick={onClose}>X</button>
 
-        {friends.length === 0 ? (
+        {(!friends || friends.length === 0) ? (
           <p>No tienes amigos disponibles</p>
         ) : (
           <ul className="friend-list">

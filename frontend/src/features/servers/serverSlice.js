@@ -53,7 +53,6 @@ export const removeMember = createAsyncThunk(
   }
 );
 
-// --- SLICE ---
 const serverSlice = createSlice({
   name: "servers",
   initialState: {
@@ -106,7 +105,6 @@ const serverSlice = createSlice({
 export const { setActiveServer } = serverSlice.actions;
 export default serverSlice.reducer;
 
-// --- SELECTORS ---
 export const selectServers = (state) => state.servers.list;
 export const selectActiveServer = (state) => state.servers.activeServer;
 export const selectServersLoading = (state) => state.servers.loading;

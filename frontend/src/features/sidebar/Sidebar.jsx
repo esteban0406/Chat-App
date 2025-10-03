@@ -15,7 +15,6 @@ export default function Sidebar() {
 
   const { activeServer, loadServers } = useServers();
 
-  // ✅ Cargar servidores solo al entrar a la pestaña "servers"
   useEffect(() => {
     if (activeTab === "servers") {
       loadServers();

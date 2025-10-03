@@ -8,14 +8,10 @@ const router = express.Router();
 router.post("/send", authMiddleware, sendServerInvite);
 
 // Aceptar invitación
-router.post("/accept/:inviteId", authMiddleware, (req, res) =>
-  respondServerInvite({ ...req, params: { ...req.params }, body: { status: "accepted" } }, res)
-);
+router.post("/accept/:inviteId", authMiddleware, respondServerInvite);
 
 // Rechazar invitación
-router.post("/reject/:inviteId", authMiddleware, (req, res) =>
-  respondServerInvite({ ...req, params: { ...req.params }, body: { status: "rejected" } }, res)
-);
+router.post("/reject/:inviteId", authMiddleware, respondServerInvite);
 
 // Obtener invitaciones pendientes
 router.get("/pending", authMiddleware, getPendingServerInvites);

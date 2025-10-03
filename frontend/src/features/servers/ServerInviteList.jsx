@@ -13,16 +13,14 @@ export default function ServerInviteList() {
   if (loading) return <p>Cargando invitaciones...</p>;
   if (error) return <p>Error: {error}</p>;
 
-  const serverInvites = invites.filter((i) => i.type === "server");
-
   return (
     <div className="invite-list">
       <h3>Invitaciones a servidores</h3>
-      {serverInvites.length === 0 ? (
+      {invites.length === 0 ? (
         <p>No tienes invitaciones pendientes</p>
       ) : (
         <ul>
-          {serverInvites.map((invite) => (
+          {invites.map((invite) => (
             <li key={invite._id}>
               Invitación al servidor {invite.server?.name || "Servidor eliminado"}
               <div>

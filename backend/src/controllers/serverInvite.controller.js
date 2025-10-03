@@ -32,23 +32,27 @@ export const respondServerInvite = async (req, res) => {
     const { status } = req.body;
 
     const invite = await ServerInvite.findById(inviteId);
-    if (!invite)
-      return res.status(404).json({ error: "Invitación no encontrada" });
+    if (!invite) return res.status(404).json({ error: "Invitación no encontrada" });
 
     invite.status = status;
     await invite.save();
 
     if (status === "accepted") {
+      if (!invite.to || !invite.server) {
+        return res.status(400).json({ error: "Invitación inválida" });
+      }
+
       await Server.findByIdAndUpdate(invite.server, {
         $addToSet: { members: invite.to },
       });
     }
 
-    res.json(invite);
+    res.json({ success: true, invite });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 export const getPendingServerInvites = async (req, res) => {
   try {

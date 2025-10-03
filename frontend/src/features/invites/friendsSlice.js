@@ -1,8 +1,6 @@
-// src/features/friends/friendsSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { getFriends } from "./invite.service";
 
-// Fetch all friends
 export const fetchFriends = createAsyncThunk(
   "friends/fetchFriends",
   async () => {
