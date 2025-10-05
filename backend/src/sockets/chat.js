@@ -3,7 +3,6 @@ import Message from "../models/Message.js";
 export default function registerChatHandlers(io, socket) {
   // Listen for chat messages
   socket.on("message", async (data) => {
-    console.log("📩 Mensaje recibido:", data);
 
     try {
       const msg = new Message(data);

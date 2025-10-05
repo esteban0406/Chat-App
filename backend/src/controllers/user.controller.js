@@ -26,6 +26,11 @@ export const getUser = async (req, res, next) => {
 export const searchUser = async (req, res) => {
   try {
     const { username } = req.query;
+
+    if (!username || username.trim() === "") {
+      return res.status(400).json({ error: "Debes proporcionar un username" });
+    }
+
     const user = await User.findOne({
       username: new RegExp(username, "i"),
     }).select("-password");
@@ -39,3 +44,4 @@ export const searchUser = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+

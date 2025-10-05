@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import {getFriends, sendServerInvite} from "../../invites/invite.service"
+import {getFriends} from "../../invites/friend.service"
+import {sendServerInvite} from "../serverInvites/serverInvite.service.js"
 import { useServers } from "../useServers";
 import "./InviteFriendsModal.css";
 
@@ -13,7 +14,6 @@ export default function InviteFriendsModal({ onClose }) {
       try {
         const res = await getFriends();
         setFriends(Array.isArray(res) ? res : []);
-        console.log("Amigos cargados:", res);
       } catch (err) {
         console.error("Error cargando amigos:", err);
         setFriends([]);
@@ -24,7 +24,7 @@ export default function InviteFriendsModal({ onClose }) {
 
   const handleInvite = async (friendId) => {
     try {
-      if (!server) return; // 🔒 protección extra
+      if (!server) return; 
       await sendServerInvite({ serverId: server._id, to: friendId });
       setStatus("Invitación enviada ✅");
     } catch (err) {

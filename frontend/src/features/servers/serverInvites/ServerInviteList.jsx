@@ -1,13 +1,13 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchInvites, respondInvite } from "../invites/invitesSlice";
+import { fetchServerInvites, respondServerInvite } from "./serverInvitesSlice.js";
 
 export default function ServerInviteList() {
   const dispatch = useDispatch();
   const { items: invites, loading, error } = useSelector((state) => state.invites);
 
   useEffect(() => {
-    dispatch(fetchInvites());
+    dispatch(fetchServerInvites());
   }, [dispatch]);
 
   if (loading) return <p>Cargando invitaciones...</p>;
@@ -22,11 +22,10 @@ export default function ServerInviteList() {
         <ul>
           {invites.map((invite) => (
             <li key={invite._id}>
-              {console.log(invite)}
               Invitación al servidor {invite.server?.name || "Servidor eliminado"}
               <div>
-                <button onClick={() => dispatch(respondInvite({ id: invite._id, status: "accepted", type: invite.type }))}>Aceptar</button>
-                <button onClick={() => dispatch(respondInvite({ id: invite._id, status: "rejected", type: invite.type }))}>Rechazar</button>
+                <button onClick={() => dispatch(respondServerInvite({ id: invite._id, status: "accepted", type: invite.type }))}>Aceptar</button>
+                <button onClick={() => dispatch(respondServerInvite({ id: invite._id, status: "rejected", type: invite.type }))}>Rechazar</button>
               </div>
             </li>
           ))}

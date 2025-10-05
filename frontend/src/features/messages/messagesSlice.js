@@ -6,7 +6,7 @@ export const fetchMessages = createAsyncThunk(
   "messages/fetchMessages",
   async (channelId, { rejectWithValue }) => {
     try {
-      return await getMessages(channelId); // devuelve lista
+      return await getMessages(channelId);
     } catch (err) {
       return rejectWithValue(err.message || "Error cargando mensajes");
     }
@@ -34,7 +34,7 @@ const messagesSlice = createSlice({
   },
   reducers: {
     addMessage: (state, action) => {
-      const exists = state.items.find((msg) => msg._id === action.payload._id);
+      const exists = state.items.some((m) => m._id === action.payload._id);
       if (!exists) {
         state.items.push(action.payload);
       }
@@ -58,9 +58,11 @@ const messagesSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      // postMessage
       .addCase(postMessage.fulfilled, (state, action) => {
-        state.items.push(action.payload);
+        const exists = state.items.some((m) => m._id === action.payload._id);
+        if (!exists) {
+          state.items.push(action.payload);
+        }
       });
   },
 });

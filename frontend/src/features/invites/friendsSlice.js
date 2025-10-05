@@ -1,12 +1,16 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { getFriends } from "./invite.service";
+import { getFriends } from "./friend.service";
 
 export const fetchFriends = createAsyncThunk(
   "friends/fetchFriends",
-  async () => {
-    const res = await getFriends();
-    if (Array.isArray(res)) return res;
-    return [];
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await getFriends();
+      if (Array.isArray(res)) return res;
+      return [];
+    } catch (err) {
+      return rejectWithValue(err.message || "Error al cargar amigos");
+    }
   }
 );
 
@@ -30,7 +34,7 @@ const friendsSlice = createSlice({
       })
       .addCase(fetchFriends.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message;
+        state.error = action.payload;
       });
   },
 });

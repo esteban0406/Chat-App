@@ -1,27 +1,33 @@
 import React, { useState } from "react";
-import { sendFriendInvite } from "./invite.service";
+import { sendFriendInvite } from "./friend.service";
 import { searchUser } from "../user/user.service";
 import "./InviteForm.css";
-
 
 export default function InviteForm() {
   const [username, setUsername] = useState("");
   const [result, setResult] = useState(null);
   const [status, setStatus] = useState("");
 
-  const handleSearch = async () => {
-    try {
-      const res = await searchUser(username);
-      setResult(res.data);
-      setStatus("");
-    } catch (err) {
-      setStatus("Usuario no encontrado", console.error(err));
+const handleSearch = async () => {
+  try {
+    const res = await searchUser(username);
+    setResult(res);   
+    setStatus("");
+  } catch (err) {
+    setResult(null);
+    if (err.response?.status === 404) {
+      setStatus("Usuario no encontrado ❌");
+    } else {
+      setStatus("Error en la búsqueda ❌");
     }
-  };
+  }
+};
+
+
 
   const handleInvite = async () => {
     try {
-      await sendFriendInvite({ to: result._id }); 
+      await sendFriendInvite({ to: result._id });
       setStatus("Invitación enviada ✅");
     } catch (err) {
       setStatus("Error al enviar invitación ❌", console.error(err));

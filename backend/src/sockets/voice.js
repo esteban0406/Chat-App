@@ -1,11 +1,9 @@
 export default function registerVoiceHandlers(io, socket) {
   socket.on("joinVoice", (channelId) => {
-    console.log(`🎤 ${socket.id} joined voice channel: ${channelId}`);
     socket.join(channelId);
   });
 
   socket.on("leaveVoice", (channelId) => {
-    console.log(`🎤 ${socket.id} left voice channel: ${channelId}`);
     socket.leave(channelId);
   });
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import InviteForm from "../invites/InviteForm";
 import InviteList from "../invites/InviteList";
 import FriendList from "../invites/FriendList";
-import ServerInviteList from "../servers/ServerInviteList";
+import ServerInviteList from "../servers/serverInvites/ServerInviteList";
 import CreateServerModal from "../servers/modals/CreateServerModal";
 import ServerSection from "../servers/ServerSection";
 import ChannelSection from "../channels/ChannelSection";

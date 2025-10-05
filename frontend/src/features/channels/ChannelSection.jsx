@@ -18,7 +18,6 @@ export default function ChannelSection({ onSelectChannel }) {
   const [showCreateChannel, setShowCreateChannel] = useState(false);
   const [showInviteFriends, setShowInviteFriends] = useState(false);
 
-  // ✅ Cargar canales cuando cambia el servidor activo
   useEffect(() => {
     if (activeServer) {
       loadChannels(activeServer._id);
