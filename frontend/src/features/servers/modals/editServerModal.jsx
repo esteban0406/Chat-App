@@ -8,7 +8,7 @@ export default function EditServerModal({ onClose, onSave }) {
   const handleRemoveParticipant = async (memberId) => {
     try {
       await removeMemberById(activeServer._id, memberId);
-      onSave(); // refrescar lista
+      onSave(); 
     } catch (err) {
       console.error("Error al eliminar participante", err);
     }

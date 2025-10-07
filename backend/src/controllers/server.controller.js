@@ -104,14 +104,16 @@ export const removeMember = async (req, res) => {
       return res.status(404).json({ error: "Servidor no encontrado" });
     }
 
-    // Validar permisos: solo el dueño puede eliminar miembros
     if (req.user._id.toString() !== server.owner.toString()) {
-      return res.status(403).json({ error: "No tienes permisos para eliminar miembros" });
+      return res
+        .status(403)
+        .json({ error: "No tienes permisos para eliminar miembros" });
     }
 
-    // Verificar si el miembro está en el servidor
     if (!server.members.includes(memberId)) {
-      return res.status(400).json({ error: "El miembro no pertenece al servidor" });
+      return res
+        .status(400)
+        .json({ error: "El miembro no pertenece al servidor" });
     }
 
     // Eliminar al miembro
@@ -120,7 +122,12 @@ export const removeMember = async (req, res) => {
     );
 
     await server.save();
-    res.json(server);
+
+    const updatedServer = await Server.findById(serverId)
+      .populate("members", "username")
+      .populate("channels");
+
+    res.json(updatedServer);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
