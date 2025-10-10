@@ -137,7 +137,7 @@ export const removeMember = async (req, res) => {
 export const leaveServer = async (req, res) => {
   try {
     const { serverId } = req.params;
-    const userId = req.user._id;
+    const userId = req.user._id.toString();
 
     if (!serverId) {
       return res.status(400).json({ error: "Se requiere el serverId" });
@@ -148,7 +148,9 @@ export const leaveServer = async (req, res) => {
       return res.status(404).json({ error: "Servidor no encontrado" });
     }
 
-    server.members = server.members.filter(member => member.toString() !== userId);
+    server.members = server.members.filter(
+      (member) => member.toString() !== userId
+    );
     await server.save();
     res.json({ message: "Has salido del servidor" });
   } catch (err) {

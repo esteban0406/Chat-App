@@ -13,13 +13,13 @@ router.post("/send", authMiddleware, sendServerInvite);
 
 // Aceptar invitación
 router.post("/accept/:inviteId", authMiddleware, (req, res) => {
-  req.body.status = "accepted";
+  req.body = { ...(req.body ?? {}), status: "accepted" };
   respondServerInvite(req, res);
 });
 
 // Rechazar invitación
 router.post("/reject/:inviteId", authMiddleware, (req, res) => {
-  req.body.status = "rejected";
+  req.body = { ...(req.body ?? {}), status: "rejected" };
   respondServerInvite(req, res);
 });
 

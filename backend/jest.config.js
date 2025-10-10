@@ -1,4 +1,11 @@
 export default {
   testEnvironment: "node",
-  transform: {}, // necesario para que no intente usar babel
+  transform: {}, 
+  verbose: true,
+  collectCoverage: true,
+  collectCoverageFrom: [
+    "src/**/*.js",
+    "!src/test/**",
+    "!src/**/index.js"
+  ]
 };

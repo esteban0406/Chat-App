@@ -1,0 +1,55 @@
+config:
+  target: "http://localhost:4000"
+  engines:
+    socketio: {}
+  processor: "./ws-test.processor.cjs"
+  phases:
+    - duration: 60
+      arrivalRate: 20
+      name: "Warm-up"
+    - duration: 120
+      arrivalRate: 100
+      name: "Carga media"
+    - duration: 120
+      arrivalRate: 300
+      name: "Stress alto"
+    - duration: 120
+      arrivalRate: 500
+      name: "Stress extremo"
+
+scenarios:
+  - name: "Socket.io chat con login y JWT"
+    beforeScenario: login
+    engine: "socketio"
+    socketio:
+      transports:
+        - websocket
+      query:
+        token: "{{ token }}"
+        identity: "{{ identity }}"
+    flow:
+      - emit:
+          channel: "joinChannel"
+          data: "{{ channelId }}"
+          ack: false
+      - think: 1
+      - emit:
+          channel: "message"
+          ack: false
+          data:
+            channel: "{{ channelId }}"
+            sender: "{{ userId }}"
+            text: "Hola desde Artillery con JWT!"
+      - think: 1
+      - emit:
+          channel: "message"
+          ack: false
+          data:
+            channel: "{{ channelId }}"
+            sender: "{{ userId }}"
+            text: "Otro mensaje firmado con JWT"
+      - think: 2
+      - emit:
+          channel: "leaveChannel"
+          data: "{{ channelId }}"
+          ack: false

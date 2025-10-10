@@ -10,6 +10,9 @@ build/
 .env
 .env.local
 
+#coverage
+coverage/
+
 # Docker image archives
 *.tar
 *.img
