@@ -25,7 +25,6 @@ export const sendServerInvite = async (req, res) => {
   }
 };
 
-// ✅ Aceptar/Rechazar invitación
 export const respondServerInvite = async (req, res) => {
   try {
     const { inviteId } = req.params;
@@ -49,7 +48,6 @@ export const respondServerInvite = async (req, res) => {
   }
 };
 
-// 📋 Obtener invitaciones pendientes
 export const getPendingServerInvites = async (req, res) => {
   try {
     const userId = req.user._id;

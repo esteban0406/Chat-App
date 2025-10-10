@@ -1,0 +1,99 @@
+import mongoose from "mongoose";
+import { MongoMemoryServer } from "mongodb-memory-server";
+import User from "../../../models/User.js";
+
+describe("User Model", () => {
+  let mongo;
+
+  beforeAll(async () => {
+    mongo = await MongoMemoryServer.create();
+    const uri = mongo.getUri();
+    await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+  });
+
+  afterAll(async () => {
+    await mongoose.disconnect();
+    await mongo.stop();
+  });
+
+  afterEach(async () => {
+    await User.deleteMany({});
+  });
+
+  test("Debe crear un usuario válido", async () => {
+    const user = new User({
+      username: "testuser",
+      email: "test@mail.com",
+      password: "hashedpassword123",
+    });
+
+    const savedUser = await user.save();
+
+    expect(savedUser._id).toBeDefined();
+    expect(savedUser.username).toBe("testuser");
+    expect(savedUser.email).toBe("test@mail.com");
+    expect(savedUser.status).toBe("offline"); // valor por defecto
+  });
+
+  test("Debe fallar si falta un campo requerido (username)", async () => {
+    const user = new User({
+      email: "test@mail.com",
+      password: "hashedpassword123",
+    });
+
+    let err;
+    try {
+      await user.save();
+    } catch (e) {
+      err = e;
+    }
+
+    expect(err).toBeDefined();
+    expect(err.errors.username).toBeDefined();
+  });
+
+  test("Debe fallar si el email no es único", async () => {
+    const user1 = new User({
+      username: "user1",
+      email: "duplicate@mail.com",
+      password: "12345",
+    });
+    await user1.save();
+
+    const user2 = new User({
+      username: "user2",
+      email: "duplicate@mail.com",
+      password: "67890",
+    });
+
+    let err;
+    try {
+      await user2.save();
+    } catch (e) {
+      err = e;
+    }
+
+    expect(err).toBeDefined();
+    expect(err.code).toBe(11000); // código de duplicado en Mongo
+  });
+
+  test("Debe respetar el enum en status", async () => {
+    const user = new User({
+      username: "userstatus",
+      email: "status@mail.com",
+      password: "hashedpassword123",
+      status: "invalidstatus", 
+    });
+
+    let err;
+    try {
+      await user.save();
+    } catch (e) {
+      err = e;
+    }
+
+    expect(err).toBeDefined();
+    expect(err.errors.status).toBeDefined();
+    expect(err.errors.status.kind).toBe("enum");
+  });
+});

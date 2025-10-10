@@ -13,10 +13,9 @@ export const register = async (req, res) => {
     const user = new User({ username, email, password: hashed });
     await user.save();
 
-    // Opcional: crear token al registrar directamente
     const token = jwt.sign(
       { id: user._id },
-      process.env.JWT_SECRET, // ✅ usa secrets del .env
+      process.env.JWT_SECRET, 
       { expiresIn: "1d" }
     );
 

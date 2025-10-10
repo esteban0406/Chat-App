@@ -23,7 +23,7 @@ export function messageController(io) {
         // Popular autor
         await message.populate("sender", "username");
 
-        // 🔥 Emitir solo al canal correspondiente
+        // Emitir solo al canal correspondiente
         io.to(channelId).emit("message", {
           _id: message._id,
           text: message.text,

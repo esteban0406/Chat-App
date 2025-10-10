@@ -1,23 +1,20 @@
 import Channel from "../models/Channel.js";
 import Server from "../models/Server.js";
 
-// 📌 Crear canal
 export const createChannel = async (req, res) => {
   try {
     const { name, type, serverId } = req.body;
-    const userId = req.user._id; // ✅ viene del authMiddleware
+    const userId = req.user._id; 
 
     if (!name || !serverId) {
       return res.status(400).json({ error: "El nombre y el serverId son requeridos" });
     }
 
-    // Verificar que el servidor exista
     const server = await Server.findById(serverId);
     if (!server) {
       return res.status(404).json({ error: "Servidor no encontrado" });
     }
 
-    // ✅ Verificar que el usuario sea miembro del servidor
     if (!server.members.includes(userId)) {
       return res.status(403).json({ error: "No eres miembro de este servidor" });
     }
@@ -41,7 +38,6 @@ export const createChannel = async (req, res) => {
   }
 };
 
-// 📌 Obtener canales de un servidor
 export const getChannels = async (req, res) => {
   try {
     const { serverId } = req.params;
@@ -52,7 +48,6 @@ export const getChannels = async (req, res) => {
       return res.status(404).json({ error: "Servidor no encontrado" });
     }
 
-    // ✅ Verificar que el usuario sea miembro del servidor
     if (!server.members.includes(userId)) {
       return res.status(403).json({ error: "No eres miembro de este servidor" });
     }
@@ -72,7 +67,6 @@ export const deleteChannel = async (req, res) => {
       return res.status(404).json({ error: "Canal no encontrado" });
     }
 
-    // Eliminar referencia del servidor
     await Server.findByIdAndUpdate(channel.server, {
       $pull: { channels: channelId }
     });
