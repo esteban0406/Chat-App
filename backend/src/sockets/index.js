@@ -1,4 +1,5 @@
 import { Server } from "socket.io";
+import jwt from "jsonwebtoken";
 import registerChatHandlers from "./chat.js";
 import registerVoiceHandlers from "./voice.js";
 import registerChannelHandlers from "./channels.js";
@@ -16,6 +17,18 @@ export function setupSocket(server) {
 
   io.on("connection", (socket) => {
     console.log("⚡ Cliente conectado:", socket.id);
+
+    socket.data = socket.data || {};
+
+    const token = socket.handshake?.query?.token;
+    if (token && typeof token === "string") {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        socket.data.userId = decoded?.id || decoded?._id;
+      } catch (err) {
+        console.warn("⚠️  Invalid socket token:", err.message);
+      }
+    }
 
     registerChatHandlers(io, socket);
     registerVoiceHandlers(io, socket);

@@ -47,7 +47,8 @@ scenarios:
           data:
             channel: "{{ channelId }}"
             sender: "{{ userId }}"
-            text: "Otro mensaje firmado con JWT"
+            text: "Hola desde Artillery con JWT!"
+
       - think: 2
       - emit:
           channel: "leaveChannel"
