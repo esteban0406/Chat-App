@@ -1,9 +1,8 @@
 import { Server } from "socket.io";
 import registerChatHandlers from "./chat.js";
-import registerVoiceHandlers from "./voice.js";
 import registerChannelHandlers from "./channels.js";
 
-let io; // private reference
+let io; 
 
 export function setupSocket(server) {
   io = new Server(server, {
@@ -18,7 +17,6 @@ export function setupSocket(server) {
     console.log("⚡ Cliente conectado:", socket.id);
 
     registerChatHandlers(io, socket);
-    registerVoiceHandlers(io, socket);
     registerChannelHandlers(io, socket);
 
     socket.on("disconnect", () => {

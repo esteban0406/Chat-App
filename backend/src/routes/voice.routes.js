@@ -17,16 +17,19 @@ router.post("/join", async (req, res) => {
       { identity }
     );
 
-    at.addGrant({ roomJoin: true, room });
+    at.addGrant({
+      room,
+      roomJoin: true,
+      canPublish: true,
+      canSubscribe: true,
+    });
 
-    // ✅ Esperar el string JWT real
-    const jwt = await at.toJwt();
-
+    const token = await at.toJwt();
     const livekitUrl = process.env.LIVEKIT_URL || "ws://localhost:7880";
 
-    res.json({ token: jwt, url: livekitUrl });
+    res.json({ token, url: livekitUrl });
   } catch (err) {
-    console.error("Error generando token LiveKit:", err);
+    console.error("❌ Error generando token LiveKit:", err);
     res.status(500).json({ error: "No se pudo generar token" });
   }
 });

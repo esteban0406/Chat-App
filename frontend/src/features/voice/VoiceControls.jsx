@@ -1,5 +1,6 @@
+// src/features/voice/VoiceControls.jsx
 import React, { useState } from "react";
-import { joinVoiceChannel } from "../../services/voice";
+import { joinVoiceChannel, leaveVoiceChannel, muteMic, unmuteMic } from "../../services/voiceClient";
 
 export default function VoiceControls({ channel, user }) {
   const [room, setRoom] = useState(null);
@@ -10,24 +11,27 @@ export default function VoiceControls({ channel, user }) {
       const r = await joinVoiceChannel(channel._id, user.username);
       setRoom(r);
     } catch (err) {
-      console.error("Error uniéndose al canal de voz:", err);
+      console.error("❌ Error uniéndose al canal de voz:", err);
     }
   };
 
-  const handleLeave = () => {
-    if (room) {
-      room.disconnect();
+  const handleLeave = async () => {
+    try {
+      await leaveVoiceChannel();
       setRoom(null);
+      setMuted(false);
+    } catch (err) {
+      console.error("❌ Error saliendo del canal de voz:", err);
     }
   };
 
-  const toggleMute = () => {
+  const toggleMute = async () => {
     if (!room) return;
-    room.localParticipant.audioTracks.forEach((pub) => {
-      if (pub.track) {
-        pub.track.muted = !muted;
-      }
-    });
+    if (muted) {
+      await unmuteMic();
+    } else {
+      await muteMic();
+    }
     setMuted(!muted);
   };
 
@@ -39,7 +43,7 @@ export default function VoiceControls({ channel, user }) {
         <>
           <button onClick={handleLeave}>❌ Salir</button>
           <button onClick={toggleMute}>
-            {muted ? "🔇 Mutear" : "🎤 Desmutear"}
+            {muted ? "🎤 Activar micrófono" : "🔇 Mutear micrófono"}
           </button>
         </>
       )}
