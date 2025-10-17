@@ -23,11 +23,10 @@ export async function joinVoiceChannel(channelId, userId) {
 
   // ✅ Esperar a que se complete la conexión antes de recorrer participants
   room.on(LiveKit.RoomEvent.Connected, () => {
-    console.log("✅ RoomEvent.Connected");
+    console.log("✅ Room conectado");
     room.participants.forEach((participant) => {
       participant.tracks.forEach((publication) => {
         if (publication.track && publication.track.kind === "audio") {
-          console.log(`🎧 Audio existente de ${participant.identity}`);
           addAudioEl(participant.identity, publication.track.mediaStreamTrack);
         }
       });
@@ -62,7 +61,6 @@ export async function joinVoiceChannel(channelId, userId) {
 
   return room;
 }
-
 
 // 7️⃣ Funciones utilitarias
 export async function leaveVoiceChannel() {
