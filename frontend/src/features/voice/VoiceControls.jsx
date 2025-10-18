@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { joinVoiceChannel } from "../../services/voice";
+import { joinVoiceChannel, leaveVoiceChannel, setMic } from "../../services/voiceClient";
 
 export default function VoiceControls({ channel, user }) {
   const [room, setRoom] = useState(null);
@@ -16,18 +16,14 @@ export default function VoiceControls({ channel, user }) {
 
   const handleLeave = () => {
     if (room) {
-      room.disconnect();
+      leaveVoiceChannel();
       setRoom(null);
     }
   };
 
   const toggleMute = () => {
     if (!room) return;
-    room.localParticipant.audioTracks.forEach((pub) => {
-      if (pub.track) {
-        pub.track.muted = !muted;
-      }
-    });
+    setMic(muted ? false : true); // true = mic encendido, false = mute
     setMuted(!muted);
   };
 
