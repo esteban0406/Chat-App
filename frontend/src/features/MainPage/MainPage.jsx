@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import ChatMessages from "../messages/ChatMessages";
-import ChatInput from "./ChatInput";
+import ChatInput from "../messages/ChatInput";
 import Sidebar from "../sidebar/Sidebar";
 import UserMenu from "../user/UserMenu";
 import VoiceControls from "../voice/VoiceControls";
 import { selectActiveChannel } from "../channels/channelSlice";
 import "./chat.css";
 
-export default function ChatRoom() {
+export default function MainPage() {
   const { user } = useSelector((state) => state.auth);
   const activeChannel = useSelector(selectActiveChannel);
   const [stream, setStream] = useState(null);

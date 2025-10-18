@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk,createSelector  } from "@reduxjs/toolkit";
 import { getChannels, deleteChannel, createChannel } from "./channel.service";
 
 // --- THUNKS ---
@@ -95,3 +95,11 @@ export const selectChannels = (state) => state.channels.list;
 export const selectActiveChannel = (state) => state.channels.activeChannel;
 export const selectChannelsLoading = (state) => state.channels.loading;
 export const selectChannelsError = (state) => state.channels.error;
+export const selectChannelsByServer = createSelector(
+  // Input selectors
+  (state) => state.channels.list,
+  (_, serverId) => serverId,
+  // Output
+  (channels, serverId) => channels.filter((ch) => ch.server === serverId)
+);
+

@@ -1,4 +1,3 @@
-
 import { configureStore } from "@reduxjs/toolkit";
 import messagesReducer from "./features/messages/messagesSlice";
 import authReducer from "./features/auth/authSlice";
@@ -7,6 +6,7 @@ import serverReducer from "./features/servers/serverSlice";
 import channelReducer from "./features/channels/channelSlice";
 import friendsReducer from "./features/invites/friendsSlice";
 import friendInvitesReducer from "./features/invites/friendInvitesSlice";
+import voiceReducer from "./features/voice/voiceSlice";
 
 const store = configureStore({
   reducer: {
@@ -17,6 +17,7 @@ const store = configureStore({
     friends: friendsReducer,
     friendInvites: friendInvitesReducer,
     channels: channelReducer,
+    voice: voiceReducer,
   },
 });
 

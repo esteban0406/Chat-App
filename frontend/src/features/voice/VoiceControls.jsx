@@ -1,40 +1,56 @@
-import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { joinVoiceChannel, leaveVoiceChannel, setMic } from "../../services/voiceClient";
+import {
+  joinVoice,
+  leaveVoice,
+  toggleMute,
+  selectVoiceState,
+} from "./voiceSlice";
 
 export default function VoiceControls({ channel, user }) {
-  const [room, setRoom] = useState(null);
-  const [muted, setMuted] = useState(false);
+  const dispatch = useDispatch();
+  const { connected, channelId, muted } = useSelector(selectVoiceState);
 
   const handleJoin = async () => {
     try {
-      const r = await joinVoiceChannel(channel._id, user.username);
-      setRoom(r);
+      await joinVoiceChannel(channel._id, user.username);
+      dispatch(joinVoice({ channelId: channel._id }));
     } catch (err) {
-      console.error("Error uniéndose al canal de voz:", err);
+      console.error("❌ Error uniéndose al canal de voz:", err);
     }
   };
 
   const handleLeave = () => {
-    if (room) {
-      leaveVoiceChannel();
-      setRoom(null);
-    }
+    leaveVoiceChannel();
+    dispatch(leaveVoice());
   };
 
-  const toggleMute = () => {
-    if (!room) return;
-    setMic(muted ? false : true); // true = mic encendido, false = mute
-    setMuted(!muted);
+  const handleToggleMute = () => {
+    setMic(muted ? false : true);
+    dispatch(toggleMute());
   };
 
   return (
-    <div className="voice-controls">
-      {!room ? (
-        <button onClick={handleJoin}>🎙️ Unirse a voz</button>
+    <div className="p-4 flex items-center gap-2">
+      {!connected || channelId !== channel._id ? (
+        <button
+          onClick={handleJoin}
+          className="px-4 py-2 bg-green-600 rounded hover:bg-green-500"
+        >
+          🎙️ Unirse a voz
+        </button>
       ) : (
         <>
-          <button onClick={handleLeave}>❌ Salir</button>
-          <button onClick={toggleMute}>
+          <button
+            onClick={handleLeave}
+            className="px-4 py-2 bg-red-600 rounded hover:bg-red-500"
+          >
+            ❌ Salir
+          </button>
+          <button
+            onClick={handleToggleMute}
+            className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"
+          >
             {muted ? "🔇 Mutear" : "🎤 Desmutear"}
           </button>
         </>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { postMessage } from "../messages/messagesSlice";
+import { postMessage } from "./messagesSlice";
 import { selectActiveChannel } from "../channels/channelSlice";
 
 export default function ChatInput() {
