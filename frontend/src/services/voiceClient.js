@@ -6,7 +6,7 @@ import { addAudioEl, removeAudioEl } from "./voiceUI";
 let room = null;
 
 export async function joinVoiceChannel(channelId, userId) {
-  // 1️⃣ Pedir token al backend
+  // Pedir token al backend
   const res = await API.post("/voice/join", {
     identity: userId,
     room: `channel-${channelId}`,
@@ -14,94 +14,55 @@ export async function joinVoiceChannel(channelId, userId) {
 
   const { token, url } = res.data;
 
-  // 2️⃣ Crear sala LiveKit
+  // Crear sala y conectar
   room = new LiveKit.Room();
+  await room.connect(url, token, { autoSubscribe: true });
 
-  // 🔹 Conectar a LiveKit Cloud (usa configuración ICE/TURN proporcionada por el servicio)
-  await room.connect(url, token, {
-    autoSubscribe: true,
-  });
-
-  // Activar micrófono local (solo una vez al conectar)
+  // Activar micrófono local
   await room.localParticipant.setMicrophoneEnabled(true);
 
-  console.log("🎙️ Conectado a sala de voz:", channelId);
+  console.log(`🎙️ Conectado a canal de voz ${channelId} como ${userId}`);
 
-  // 👉 Debug: mostrar tracks locales
-  console.log("👉 Tracks locales del participante:", room.localParticipant.identity);
-  room.localParticipant.trackPublications.forEach((pub, sid) => {
-    console.log("   LocalTrack:", sid, pub.source, pub.track?.kind, "muted:", pub.isMuted);
-  });
-
-  // 3️⃣ Participantes ya presentes (iterar sobre map->values())
-  const existingParticipants = room.remoteParticipants
-    ? Array.from(room.remoteParticipants.values())
-    : [];
-  existingParticipants.forEach((participant) => {
-    console.log(`👥 Ya estaba conectado: ${participant.identity}`);
-    participant.trackPublications.forEach((pub, sid) => {
-      console.log("   Track existente:", sid, pub.source, pub.track?.kind);
-      if (pub.track && pub.track.kind === "audio") {
+  // Manejar participantes existentes
+  room.remoteParticipants.forEach((participant) => {
+    participant.trackPublications.forEach((pub) => {
+      if (pub.track?.kind === "audio") {
         addAudioEl(participant.identity, pub.track.mediaStreamTrack);
       }
     });
   });
 
-  // --- Eventos Debug ---
-  room.on(LiveKit.RoomEvent.Connected, () => {
-    console.log("✅ RoomEvent.Connected");
-  });
-
-  room.on(LiveKit.RoomEvent.Reconnecting, () => {
-    console.warn("🔄 Reintentando conexión con LiveKit...");
-  });
-
-  room.on(LiveKit.RoomEvent.Reconnected, () => {
-    console.log("✅ Reconectado a LiveKit");
-  });
-
-  room.on(LiveKit.RoomEvent.Disconnected, () => {
-    console.error("❌ Se perdió conexión con LiveKit");
-  });
-
-  // Estado de ICE (conexión P2S con LiveKit SFU)
-  room.engine.pc?.addEventListener("iceconnectionstatechange", () => {
-    console.log("🔗 ICE state:", room.engine.pc.iceConnectionState);
-  });
-
-  // Publicaciones
-  room.on(LiveKit.RoomEvent.TrackPublished, (pub, participant) => {
-    console.log(`📡 ${participant.identity} publicó track`, pub.source, pub.kind);
-  });
-
-  room.on(LiveKit.RoomEvent.TrackUnpublished, (pub, participant) => {
-    console.log(`🛑 ${participant.identity} dejó de publicar track`, pub.source, pub.kind);
-  });
-
-  // Suscripciones
-  room.on(LiveKit.RoomEvent.TrackSubscribed, (track, pub, participant) => {
-    console.log(`✅ TrackSubscribed: ${participant.identity}`, pub.source, pub.kind);
-    if (track.kind === "audio") {
-      addAudioEl(participant.identity, track.mediaStreamTrack);
-    }
-  });
-
-  room.on(LiveKit.RoomEvent.TrackUnsubscribed, (track, pub, participant) => {
-    console.log(`❌ TrackUnsubscribed: ${participant.identity}`, pub.source, pub.kind);
-    if (track.kind === "audio") {
-      removeAudioEl(participant.identity);
-    }
-  });
-
-  // Participantes
-  room.on(LiveKit.RoomEvent.ParticipantConnected, (p) => {
-    console.log(`🔵 Usuario conectado: ${p.identity}`);
-  });
-
-  room.on(LiveKit.RoomEvent.ParticipantDisconnected, (p) => {
-    console.log(`🔴 Usuario desconectado: ${p.identity}`);
-    removeAudioEl(p.identity);
-  });
+  // Eventos principales
+  room
+    .on(LiveKit.RoomEvent.Connected, () =>
+      console.log("✅ Conectado a LiveKit")
+    )
+    .on(LiveKit.RoomEvent.Reconnecting, () =>
+      console.warn("🔄 Reintentando conexión...")
+    )
+    .on(LiveKit.RoomEvent.Reconnected, () =>
+      console.log("✅ Reconectado a LiveKit")
+    )
+    .on(LiveKit.RoomEvent.Disconnected, () =>
+      console.error("❌ Desconectado de LiveKit")
+    )
+    .on(LiveKit.RoomEvent.TrackSubscribed, (track, _, participant) => {
+      if (track.kind === "audio") {
+        addAudioEl(participant.identity, track.mediaStreamTrack);
+      }
+    })
+    .on(LiveKit.RoomEvent.TrackUnsubscribed, (track, _, participant) => {
+      if (track.kind === "audio") {
+        removeAudioEl(participant.identity);
+      }
+    })
+    .on(LiveKit.RoomEvent.ParticipantConnected, (p) =>
+      console.log(`🔵 Usuario conectado: ${p.identity}`)
+    )
+    .on(LiveKit.RoomEvent.ParticipantDisconnected, (p) => {
+      console.log(`🔴 Usuario desconectado: ${p.identity}`);
+      removeAudioEl(p.identity);
+    });
 
   return room;
 }
@@ -115,16 +76,9 @@ export async function leaveVoiceChannel() {
   }
 }
 
-export async function muteMic() {
+export async function setMic(enabled) {
   if (room) {
-    await room.localParticipant.setMicrophoneEnabled(false);
-    console.log("🔇 Micrófono muteado");
-  }
-}
-
-export async function unmuteMic() {
-  if (room) {
-    await room.localParticipant.setMicrophoneEnabled(true);
-    console.log("🎤 Micrófono activado");
+    await room.localParticipant.setMicrophoneEnabled(enabled);
+    console.log(enabled ? "🎤 Micrófono activado" : "🔇 Micrófono muteado");
   }
 }
