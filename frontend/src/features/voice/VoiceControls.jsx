@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import { joinVoiceChannel, leaveVoiceChannel, setMic } from "../../services/voiceClient";
+import { joinVoiceChannel, leaveVoiceChannel, setMic } from "./voiceClient";
 import {
   joinVoice,
   leaveVoice,

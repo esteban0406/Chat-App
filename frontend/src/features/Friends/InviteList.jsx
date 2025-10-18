@@ -1,13 +1,13 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchServerInvites, respondServerInvite } from "./serverInvitesSlice";
+import { fetchFriendInvites, respondFriendInvite } from "./friendInvitesSlice";
 
-export default function ServerInviteList() {
+export default function InviteList() {
   const dispatch = useDispatch();
-  const { items: invites, loading, error } = useSelector((state) => state.invites);
+  const { items: invites, loading, error } = useSelector((state) => state.friendInvites);
 
   useEffect(() => {
-    dispatch(fetchServerInvites());
+    dispatch(fetchFriendInvites());
   }, [dispatch]);
 
   if (loading) return <p className="text-gray-400">Cargando invitaciones...</p>;
@@ -16,7 +16,7 @@ export default function ServerInviteList() {
   return (
     <div>
       {invites.length === 0 ? (
-        <p className="text-gray-400">No tienes invitaciones pendientes</p>
+        <p className="text-gray-400">No tienes invitaciones</p>
       ) : (
         <ul className="space-y-2">
           {invites.map((invite) => (
@@ -25,15 +25,13 @@ export default function ServerInviteList() {
               className="flex items-center justify-between bg-gray-800 px-4 py-2 rounded-md"
             >
               <span>
-                Invitación al servidor{" "}
-                <strong>{invite.server?.name || "Servidor eliminado"}</strong>
+                <strong>{invite.from?.username || "Desconocido"}</strong>{" "}
+                <span className="text-gray-400">({invite.from?.email || "Sin email"})</span>
               </span>
               <div className="space-x-2">
                 <button
                   onClick={() =>
-                    dispatch(
-                      respondServerInvite({ id: invite._id, status: "accepted", type: invite.type })
-                    )
+                    dispatch(respondFriendInvite({ id: invite._id, status: "accepted" }))
                   }
                   className="bg-green-600 hover:bg-green-500 px-3 py-1 rounded text-sm"
                 >
@@ -41,9 +39,7 @@ export default function ServerInviteList() {
                 </button>
                 <button
                   onClick={() =>
-                    dispatch(
-                      respondServerInvite({ id: invite._id, status: "rejected", type: invite.type })
-                    )
+                    dispatch(respondFriendInvite({ id: invite._id, status: "rejected" }))
                   }
                   className="bg-red-600 hover:bg-red-500 px-3 py-1 rounded text-sm"
                 >

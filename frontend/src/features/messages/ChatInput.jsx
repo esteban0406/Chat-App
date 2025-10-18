@@ -13,24 +13,35 @@ export default function ChatInput() {
     e.preventDefault();
     if (text.trim() === "" || !activeChannel?._id) return;
 
-    dispatch(postMessage({
-      text,
-      senderId: user._id,
-      channelId: activeChannel._id,
-    }));
+    dispatch(
+      postMessage({
+        text,
+        senderId: user._id,
+        channelId: activeChannel._id,
+      })
+    );
 
     setText("");
   };
 
   return (
-    <form className="message-input" onSubmit={handleSend}>
+    <form
+      onSubmit={handleSend}
+      className="flex items-center space-x-2 bg-gray-800 px-3 py-2 rounded-md"
+    >
       <input
         type="text"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Type a message..."
+        placeholder={`Enviar mensaje a #${activeChannel?.name || "canal"}`}
+        className="flex-1 px-3 py-2 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
       />
-      <button type="submit">Send</button>
+      <button
+        type="submit"
+        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-white text-sm font-semibold transition"
+      >
+        Enviar
+      </button>
     </form>
   );
 }

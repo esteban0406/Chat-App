@@ -1,11 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import messagesReducer from "./features/messages/messagesSlice";
 import authReducer from "./features/auth/authSlice";
-import invitesReducer from "./features/servers/serverInvites/serverInvitesSlice.js";
+import invitesReducer from "./features/servers/serverInvites/serverInvitesSlice";
 import serverReducer from "./features/servers/serverSlice";
 import channelReducer from "./features/channels/channelSlice";
-import friendsReducer from "./features/invites/friendsSlice";
-import friendInvitesReducer from "./features/invites/friendInvitesSlice";
+import friendsReducer from "./features/Friends/friendsSlice";
+import friendInvitesReducer from "./features/Friends/friendInvitesSlice";
 import voiceReducer from "./features/voice/voiceSlice";
 
 const store = configureStore({

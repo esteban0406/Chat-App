@@ -1,6 +1,6 @@
 // src/services/voiceClient.js
 import * as LiveKit from "livekit-client";
-import { API } from "./api";
+import { API } from "../../services/api";
 import { addAudioEl, removeAudioEl } from "./voiceUI";
 
 let room = null;

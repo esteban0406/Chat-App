@@ -8,7 +8,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { logout } from "./features/auth/authSlice";
 import { useEffect } from "react";
 import PrivateRoute from "./features/auth/PrivateRoute";
-import RootLayout from "./features/layout/RootLayout"; // 👈 nuevo layout
+import RootLayout from "./features/layout/RootLayout";
+import FriendList from "./features/Friends/FriendList";
+import InviteForm from "./features/Friends/InviteForm";
+import InviteList from "./features/Friends/InviteList";
+import ServerInviteList from "./features/servers/serverInvites/ServerInviteList";
 
 function App() {
   const dispatch = useDispatch();
@@ -45,6 +49,18 @@ function App() {
           >
             {/* Perfil de usuario */}
             <Route path="me/*" element={<FriendsPage />} />
+
+            <Route path="/friends" element={<FriendsPage />}>
+              <Route index element={<FriendList />} /> {/* /friends */}
+              <Route path="add" element={<InviteForm />} /> {/* /friends/add */}
+              <Route path="requests" element={<InviteList />} />{" "}
+              {/* /friends/requests */}
+              <Route
+                path="server-requests"
+                element={<ServerInviteList />}
+              />{" "}
+              {/* /friends/server-requests */}
+            </Route>
 
             {/* Servidores */}
             <Route path="servers/:serverId/*" element={<ServerLayout />}>

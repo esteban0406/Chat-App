@@ -1,11 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { fetchServers, selectServers } from "./serverSlice";
+import CreateServerModal from "./modals/CreateServerModal";
 
 export default function ServerSidebar() {
   const dispatch = useDispatch();
   const servers = useSelector(selectServers);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     dispatch(fetchServers()); 
@@ -33,6 +35,21 @@ export default function ServerSidebar() {
           {server.name[0].toUpperCase()}
         </Link>
       ))}
+
+      {/* --- Botón para crear servidor --- */}
+      <button
+        onClick={() => setShowCreateModal(true)}
+        className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-green-400 hover:bg-green-500 hover:text-white transition"
+        title="Crear servidor"
+      >
+        +
+      </button>
+
+      {/* --- Modal de crear servidor --- */}
+      {showCreateModal && (
+        <CreateServerModal onClose={() => setShowCreateModal(false)} />
+      )}
+
     </aside>
   );
 }

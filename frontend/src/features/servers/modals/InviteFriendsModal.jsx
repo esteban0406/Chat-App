@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { getFriends } from "../../invites/friend.service";
+import { getFriends } from "../../Friends/friend.service.js";
 import { sendServerInvite } from "../serverInvites/serverInvite.service.js";
 import { useServers } from "../useServers";
 import { API } from "../../../services/api"; // 👈 tu wrapper axios
