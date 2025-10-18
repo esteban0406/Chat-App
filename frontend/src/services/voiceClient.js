@@ -17,12 +17,9 @@ export async function joinVoiceChannel(channelId, userId) {
   // 2️⃣ Crear sala LiveKit
   room = new LiveKit.Room();
 
-  // 🔹 Conectar con TURN forzado (relay-only)
+  // 🔹 Conectar a LiveKit Cloud (usa configuración ICE/TURN proporcionada por el servicio)
   await room.connect(url, token, {
     autoSubscribe: true,
-    rtcConfig: {
-      iceTransportPolicy: "relay", // ❗ Forzar siempre TURN
-    },
   });
 
   // Activar micrófono local (solo una vez al conectar)
@@ -32,14 +29,17 @@ export async function joinVoiceChannel(channelId, userId) {
 
   // 👉 Debug: mostrar tracks locales
   console.log("👉 Tracks locales del participante:", room.localParticipant.identity);
-  room.localParticipant.tracks.forEach((pub, sid) => {
+  room.localParticipant.trackPublications.forEach((pub, sid) => {
     console.log("   LocalTrack:", sid, pub.source, pub.track?.kind, "muted:", pub.isMuted);
   });
 
-  // 3️⃣ Participantes ya presentes
-  room.participants.forEach((participant) => {
+  // 3️⃣ Participantes ya presentes (iterar sobre map->values())
+  const existingParticipants = room.remoteParticipants
+    ? Array.from(room.remoteParticipants.values())
+    : [];
+  existingParticipants.forEach((participant) => {
     console.log(`👥 Ya estaba conectado: ${participant.identity}`);
-    participant.tracks.forEach((pub, sid) => {
+    participant.trackPublications.forEach((pub, sid) => {
       console.log("   Track existente:", sid, pub.source, pub.track?.kind);
       if (pub.track && pub.track.kind === "audio") {
         addAudioEl(participant.identity, pub.track.mediaStreamTrack);
