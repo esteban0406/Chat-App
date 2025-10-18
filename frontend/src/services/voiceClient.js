@@ -17,10 +17,12 @@ export async function joinVoiceChannel(channelId, userId) {
   // 2️⃣ Crear sala LiveKit
   room = new LiveKit.Room();
 
-  // Conectar (forzamos relay para evitar problemas de NAT)
-  await room.connect(url, token, { 
+  // 🔹 Conectar con TURN forzado (relay-only)
+  await room.connect(url, token, {
     autoSubscribe: true,
-    rtcConfig: { iceTransportPolicy: "relay" }
+    rtcConfig: {
+      iceTransportPolicy: "relay", // ❗ Forzar siempre TURN
+    },
   });
 
   // Activar micrófono local (solo una vez al conectar)
@@ -34,7 +36,7 @@ export async function joinVoiceChannel(channelId, userId) {
     console.log("   LocalTrack:", sid, pub.source, pub.track?.kind, "muted:", pub.isMuted);
   });
 
-  // 3️⃣ Participantes actuales y sus tracks
+  // 3️⃣ Participantes ya presentes
   room.participants.forEach((participant) => {
     console.log(`👥 Ya estaba conectado: ${participant.identity}`);
     participant.tracks.forEach((pub, sid) => {
@@ -46,7 +48,6 @@ export async function joinVoiceChannel(channelId, userId) {
   });
 
   // --- Eventos Debug ---
-
   room.on(LiveKit.RoomEvent.Connected, () => {
     console.log("✅ RoomEvent.Connected");
   });
@@ -61,6 +62,11 @@ export async function joinVoiceChannel(channelId, userId) {
 
   room.on(LiveKit.RoomEvent.Disconnected, () => {
     console.error("❌ Se perdió conexión con LiveKit");
+  });
+
+  // Estado de ICE (conexión P2S con LiveKit SFU)
+  room.engine.pc?.addEventListener("iceconnectionstatechange", () => {
+    console.log("🔗 ICE state:", room.engine.pc.iceConnectionState);
   });
 
   // Publicaciones
@@ -101,7 +107,6 @@ export async function joinVoiceChannel(channelId, userId) {
 }
 
 // --- Utilidades ---
-
 export async function leaveVoiceChannel() {
   if (room) {
     await room.disconnect();
