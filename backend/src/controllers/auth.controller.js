@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+// Registro clásico
 export const register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -10,14 +11,10 @@ export const register = async (req, res) => {
     if (exists) return res.status(400).json({ message: "User already exists" });
 
     const hashed = await bcrypt.hash(password, 10);
-    const user = new User({ username, email, password: hashed });
+    const user = new User({ username, email, password: hashed, provider: "local" });
     await user.save();
 
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET, 
-      { expiresIn: "1d" }
-    );
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
     res.status(201).json({ message: "User registered", user, token });
   } catch (err) {
@@ -25,21 +22,21 @@ export const register = async (req, res) => {
   }
 };
 
+// Login clásico
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.provider !== "local") {
+      return res.status(400).json({ message: "Este usuario debe iniciar sesión con " + user.provider });
+    }
 
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET, 
-      { expiresIn: "1d" }
-    );
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
     res.json({ token, user });
   } catch (err) {

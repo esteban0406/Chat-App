@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Copiar package.json e instalar dependencias
 COPY package*.json ./
-RUN npm install && npm install -g npm@latest
+RUN npm install 
 
 # Copiar el resto del código fuente
 COPY . .

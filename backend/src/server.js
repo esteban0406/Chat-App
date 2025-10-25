@@ -10,6 +10,10 @@ import {
   errorHandler,
 } from "./utils/middleware.js";
 
+import passport from "passport";
+import session from "express-session";
+import "./config/passport.js";
+
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import serverRoutes from "./routes/server.routes.js";
@@ -19,7 +23,7 @@ import friendRoutes from "./routes/friend.routes.js";
 import serverInviteRoutes from "./routes/serverInvite.routes.js";
 import voiceRoutes from "./routes/voice.routes.js";
 
-import { corsConfig, MONGODB_URI, PORT } from "./config.js";
+import { corsConfig, MONGODB_URI, PORT } from "./config/config.js";
 
 export async function createServer() {
   const app = express();
@@ -29,6 +33,13 @@ export async function createServer() {
   app.use(cors(corsConfig));
   app.use(express.json());
   app.use(requestLogger);
+
+  // Passport middleware
+  app.use(
+    session({ secret: "secret", resave: false, saveUninitialized: true })
+  );
+  app.use(passport.initialize());
+  app.use(passport.session());
 
   // DB connection
   try {
@@ -44,6 +55,7 @@ export async function createServer() {
   const io = getIO();
 
   // REST routes
+  app.use("/auth", authRoutes);
   app.use("/api/auth", authRoutes);
   app.use("/api/users", userRoutes);
   app.use("/api/servers", serverRoutes);
