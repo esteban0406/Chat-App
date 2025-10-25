@@ -19,7 +19,7 @@ import friendRoutes from "./routes/friend.routes.js";
 import serverInviteRoutes from "./routes/serverInvite.routes.js";
 import voiceRoutes from "./routes/voice.routes.js";
 
-import { corsConfig, MONGODB_URI, PORT } from "./config.js";
+import { corsConfig, MONGODB_URI, PORT } from "./config/config.js";
 
 export async function createServer() {
   const app = express();

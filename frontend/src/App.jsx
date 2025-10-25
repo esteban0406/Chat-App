@@ -48,7 +48,7 @@ function App() {
             }
           >
             {/* Perfil de usuario */}
-            <Route path="me/*" element={<FriendsPage />} />
+            <Route path="me/*" element={<Navigate to="/friends" />} />
 
             <Route path="/friends" element={<FriendsPage />}>
               <Route index element={<FriendList />} /> {/* /friends */}
