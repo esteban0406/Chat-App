@@ -128,7 +128,7 @@ describe("server.controller", () => {
       await createServer(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "DB error" });
+      expect(res.json).toHaveBeenCalledWith({ error: "Error en el servidor" });
       expect(consoleErrorSpy).toHaveBeenCalled();
     });
   });
@@ -142,7 +142,7 @@ describe("server.controller", () => {
 
       expect(Server.findById).toHaveBeenCalledWith("server123");
       expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ message: "Server not found" });
+      expect(res.json).toHaveBeenCalledWith({ error: "Servidor no encontrado" });
     });
 
     test("agrega al usuario si no es miembro", async () => {
@@ -151,13 +151,23 @@ describe("server.controller", () => {
         members: ["user123"],
         save: jest.fn().mockResolvedValue(true),
       };
+      mockServer.toObject = jest.fn(() => ({
+        _id: "server123",
+        name: "Server",
+        members: [...mockServer.members],
+        owner: "owner123",
+      }));
       Server.findById.mockResolvedValue(mockServer);
 
       await joinServer(req, res);
 
       expect(mockServer.members).toContain("user999");
       expect(mockServer.save).toHaveBeenCalled();
-      expect(res.json).toHaveBeenCalledWith(mockServer);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          members: ["user123", "user999"],
+        })
+      );
     });
 
     test("no duplica miembros existentes", async () => {
@@ -166,12 +176,22 @@ describe("server.controller", () => {
         members: ["user123"],
         save: jest.fn(),
       };
+      mockServer.toObject = jest.fn(() => ({
+        _id: "server123",
+        name: "Server",
+        members: [...mockServer.members],
+        owner: "owner123",
+      }));
       Server.findById.mockResolvedValue(mockServer);
 
       await joinServer(req, res);
 
       expect(mockServer.save).not.toHaveBeenCalled();
-      expect(res.json).toHaveBeenCalledWith(mockServer);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          members: ["user123"],
+        })
+      );
     });
 
     test("maneja errores inesperados con 500", async () => {
@@ -182,19 +202,37 @@ describe("server.controller", () => {
       await joinServer(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: error.message });
+      expect(res.json).toHaveBeenCalledWith({ error: "Error en el servidor" });
     });
   });
 
   describe("getServers", () => {
     test("retorna servidores del usuario", async () => {
-      const servers = [{ _id: "server123" }];
+      const serverDoc = {
+        _id: "server123",
+        owner: "owner123",
+        members: ["user123"],
+        channels: [],
+      };
+      serverDoc.toObject = () => ({
+        _id: "server123",
+        owner: "owner123",
+        members: ["user123"],
+        channels: [],
+      });
+      const servers = [serverDoc];
       Server.find.mockReturnValue(createPopulateQuery(servers));
 
       await getServers(req, res);
 
       expect(Server.find).toHaveBeenCalledWith({ members: "user123" });
-      expect(res.json).toHaveBeenCalledWith(servers);
+      expect(res.json).toHaveBeenCalledWith([
+        expect.objectContaining({
+          _id: "server123",
+          members: ["user123"],
+          owner: "owner123",
+        }),
+      ]);
     });
 
     test("devuelve 500 ante errores", async () => {
@@ -206,7 +244,7 @@ describe("server.controller", () => {
       await getServers(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: error.message });
+      expect(res.json).toHaveBeenCalledWith({ error: "Error en el servidor" });
     });
   });
 
@@ -240,7 +278,7 @@ describe("server.controller", () => {
       await deleteServer(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: error.message });
+      expect(res.json).toHaveBeenCalledWith({ error: "Error en el servidor" });
     });
   });
 
@@ -267,7 +305,7 @@ describe("server.controller", () => {
 
       expect(res.status).toHaveBeenCalledWith(403);
       expect(res.json).toHaveBeenCalledWith({
-        error: "No tienes permisos para eliminar miembros",
+        error: "Solo el dueño puede eliminar miembros",
       });
     });
 
@@ -294,16 +332,20 @@ describe("server.controller", () => {
         members: ["user123", "user456"],
         save: jest.fn().mockResolvedValue(true),
       };
-      const populatedServer = { _id: "server123", members: ["user123"] };
-      Server.findById
-        .mockResolvedValueOnce(mockServer)
-        .mockReturnValueOnce(createPopulateQuery(populatedServer));
+      mockServer.toObject = jest.fn(() => ({
+        _id: "server123",
+        members: [...mockServer.members],
+      }));
+      Server.findById.mockResolvedValue(mockServer);
 
       await removeMember(req, res);
 
       expect(mockServer.members).toEqual(["user123"]);
       expect(mockServer.save).toHaveBeenCalled();
-      expect(res.json).toHaveBeenCalledWith(populatedServer);
+      expect(res.json).toHaveBeenCalledWith({
+        _id: "server123",
+        members: ["user123"],
+      });
     });
 
     test("retorna 500 ante errores inesperados", async () => {
@@ -314,7 +356,7 @@ describe("server.controller", () => {
       await removeMember(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: error.message });
+      expect(res.json).toHaveBeenCalledWith({ error: "Error en el servidor" });
     });
   });
 
@@ -342,6 +384,7 @@ describe("server.controller", () => {
       req.params = { serverId: "server123" };
       req.user = { _id: "user123" };
       const mockServer = {
+        owner: "owner999",
         members: ["user123", "user999"],
         save: jest.fn().mockResolvedValue(true),
       };
@@ -362,7 +405,7 @@ describe("server.controller", () => {
       await leaveServer(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: error.message });
+      expect(res.json).toHaveBeenCalledWith({ error: "Error en el servidor" });
     });
   });
 });

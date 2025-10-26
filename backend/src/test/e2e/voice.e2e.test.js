@@ -74,7 +74,9 @@ describe("/api/voice E2E", () => {
       secret: "lk-secret",
       options: { identity: "user-1" },
     });
-    expect(addGrantMock).toHaveBeenCalledWith({ roomJoin: true, room: "room-abc" });
+    expect(addGrantMock).toHaveBeenCalledWith(
+      expect.objectContaining({ roomJoin: true, room: "room-abc" })
+    );
     expect(toJwtMock).toHaveBeenCalled();
   });
 

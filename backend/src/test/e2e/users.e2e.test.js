@@ -65,7 +65,7 @@ describe("/api/users E2E", () => {
       password: "123456",
     });
 
-    const userId = createRes.body.user._id;
+    const userId = createRes.body.user.id;
     const res = await request(app).get(`/api/users/${userId}`);
 
     expect(res.status).toBe(200);

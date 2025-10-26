@@ -21,7 +21,8 @@ const { default: ServerInvite } = await import("../../../models/serverInvite.js"
 const { default: Server } = await import("../../../models/Server.js");
 const {
   sendServerInvite,
-  respondServerInvite,
+  acceptServerInvite,
+  rejectServerInvite,
   getPendingServerInvites,
 } = await import("../../../controllers/serverInvite.controller.js");
 
@@ -120,13 +121,12 @@ describe("serverInvite.controller", () => {
     });
   });
 
-  describe("respondServerInvite", () => {
+  describe("acceptServerInvite", () => {
     test("retorna 404 cuando la invitación no existe", async () => {
       req.params = { inviteId: "invite123" };
-      req.body = { status: "accepted" };
       ServerInvite.findById.mockResolvedValue(null);
 
-      await respondServerInvite(req, res);
+      await acceptServerInvite(req, res);
 
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ error: "Invitación no encontrada" });
@@ -134,7 +134,6 @@ describe("serverInvite.controller", () => {
 
     test("acepta la invitación y agrega al miembro", async () => {
       req.params = { inviteId: "invite123" };
-      req.body = { status: "accepted" };
 
       const mockInvite = {
         _id: "invite123",
@@ -145,33 +144,13 @@ describe("serverInvite.controller", () => {
       };
       ServerInvite.findById.mockResolvedValue(mockInvite);
 
-      await respondServerInvite(req, res);
+      await acceptServerInvite(req, res);
 
       expect(mockInvite.status).toBe("accepted");
       expect(mockInvite.save).toHaveBeenCalled();
       expect(Server.findByIdAndUpdate).toHaveBeenCalledWith("server123", {
         $addToSet: { members: "user456" },
       });
-      expect(res.json).toHaveBeenCalledWith({ success: true, invite: mockInvite });
-    });
-
-    test("rechaza la invitación sin tocar el servidor", async () => {
-      req.params = { inviteId: "invite123" };
-      req.body = { status: "rejected" };
-
-      const mockInvite = {
-        _id: "invite123",
-        server: "server123",
-        to: "user456",
-        status: "pending",
-        save: jest.fn().mockResolvedValue(true),
-      };
-      ServerInvite.findById.mockResolvedValue(mockInvite);
-
-      await respondServerInvite(req, res);
-
-      expect(mockInvite.status).toBe("rejected");
-      expect(Server.findByIdAndUpdate).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith({ success: true, invite: mockInvite });
     });
 
@@ -182,7 +161,50 @@ describe("serverInvite.controller", () => {
       const unexpectedError = new Error("lookup failed");
       ServerInvite.findById.mockRejectedValue(unexpectedError);
 
-      await respondServerInvite(req, res);
+      await acceptServerInvite(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: unexpectedError.message });
+    });
+  });
+
+  describe("rejectServerInvite", () => {
+    test("retorna 404 cuando la invitación no existe", async () => {
+      req.params = { inviteId: "invite123" };
+      ServerInvite.findById.mockResolvedValue(null);
+
+      await rejectServerInvite(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: "Invitación no encontrada" });
+    });
+
+    test("rechaza la invitación sin tocar el servidor", async () => {
+      req.params = { inviteId: "invite123" };
+
+      const mockInvite = {
+        _id: "invite123",
+        server: "server123",
+        to: "user456",
+        status: "pending",
+        save: jest.fn().mockResolvedValue(true),
+      };
+      ServerInvite.findById.mockResolvedValue(mockInvite);
+
+      await rejectServerInvite(req, res);
+
+      expect(mockInvite.status).toBe("rejected");
+      expect(Server.findByIdAndUpdate).not.toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith({ success: true, invite: mockInvite });
+    });
+
+    test("devuelve 500 cuando ocurre un error al recuperar la invitación", async () => {
+      req.params = { inviteId: "invite123" };
+
+      const unexpectedError = new Error("lookup failed");
+      ServerInvite.findById.mockRejectedValue(unexpectedError);
+
+      await rejectServerInvite(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({ error: unexpectedError.message });

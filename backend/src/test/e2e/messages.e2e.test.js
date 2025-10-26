@@ -83,12 +83,12 @@ describe("/api/messages E2E", () => {
 
     await request(app).post("/api/servers/join").send({
       serverId,
-      userId: owner._id,
+      userId: owner.id,
     });
 
     const res = await sendMessage({
       text: "Hola mundo",
-      senderId: owner._id,
+      senderId: owner.id,
       channelId: channel._id,
     });
 

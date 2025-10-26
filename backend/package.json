@@ -29,6 +29,7 @@
     "jest": "^30.2.0",
     "mongodb-memory-server": "^10.2.2",
     "nodemon": "^3.1.10",
+    "passport-local": "^1.0.0",
     "supertest": "^7.1.4"
   }
 }
