@@ -17,7 +17,7 @@ export const postMessage = createAsyncThunk(
   "messages/postMessage",
   async (data, { rejectWithValue }) => {
     try {
-      return await sendMessage(data); // devuelve mensaje creado
+      return await sendMessage(data);
     } catch (err) {
       return rejectWithValue(err.message || "Error enviando mensaje");
     }

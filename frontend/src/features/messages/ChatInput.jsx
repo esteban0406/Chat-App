@@ -11,12 +11,13 @@ export default function ChatInput() {
 
   const handleSend = (e) => {
     e.preventDefault();
-    if (text.trim() === "" || !activeChannel?._id) return;
+    const senderId = user?._id || user?.id;
+    if (text.trim() === "" || !activeChannel?._id || !senderId) return;
 
     dispatch(
       postMessage({
         text,
-        senderId: user._id,
+        senderId,
         channelId: activeChannel._id,
       })
     );

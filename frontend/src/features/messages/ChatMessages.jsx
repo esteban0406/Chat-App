@@ -1,4 +1,3 @@
-import React from "react";
 import { useSelector } from "react-redux";
 import useMessages from "./useMessages";
 
@@ -11,8 +10,9 @@ export default function ChatMessages({ channelId }) {
 
   return (
     <div className="flex flex-col space-y-3 p-4">
+
       {messages.map((msg) => {
-        const isOwn = msg.sender?._id === user?._id;
+        const isOwn = msg.sender?._id === user?.id;
 
         return (
           <div
