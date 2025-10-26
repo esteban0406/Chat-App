@@ -14,7 +14,7 @@ export default function ServerSidebar() {
   }, [dispatch]);
 
   return (
-    <aside className="w-20 bg-gray-800 flex flex-col items-center py-4 space-y-4">
+    <aside className="w-20 bg-gray-800 flex flex-col items-center py-4 space-y-4 border-r border-gray-600">
       {/* Perfil (lleva a /me) */}
       <Link
         to="/me"

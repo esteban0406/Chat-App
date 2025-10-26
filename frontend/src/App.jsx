@@ -13,6 +13,7 @@ import FriendList from "./features/Friends/FriendList";
 import InviteForm from "./features/Friends/InviteForm";
 import InviteList from "./features/Friends/InviteList";
 import ServerInviteList from "./features/servers/serverInvites/ServerInviteList";
+import OauthSuccess from "./features/auth/OauthSuccess";
 
 function App() {
   const dispatch = useDispatch();
@@ -29,14 +30,17 @@ function App() {
         dispatch(logout());
       }
     }
-  }, []);
+  }, [token, dispatch]);
 
   return (
     <div className="h-screen w-screen bg-gray-900 text-white">
       <BrowserRouter>
         <Routes>
-          {/* Login */}
+          {/* Login clásico */}
           <Route path="/auth" element={<AuthLayout />} />
+
+          {/* 🚀 Nueva ruta para manejar el login con Google/Microsoft */}
+          <Route path="/oauth-success" element={<OauthSuccess />} />
 
           {/* Layout raíz con sidebar de servidores */}
           <Route
@@ -48,18 +52,14 @@ function App() {
             }
           >
             {/* Perfil de usuario */}
-            <Route path="me/*" element={<Navigate to="/friends" />} />
+            <Route path="me" element={<Navigate to="/friends" replace />} />
 
+            {/* Amigos */}
             <Route path="/friends" element={<FriendsPage />}>
               <Route index element={<FriendList />} /> {/* /friends */}
               <Route path="add" element={<InviteForm />} /> {/* /friends/add */}
-              <Route path="requests" element={<InviteList />} />{" "}
-              {/* /friends/requests */}
-              <Route
-                path="server-requests"
-                element={<ServerInviteList />}
-              />{" "}
-              {/* /friends/server-requests */}
+              <Route path="requests" element={<InviteList />} /> {/* /friends/requests */}
+              <Route path="server-requests" element={<ServerInviteList />} />
             </Route>
 
             {/* Servidores */}

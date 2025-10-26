@@ -71,7 +71,7 @@ describe("/api/friends E2E", () => {
 
     const sendRes = await sendFriendRequest({
       token: senderToken,
-      to: receiver._id,
+      to: receiver.id,
     });
 
     expect(sendRes.status).toBe(201);
@@ -136,12 +136,12 @@ describe("/api/friends E2E", () => {
 
     await sendFriendRequest({
       token: senderToken,
-      to: receiver._id,
+      to: receiver.id,
     });
 
     const duplicate = await sendFriendRequest({
       token: senderToken,
-      to: receiver._id,
+      to: receiver.id,
     });
 
     expect(duplicate.status).toBe(400);

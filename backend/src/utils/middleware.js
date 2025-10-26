@@ -18,7 +18,10 @@ export const unknownEndpoint = (request, response) => {
 export const errorHandler = (error, request, response, next) => {
   logger.error(error.message, error);
 
-  next(error);
+  const status = error.status || 500;
+  response.status(status).json({
+    error: error.message || "Error en el servidor",
+  });
 };
 
 export const authMiddleware = async (req, res, next) => {

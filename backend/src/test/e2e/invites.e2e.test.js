@@ -77,14 +77,14 @@ describe("/api/invites E2E", () => {
 
     const sendRes = await sendInvite({
       token: ownerToken,
-      to: invited._id,
+      to: invited.id,
       serverId,
     });
 
     expect(sendRes.status).toBe(201);
     expect(sendRes.body).toMatchObject({
-      from: owner._id,
-      to: invited._id,
+      from: owner.id,
+      to: invited.id,
       server: serverId,
       status: "pending",
     });
@@ -114,7 +114,7 @@ describe("/api/invites E2E", () => {
     const memberIds = serversRes.body[0].members.map((m) =>
       m._id ? m._id.toString() : m.toString()
     );
-    expect(memberIds).toContain(invited._id);
+    expect(memberIds).toContain(invited.id);
   });
 
   test("rechazar invitación no agrega al servidor", async () => {
@@ -132,7 +132,7 @@ describe("/api/invites E2E", () => {
 
     const sendRes = await sendInvite({
       token: ownerToken,
-      to: invited._id,
+      to: invited.id,
       serverId,
     });
 
@@ -162,13 +162,13 @@ describe("/api/invites E2E", () => {
 
     await sendInvite({
       token: ownerToken,
-      to: invited._id,
+      to: invited.id,
       serverId: serverRes.body._id,
     });
 
     const duplicateRes = await sendInvite({
       token: ownerToken,
-      to: invited._id,
+      to: invited.id,
       serverId: serverRes.body._id,
     });
 
@@ -194,7 +194,7 @@ describe("/api/invites E2E", () => {
 
     await sendInvite({
       token: ownerToken,
-      to: invited._id,
+      to: invited.id,
       serverId,
     });
 

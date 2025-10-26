@@ -55,6 +55,9 @@ describe("auth.controller", () => {
     jest.clearAllMocks();
   });
 
+  // ===================
+  // REGISTER
+  // ===================
   describe("register", () => {
     test("retorna 400 si el usuario ya existe", async () => {
       req.body = { username: "test", email: "test@example.com", password: "pass" };
@@ -71,8 +74,16 @@ describe("auth.controller", () => {
       req.body = { username: "test", email: "test@example.com", password: "pass" };
       UserMock.findOne.mockResolvedValue(null);
       bcryptMock.hash.mockResolvedValue("hashed");
+
       const saveMock = jest.fn().mockResolvedValue(true);
-      const userDoc = { _id: "user123", save: saveMock };
+      const userDoc = {
+        _id: "user123",
+        username: "test",
+        email: "test@example.com",
+        provider: "local",
+        save: saveMock,
+      };
+
       UserMock.mockImplementation(() => userDoc);
       jwtMock.sign.mockReturnValue("token123");
 
@@ -83,17 +94,26 @@ describe("auth.controller", () => {
         username: "test",
         email: "test@example.com",
         password: "hashed",
+        provider: "local",
       });
       expect(saveMock).toHaveBeenCalled();
       expect(jwtMock.sign).toHaveBeenCalledWith({ id: "user123" }, "testsecret", {
         expiresIn: "1d",
       });
+
       expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith({
-        message: "User registered",
-        user: userDoc,
-        token: "token123",
-      });
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "User registered",
+          token: "token123",
+          user: expect.objectContaining({
+            username: "test",
+            email: "test@example.com",
+            provider: "local",
+            id: expect.any(String),
+          }),
+        })
+      );
     });
 
     test("retorna 500 ante errores inesperados", async () => {
@@ -104,10 +124,13 @@ describe("auth.controller", () => {
       await register(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: error.message });
+      expect(res.json).toHaveBeenCalledWith({ error: "Error en el servidor" });
     });
   });
 
+  // ===================
+  // LOGIN
+  // ===================
   describe("login", () => {
     test("retorna 404 si el usuario no existe", async () => {
       req.body = { email: "missing@example.com", password: "pass" };
@@ -121,7 +144,7 @@ describe("auth.controller", () => {
 
     test("retorna 401 si las credenciales son inválidas", async () => {
       req.body = { email: "test@example.com", password: "pass" };
-      const userDoc = { _id: "user123", password: "stored" };
+      const userDoc = { _id: "user123", password: "stored", provider: "local" };
       UserMock.findOne.mockResolvedValue(userDoc);
       bcryptMock.compare.mockResolvedValue(false);
 
@@ -134,7 +157,14 @@ describe("auth.controller", () => {
 
     test("devuelve token cuando las credenciales son válidas", async () => {
       req.body = { email: "test@example.com", password: "pass" };
-      const userDoc = { _id: "user123", password: "stored" };
+      const userDoc = {
+        _id: "user123",
+        username: "test",
+        email: "test@example.com",
+        password: "stored",
+        provider: "local",
+      };
+
       UserMock.findOne.mockResolvedValue(userDoc);
       bcryptMock.compare.mockResolvedValue(true);
       jwtMock.sign.mockReturnValue("token123");
@@ -144,7 +174,17 @@ describe("auth.controller", () => {
       expect(jwtMock.sign).toHaveBeenCalledWith({ id: "user123" }, "testsecret", {
         expiresIn: "1d",
       });
-      expect(res.json).toHaveBeenCalledWith({ token: "token123", user: userDoc });
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token: "token123",
+          user: expect.objectContaining({
+            username: "test",
+            email: "test@example.com",
+            provider: "local",
+            id: expect.any(String),
+          }),
+        })
+      );
     });
 
     test("retorna 500 ante errores inesperados", async () => {
@@ -155,7 +195,7 @@ describe("auth.controller", () => {
       await login(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: error.message });
+      expect(res.json).toHaveBeenCalledWith({ error: "Error en el servidor" });
     });
   });
 });

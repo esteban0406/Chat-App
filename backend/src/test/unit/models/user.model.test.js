@@ -8,7 +8,12 @@ describe("User Model", () => {
   beforeAll(async () => {
     mongo = await MongoMemoryServer.create();
     const uri = mongo.getUri();
-    await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+    await mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    // 👇 Forzar construcción de índices (unique: true)
+    await User.init();
   });
 
   afterAll(async () => {
@@ -98,7 +103,7 @@ describe("User Model", () => {
 
     const user2 = new User({
       username: "user2",
-      email: "duplicate@mail.com",
+      email: "duplicate@mail.com", // duplicado
       password: "67890",
     });
 
@@ -110,7 +115,7 @@ describe("User Model", () => {
     }
 
     expect(err).toBeDefined();
-    expect(err.code).toBe(11000); // código de duplicado en Mongo
+    expect(err.code).toBe(11000); // error por índice único
   });
 
   test("Debe fallar si el username no es único", async () => {
@@ -122,7 +127,7 @@ describe("User Model", () => {
     await user1.save();
 
     const user2 = new User({
-      username: "duplicated",
+      username: "duplicated", // duplicado
       email: "user2@mail.com",
       password: "67890",
     });
@@ -135,7 +140,7 @@ describe("User Model", () => {
     }
 
     expect(err).toBeDefined();
-    expect(err.code).toBe(11000); // índice único violado
+    expect(err.code).toBe(11000); // error por índice único
   });
 
   test("Debe respetar el enum en status", async () => {
@@ -143,7 +148,7 @@ describe("User Model", () => {
       username: "userstatus",
       email: "status@mail.com",
       password: "hashedpassword123",
-      status: "invalidstatus", 
+      status: "invalidstatus", // no válido
     });
 
     let err;
