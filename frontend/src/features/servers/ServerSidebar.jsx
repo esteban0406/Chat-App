@@ -14,7 +14,7 @@ export default function ServerSidebar() {
   }, [dispatch]);
 
   return (
-    <aside className="w-20 bg-gray-800 flex flex-col items-center py-4 space-y-4 border-r border-gray-600">
+    <div className="flex h-full w-full flex-col items-center space-y-4 bg-gray-800 py-4">
       {/* Perfil (lleva a /me) */}
       <Link
         to="/me"
@@ -49,7 +49,6 @@ export default function ServerSidebar() {
       {showCreateModal && (
         <CreateServerModal onClose={() => setShowCreateModal(false)} />
       )}
-
-    </aside>
+    </div>
   );
 }

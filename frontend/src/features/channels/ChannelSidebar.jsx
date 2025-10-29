@@ -1,14 +1,15 @@
 import { useState, useEffect, useRef } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { selectServers } from "../servers/serverSlice";
-import { selectChannelsByServer } from "./channelSlice";
+import { fetchChannels, selectChannelsByServer } from "./channelSlice";
 import InviteFriendsModal from "../servers/modals/InviteFriendsModal";
 import EditServerModal from "../servers/modals/EditServerModal";
 import DeleteServerModal from "../servers/modals/DeleteServerModal";
 import CreateChannelModal from "./CreateChannelModal";
 
 export default function ChannelSidebar({ serverId }) {
+  const dispatch = useDispatch();
   const servers = useSelector(selectServers);
   const channels = useSelector((state) =>
     selectChannelsByServer(state, serverId)
@@ -23,6 +24,13 @@ export default function ChannelSidebar({ serverId }) {
 
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!serverId) {
+      return;
+    }
+    dispatch(fetchChannels(serverId));
+  }, [dispatch, serverId]);
 
   // separar canales
   const textChannels = channels.filter((ch) => ch.type === "text");
@@ -45,14 +53,14 @@ export default function ChannelSidebar({ serverId }) {
 
   if (!server) {
     return (
-      <aside className="w-60 bg-gray-800 p-3 flex flex-col">
+      <aside className="w-full bg-gray-800 p-3 flex flex-col">
         <h2 className="text-gray-400">Selecciona un servidor</h2>
       </aside>
     );
   }
 
   return (
-    <aside className="w-60 bg-gray-800 p-3 flex flex-col">
+    <aside className="w-full bg-gray-800 p-3 flex flex-col">
       {/* Encabezado servidor */}
       <div className="flex items-center justify-between mb-4 relative">
         <h2 className="text-gray-200 font-semibold">{server.name}</h2>

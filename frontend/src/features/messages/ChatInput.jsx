@@ -3,15 +3,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { postMessage } from "./messagesSlice";
 import { selectActiveChannel } from "../channels/channelSlice";
 
-export default function ChatInput() {
+export default function ChatInput({ className = "" }) {
   const [text, setText] = useState("");
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const activeChannel = useSelector(selectActiveChannel);
 
   const handleSend = (e) => {
+    console.log( user );
     e.preventDefault();
     const senderId = user?._id || user?.id;
+    console.log("Sender ID:", senderId);
     if (text.trim() === "" || !activeChannel?._id || !senderId) return;
 
     dispatch(
@@ -28,7 +30,7 @@ export default function ChatInput() {
   return (
     <form
       onSubmit={handleSend}
-      className="flex items-center space-x-2 bg-gray-800 px-3 py-2 rounded-md"
+      className={`flex h-full w-full items-center space-x-2 rounded-md bg-gray-800 px-3 py-2 ${className}`}
     >
       <input
         type="text"
