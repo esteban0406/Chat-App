@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { login } from "./authSlice";
 import { useNavigate } from "react-router-dom";
 
-// 🔹 Importamos helpers OAuth
 import { loginWithGoogle, loginWithMicrosoft } from "./auth.service";
 
 export default function Login() {
@@ -18,7 +17,6 @@ export default function Login() {
     dispatch(login({ email, password }));
   };
 
-  // Redirigir si ya hay usuario logueado
   useEffect(() => {
     if (user) {
       navigate("/me", { replace: true });

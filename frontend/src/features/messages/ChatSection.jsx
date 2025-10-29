@@ -57,8 +57,8 @@ export default function ChatSection() {
       </div>
 
       {!isVoice && (
-        <div className="border-t border-gray-700 p-3 bg-gray-800">
-          <ChatInput />
+        <div className="flex h-20 items-center border-t border-gray-700 bg-gray-800 px-3">
+          <ChatInput className="h-full" />
         </div>
       )}
     </div>

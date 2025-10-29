@@ -1,19 +1,22 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AuthLayout from "./features/auth/AuthLayout";
-import FriendsPage from "./features/user/FriendsPage";
-import ServerLayout from "./features/servers/ServerLayout";
-import ChatSection from "./features/messages/ChatSection";
-import { jwtDecode } from "jwt-decode";
-import { useDispatch, useSelector } from "react-redux";
-import { logout } from "./features/auth/authSlice";
-import { useEffect } from "react";
-import PrivateRoute from "./features/auth/PrivateRoute";
-import RootLayout from "./features/layout/RootLayout";
+import FriendsLayout, { FriendsSidebar } from "./features/user/FriendsLayout";
 import FriendList from "./features/Friends/FriendList";
 import InviteForm from "./features/Friends/InviteForm";
 import InviteList from "./features/Friends/InviteList";
 import ServerInviteList from "./features/servers/serverInvites/ServerInviteList";
+import ServerLayout, {
+  ServerSectionSidebar,
+} from "./features/servers/ServerLayout";
+import ChatSection from "./features/messages/ChatSection";
+import RootLayout from "./features/layout/RootLayout";
+import PrivateRoute from "./features/auth/PrivateRoute";
 import OauthSuccess from "./features/auth/OauthSuccess";
+import { jwtDecode } from "jwt-decode";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "./features/auth/authSlice";
+import { useEffect } from "react";
+import SectionShell from "./features/layout/SectionShell";
 
 function App() {
   const dispatch = useDispatch();
@@ -36,13 +39,11 @@ function App() {
     <div className="h-screen w-screen bg-gray-900 text-white">
       <BrowserRouter>
         <Routes>
-          {/* Login clásico */}
+          {/* Auth */}
           <Route path="/auth" element={<AuthLayout />} />
-
-          {/* 🚀 Nueva ruta para manejar el login con Google/Microsoft */}
           <Route path="/oauth-success" element={<OauthSuccess />} />
 
-          {/* Layout raíz con sidebar de servidores */}
+          {/* Layout raíz (Discord-style) */}
           <Route
             path="/"
             element={
@@ -51,20 +52,30 @@ function App() {
               </PrivateRoute>
             }
           >
-            {/* Perfil de usuario */}
+            {/* Redirigir /me a /friends */}
             <Route path="me" element={<Navigate to="/friends" replace />} />
 
             {/* Amigos */}
-            <Route path="/friends" element={<FriendsPage />}>
-              <Route index element={<FriendList />} /> {/* /friends */}
-              <Route path="add" element={<InviteForm />} /> {/* /friends/add */}
-              <Route path="requests" element={<InviteList />} /> {/* /friends/requests */}
-              <Route path="server-requests" element={<ServerInviteList />} />
+            <Route
+              path="friends"
+              element={<SectionShell sidebar={<FriendsSidebar />} />}
+            >
+              <Route element={<FriendsLayout />}>
+                <Route index element={<FriendList />} />
+                <Route path="add" element={<InviteForm />} />
+                <Route path="requests" element={<InviteList />} />
+                <Route path="server-requests" element={<ServerInviteList />} />
+              </Route>
             </Route>
 
             {/* Servidores */}
-            <Route path="servers/:serverId/*" element={<ServerLayout />}>
-              <Route path="channels/:channelId" element={<ChatSection />} />
+            <Route
+              path="servers/:serverId"
+              element={<SectionShell sidebar={<ServerSectionSidebar />} />}
+            >
+              <Route element={<ServerLayout />}>
+                <Route path="channels/:channelId" element={<ChatSection />} />
+              </Route>
             </Route>
           </Route>
 
