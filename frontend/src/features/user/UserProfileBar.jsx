@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from "react-redux";
 import { Menu } from "@headlessui/react";
 import { useState } from "react";
-import { logout } from "../auth/authSlice"; 
+import { logout } from "../auth/authSlice";
 import EditNameModal from "./modals/EditNameModal";
 import EditAvatarModal from "./modals/EditAvatarModal";
 
@@ -19,14 +19,16 @@ export default function UserProfileBar() {
     : `${trimmedApiBase}/api`;
   const userId = user?.id || user?._id;
   const fallbackAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+  const avatarVersion = user?.updatedAt ? new Date(user.updatedAt).getTime() : 0;
   const avatarSrc = userId
-    ? `${usersBase}/users/${userId}/avatar`
+    ? `${usersBase}/users/${userId}/avatar${avatarVersion ? `?v=${avatarVersion}` : ""}`
     : fallbackAvatar;
 
   return (
     <div className="flex h-20 w-full items-center gap-3 border-t border-gray-700 bg-gray-800 px-3">
       {/* Avatar */}
       <img
+        key={avatarSrc}
         src={avatarSrc}
         alt={user?.username}
         onError={(event) => {
