@@ -28,7 +28,7 @@ router.get(
         req.user.username
       )}&email=${encodeURIComponent(req.user.email)}&avatar=${encodeURIComponent(
         req.user.avatar || ""
-      )}&provider=${req.user.provider}`
+      )}&provider=${req.user.provider}&id=${req.user._id}`
     );
   }
 );
@@ -49,7 +49,7 @@ router.post(
         req.user.username
       )}&email=${encodeURIComponent(req.user.email)}&avatar=${encodeURIComponent(
         req.user.avatar || ""
-      )}&provider=${req.user.provider}`
+      )}&provider=${req.user.provider}&id=${req.user._id}`
     );
   }
 );

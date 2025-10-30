@@ -31,6 +31,7 @@ const messagesSlice = createSlice({
     items: [],
     loading: false,
     error: null,
+    currentChannelId: null,
   },
   reducers: {
     addMessage: (state, action) => {
@@ -41,20 +42,28 @@ const messagesSlice = createSlice({
     },
     clearMessages: (state) => {
       state.items = [];
+      state.currentChannelId = null;
     },
   },
   extraReducers: (builder) => {
     builder
       // fetchMessages
-      .addCase(fetchMessages.pending, (state) => {
+      .addCase(fetchMessages.pending, (state, action) => {
         state.loading = true;
         state.error = null;
+        state.currentChannelId = action.meta.arg;
       })
       .addCase(fetchMessages.fulfilled, (state, action) => {
+        if (state.currentChannelId !== action.meta.arg) {
+          return;
+        }
         state.loading = false;
         state.items = action.payload;
       })
       .addCase(fetchMessages.rejected, (state, action) => {
+        if (state.currentChannelId !== action.meta.arg) {
+          return;
+        }
         state.loading = false;
         state.error = action.payload;
       })

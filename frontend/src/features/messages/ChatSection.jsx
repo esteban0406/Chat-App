@@ -8,6 +8,7 @@ import {
   selectActiveChannel,
   setActiveChannel,
   selectChannelsByServer,
+  setPreferredChannelId,
 } from "../channels/channelSlice";
 
 export default function ChatSection() {
@@ -18,15 +19,20 @@ export default function ChatSection() {
     selectChannelsByServer(state, serverId)
   );
   const { user } = useSelector((state) => state.auth);
+  const activeChannelId = activeChannel?._id;
+
+  useEffect(() => {
+    dispatch(setPreferredChannelId(channelId || null));
+  }, [channelId, dispatch]);
 
   useEffect(() => {
     if (channels.length > 0 && channelId) {
       const found = channels.find((c) => c._id === channelId);
-      if (found) {
+      if (found && activeChannelId !== found._id) {
         dispatch(setActiveChannel(found));
       }
     }
-  }, [channelId, channels, dispatch]);
+  }, [channelId, channels, activeChannelId, dispatch]);
 
   if (!activeChannel) {
     return (
