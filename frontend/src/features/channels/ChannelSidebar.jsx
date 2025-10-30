@@ -12,6 +12,8 @@ import InviteFriendsModal from "../servers/modals/InviteFriendsModal";
 import EditServerModal from "../servers/modals/EditServerModal";
 import DeleteServerModal from "../servers/modals/DeleteServerModal";
 import CreateChannelModal from "./CreateChannelModal";
+import EditChannelModal from "./EditChannelModal";
+import DeleteChannelModal from "./DeleteChannelModal";
 
 export default function ChannelSidebar({ serverId }) {
   const dispatch = useDispatch();
@@ -28,9 +30,73 @@ export default function ChannelSidebar({ serverId }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [channelTypeToCreate, setChannelTypeToCreate] = useState("text");
+  const [channelToEdit, setChannelToEdit] = useState(null);
+  const [channelToDelete, setChannelToDelete] = useState(null);
+  const [openChannelMenuId, setOpenChannelMenuId] = useState(null);
 
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
+  const channelMenuRefs = useRef({});
+
+  const setChannelMenuRef = (channelId) => (element) => {
+    if (element) {
+      channelMenuRefs.current[channelId] = element;
+    } else {
+      delete channelMenuRefs.current[channelId];
+    }
+  };
+
+  const renderChannelItem = (channel, prefix) => (
+    <div
+      key={channel._id}
+      className="group flex items-center justify-between px-3 py-2 rounded-md hover:bg-gray-700 text-gray-200"
+    >
+      <Link
+        to={`/servers/${serverId}/channels/${channel._id}`}
+        className="flex items-center gap-2 flex-1 text-gray-200 group-hover:text-white truncate"
+      >
+        <span>{prefix}</span>
+        <span className="truncate">{channel.name}</span>
+      </Link>
+      <div className="relative ml-2" ref={setChannelMenuRef(channel._id)}>
+        <button
+          type="button"
+          className="text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none transition-opacity px-1"
+          onClick={(event) => {
+            event.stopPropagation();
+            setOpenChannelMenuId((prev) =>
+              prev === channel._id ? null : channel._id
+            );
+            setShowMenu(false);
+          }}
+        >
+          ⚙
+        </button>
+        {openChannelMenuId === channel._id && (
+          <div className="absolute right-0 mt-2 w-40 bg-gray-700 rounded shadow-lg z-20">
+            <button
+              onClick={() => {
+                setChannelToEdit(channel);
+                setOpenChannelMenuId(null);
+              }}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-600 text-sm text-gray-200"
+            >
+              Editar canal
+            </button>
+            <button
+              onClick={() => {
+                setChannelToDelete(channel);
+                setOpenChannelMenuId(null);
+              }}
+              className="block w-full text-left px-4 py-2 hover:bg-red-600 text-sm text-gray-200"
+            >
+              Eliminar canal
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     if (!serverId) {
@@ -61,6 +127,28 @@ export default function ChannelSidebar({ serverId }) {
     };
   }, [showMenu]);
 
+  useEffect(() => {
+    if (!openChannelMenuId) {
+      return;
+    }
+
+    const handleOutsideClick = (event) => {
+      const container = channelMenuRefs.current[openChannelMenuId];
+      if (container && !container.contains(event.target)) {
+        setOpenChannelMenuId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [openChannelMenuId]);
+
+  useEffect(() => {
+    setOpenChannelMenuId(null);
+  }, [serverId]);
+
   if (!server) {
     return (
       <aside className="w-full bg-gray-800 p-3 flex flex-col">
@@ -77,7 +165,10 @@ export default function ChannelSidebar({ serverId }) {
         <div className="relative" ref={menuRef}>
           <button
             className="text-gray-400 hover:text-white px-2"
-            onClick={() => setShowMenu((prev) => !prev)}
+            onClick={() => {
+              setShowMenu((prev) => !prev);
+              setOpenChannelMenuId(null);
+            }}
           >
             ⋮
           </button>
@@ -130,15 +221,7 @@ export default function ChannelSidebar({ serverId }) {
           </button>
         </div>
         <nav className="space-y-2 mt-2">
-          {textChannels.map((ch) => (
-            <Link
-              key={ch._id}
-              to={`/servers/${serverId}/channels/${ch._id}`}
-              className="block px-3 py-2 rounded-md hover:bg-gray-700 text-gray-200"
-            >
-              # {ch.name}
-            </Link>
-          ))}
+          {textChannels.map((ch) => renderChannelItem(ch, "#"))}
         </nav>
       </div>
 
@@ -157,15 +240,7 @@ export default function ChannelSidebar({ serverId }) {
           </button>
         </div>
         <nav className="space-y-2 mt-2">
-          {voiceChannels.map((ch) => (
-            <Link
-              key={ch._id}
-              to={`/servers/${serverId}/channels/${ch._id}`}
-              className="block px-3 py-2 rounded-md hover:bg-gray-700 text-gray-200"
-            >
-              🔊 {ch.name}
-            </Link>
-          ))}
+          {voiceChannels.map((ch) => renderChannelItem(ch, "🔊"))}
         </nav>
       </div>
 
@@ -190,6 +265,18 @@ export default function ChannelSidebar({ serverId }) {
           serverId={serverId}
           defaultType={channelTypeToCreate}
           onClose={() => setShowCreateModal(false)}
+        />
+      )}
+      {channelToEdit && (
+        <EditChannelModal
+          channel={channelToEdit}
+          onClose={() => setChannelToEdit(null)}
+        />
+      )}
+      {channelToDelete && (
+        <DeleteChannelModal
+          channel={channelToDelete}
+          onClose={() => setChannelToDelete(null)}
         />
       )}
     </aside>
