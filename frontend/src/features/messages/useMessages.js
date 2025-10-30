@@ -4,21 +4,28 @@ import { fetchMessages, addMessage, clearMessages } from "./messagesSlice";
 import { selectActiveChannel } from "../channels/channelSlice";
 import socket from "../../services/socket";
 
-export default function useMessages() {
+export default function useMessages(channelId) {
   const dispatch = useDispatch();
   const activeChannel = useSelector(selectActiveChannel);
-  const { items: messages, loading, error } = useSelector((state) => state.messages);
+  const { items: messages, loading, error, currentChannelId } = useSelector(
+    (state) => state.messages
+  );
+  const activeChannelId = activeChannel?._id;
 
   useEffect(() => {
-    if (!activeChannel?._id) return;
+    if (!channelId || activeChannelId !== channelId) {
+      return;
+    }
 
-    dispatch(clearMessages());
-    dispatch(fetchMessages(activeChannel._id)); 
+    if (currentChannelId !== channelId) {
+      dispatch(clearMessages());
+      dispatch(fetchMessages(channelId));
+    }
 
-    socket.emit("joinChannel", activeChannel._id);
+    socket.emit("joinChannel", channelId);
 
     const handleMessage = (msg) => {
-      if (msg.channel === activeChannel._id) {
+      if (msg.channel === channelId) {
         dispatch(addMessage(msg));
       }
     };
@@ -26,10 +33,10 @@ export default function useMessages() {
     socket.on("message", handleMessage);
 
     return () => {
-      socket.emit("leaveChannel", activeChannel._id);
+      socket.emit("leaveChannel", channelId);
       socket.off("message", handleMessage);
     };
-  }, [activeChannel?._id, dispatch]);
+  }, [channelId, activeChannelId, currentChannelId, dispatch]);
 
   return { messages, loading, error };
 }

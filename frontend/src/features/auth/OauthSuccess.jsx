@@ -15,9 +15,10 @@ export default function OauthSuccess() {
     const email = params.get("email");
     const avatar = params.get("avatar");
     const provider = params.get("provider");
+    const id = params.get("id");
 
     if (token && email) {
-      const user = { username, email, avatar, provider };
+      const user = { id, username, email, avatar, provider };
 
       // Guardar en Redux
       dispatch(

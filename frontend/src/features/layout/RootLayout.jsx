@@ -22,7 +22,7 @@ export default function RootLayout() {
       <Outlet />
 
       <div
-        className="border-t border-gray-700 bg-gray-800"
+        className="border-t border-r border-gray-700 bg-gray-800"
         style={{ gridArea: "profile" }}
       >
         <UserProfileBar />

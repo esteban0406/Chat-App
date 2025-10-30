@@ -2,7 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { selectServers } from "../servers/serverSlice";
-import { fetchChannels, selectChannelsByServer } from "./channelSlice";
+import {
+  fetchChannels,
+  selectChannelsByServer,
+  selectChannelsLoading,
+  selectLoadedServerIds,
+} from "./channelSlice";
 import InviteFriendsModal from "../servers/modals/InviteFriendsModal";
 import EditServerModal from "../servers/modals/EditServerModal";
 import DeleteServerModal from "../servers/modals/DeleteServerModal";
@@ -14,6 +19,8 @@ export default function ChannelSidebar({ serverId }) {
   const channels = useSelector((state) =>
     selectChannelsByServer(state, serverId)
   );
+  const loadingChannels = useSelector(selectChannelsLoading);
+  const loadedServerIds = useSelector(selectLoadedServerIds);
   const server = servers.find((s) => s._id === serverId);
 
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -29,8 +36,11 @@ export default function ChannelSidebar({ serverId }) {
     if (!serverId) {
       return;
     }
-    dispatch(fetchChannels(serverId));
-  }, [dispatch, serverId]);
+    const alreadyLoaded = loadedServerIds.includes(serverId);
+    if (!loadingChannels && !alreadyLoaded) {
+      dispatch(fetchChannels(serverId));
+    }
+  }, [serverId, loadedServerIds, loadingChannels, dispatch]);
 
   // separar canales
   const textChannels = channels.filter((ch) => ch.type === "text");
