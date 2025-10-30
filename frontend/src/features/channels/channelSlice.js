@@ -1,5 +1,10 @@
 import { createSlice, createAsyncThunk, createSelector } from "@reduxjs/toolkit";
-import { getChannels, deleteChannel, createChannel } from "./channel.service";
+import {
+  getChannels,
+  deleteChannel,
+  createChannel,
+  updateChannel,
+} from "./channel.service";
 
 // --- THUNKS ---
 export const fetchChannels = createAsyncThunk(
@@ -37,6 +42,19 @@ export const removeChannel = createAsyncThunk(
     } catch (err) {
       console.error("❌ Error removeChannel:", err);
       return rejectWithValue(err.message || "Error eliminando canal");
+    }
+  }
+);
+
+export const updateChannelName = createAsyncThunk(
+  "channels/updateChannelName",
+  async ({ channelId, name }, { rejectWithValue }) => {
+    try {
+      const updatedChannel = await updateChannel(channelId, { name });
+      return updatedChannel;
+    } catch (err) {
+      console.error("❌ Error updateChannelName:", err);
+      return rejectWithValue(err.message || "Error actualizando canal");
     }
   }
 );
@@ -121,6 +139,16 @@ const channelSlice = createSlice({
         }
         if (state.preferredChannelId === action.payload) {
           state.preferredChannelId = null;
+        }
+      })
+      .addCase(updateChannelName.fulfilled, (state, action) => {
+        const updatedChannel = action.payload;
+        const index = state.list.findIndex((ch) => ch._id === updatedChannel._id);
+        if (index !== -1) {
+          state.list[index] = updatedChannel;
+        }
+        if (state.activeChannel?._id === updatedChannel._id) {
+          state.activeChannel = updatedChannel;
         }
       });
   },

@@ -4,6 +4,7 @@ import {
   fetchChannels,
   addChannel,
   removeChannel,
+  updateChannelName,
   setActiveChannel,
   clearChannels,
   selectChannels,
@@ -38,6 +39,11 @@ export function useChannels() {
     [dispatch]
   );
 
+  const updateChannelById = useCallback(
+    ({ channelId, name }) => dispatch(updateChannelName({ channelId, name })),
+    [dispatch]
+  );
+
   const setActive = useCallback(
     (channel) => dispatch(setActiveChannel(channel)),
     [dispatch]
@@ -54,6 +60,7 @@ export function useChannels() {
     loadChannels,
     createChannel,
     deleteChannelById,
+    updateChannelById,
     setActive,
     clear,
   };

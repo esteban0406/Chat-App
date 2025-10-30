@@ -78,3 +78,36 @@ export const deleteChannel = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+export const updateChannel = async (req, res) => {
+  try {
+    const { channelId } = req.params;
+    const { name } = req.body;
+    const userId = req.user._id;
+
+    if (!name) {
+      return res.status(400).json({ error: "El nombre es requerido" });
+    }
+
+    const channel = await Channel.findById(channelId);
+    if (!channel) {
+      return res.status(404).json({ error: "Canal no encontrado" });
+    }
+
+    const server = await Server.findById(channel.server);
+    if (!server) {
+      return res.status(404).json({ error: "Servidor no encontrado" });
+    }
+
+    if (!server.members.includes(userId)) {
+      return res.status(403).json({ error: "No eres miembro de este servidor" });
+    }
+
+    channel.name = name;
+    await channel.save();
+
+    res.json(channel);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
