@@ -1,15 +1,52 @@
-import Server from "../models/Server.js";
 import Channel from "../models/Channel.js";
+import Server from "../models/Server.js";
+import { ok } from "../utils/response.js";
+import { createHttpError, validationError } from "../utils/httpError.js";
+
+const serializeChannel = (channel) => {
+  const plain = channel.toObject();
+  plain.id = plain._id.toString();
+  delete plain._id;
+  delete plain.__v;
+  return plain;
+};
+
+const serializePlainChannel = (channel) => {
+  const { _id, __v, ...rest } = channel;
+  return {
+    ...rest,
+    id: _id?.toString(),
+  };
+};
+
+const serializeServer = (server) => {
+  const plain = server.toObject();
+  plain.id = plain._id.toString();
+  plain.owner = plain.owner.toString();
+  plain.members = plain.members.map((member) => member.toString());
+  if (plain.channels) {
+    plain.channels = plain.channels.map((channel) =>
+      channel && typeof channel === "object"
+        ? typeof channel.toObject === "function"
+          ? serializeChannel(channel)
+          : serializePlainChannel(channel)
+        : channel?.toString?.() ?? channel
+    );
+  }
+  delete plain._id;
+  delete plain.__v;
+  return plain;
+};
 
 // ==================================================
 // Crear servidor con canal por defecto
 // ==================================================
-export const createServer = async (req, res) => {
+export const createServer = async (req, res, next) => {
   try {
     const { name, description } = req.body;
 
     if (!name) {
-      return res.status(400).json({ error: "El nombre es requerido" });
+      throw validationError("El nombre es requerido");
     }
 
     const ownerId = req.user._id; // 👈 mantener ObjectId, no string
@@ -34,29 +71,34 @@ export const createServer = async (req, res) => {
     server.channels.push(channel._id);
     await server.save();
 
-    res.status(201).json({
-      ...server.toObject(),
-      defaultChannel: channel,
+    return ok(res, {
+      status: 201,
+      message: "Servidor creado",
+      data: {
+        server: serializeServer(server),
+        defaultChannel: serializeChannel(channel),
+      },
     });
-  } catch (err) {
-    console.error("❌ Error creando servidor:", err);
-    res.status(500).json({ error: "Error en el servidor" });
+  } catch (error) {
+    return next(error);
   }
 };
 
 // ==================================================
 // Unirse a un servidor
 // ==================================================
-export const joinServer = async (req, res) => {
+export const joinServer = async (req, res, next) => {
   try {
     const { serverId, userId } = req.body;
 
     if (!serverId || !userId) {
-      return res.status(400).json({ error: "serverId y userId requeridos" });
+      throw validationError("serverId y userId requeridos");
     }
 
     const server = await Server.findById(serverId);
-    if (!server) return res.status(404).json({ error: "Servidor no encontrado" });
+    if (!server) {
+      throw createHttpError(404, "Servidor no encontrado", { code: "SERVER_NOT_FOUND" });
+    }
 
     const normalizedUserId = userId.toString();
     const alreadyMember = server.members.some(
@@ -68,88 +110,81 @@ export const joinServer = async (req, res) => {
       await server.save();
     }
 
-    res.json({
-      ...server.toObject(),
-      members: server.members.map((m) => m.toString()),
+    return ok(res, {
+      message: "Usuario unido al servidor",
+      data: { server: serializeServer(server) },
     });
-  } catch (err) {
-    console.error("❌ Error al unirse al servidor:", err);
-    res.status(500).json({ error: "Error en el servidor" });
+  } catch (error) {
+    return next(error);
   }
 };
 
 // ==================================================
 // Obtener servidores donde es miembro
 // ==================================================
-export const getServers = async (req, res) => {
+export const getServers = async (req, res, next) => {
   try {
     const userId = req.user._id.toString();
 
     const servers = await Server.find({ members: userId }).populate("channels");
 
-    res.json(
-      servers.map((s) => ({
-        ...s.toObject(),
-        members: s.members.map((m) => m.toString()),
-        owner: s.owner.toString(),
-      }))
-    );
-  } catch (err) {
-    console.error("❌ Error obteniendo servidores:", err);
-    res.status(500).json({ error: "Error en el servidor" });
+    return ok(res, {
+      data: {
+        servers: servers.map(serializeServer),
+      },
+    });
+  } catch (error) {
+    return next(error);
   }
 };
 
 // ==================================================
 // Eliminar un servidor
 // ==================================================
-export const deleteServer = async (req, res) => {
+export const deleteServer = async (req, res, next) => {
   try {
     const { serverId } = req.params;
 
     if (!serverId) {
-      return res.status(400).json({ error: "Se requiere el serverId" });
+      throw validationError("Se requiere el serverId");
     }
 
     await Channel.deleteMany({ server: serverId });
     await Server.findByIdAndDelete(serverId);
 
-    res.json({ message: "Servidor eliminado con éxito" });
-  } catch (err) {
-    console.error("❌ Error eliminando servidor:", err);
-    res.status(500).json({ error: "Error en el servidor" });
+    return ok(res, { message: "Servidor eliminado con éxito" });
+  } catch (error) {
+    return next(error);
   }
 };
 
 // ==================================================
 // Eliminar miembro (solo dueño)
 // ==================================================
-export const removeMember = async (req, res) => {
+export const removeMember = async (req, res, next) => {
   try {
     const { serverId, memberId } = req.params;
 
     if (!serverId || !memberId) {
-      return res.status(400).json({ error: "serverId y memberId requeridos" });
+      throw validationError("serverId y memberId requeridos");
     }
 
     const server = await Server.findById(serverId);
     if (!server) {
-      return res.status(404).json({ error: "Servidor no encontrado" });
+      throw createHttpError(404, "Servidor no encontrado", { code: "SERVER_NOT_FOUND" });
     }
 
     if (server.owner.toString() !== req.user._id.toString()) {
-      return res
-        .status(403)
-        .json({ error: "Solo el dueño puede eliminar miembros" });
+      throw createHttpError(403, "Solo el dueño puede eliminar miembros", {
+        code: "FORBIDDEN",
+      });
     }
 
     const isMember = server.members.some(
       (m) => m.toString() === memberId.toString()
     );
     if (!isMember) {
-      return res
-        .status(400)
-        .json({ error: "El miembro no pertenece al servidor" });
+      throw validationError("El miembro no pertenece al servidor");
     }
 
     server.members = server.members.filter(
@@ -157,44 +192,45 @@ export const removeMember = async (req, res) => {
     );
     await server.save();
 
-    res.json({
-      ...server.toObject(),
-      members: server.members.map((m) => m.toString()),
+    return ok(res, {
+      message: "Miembro eliminado",
+      data: { server: serializeServer(server) },
     });
-  } catch (err) {
-    console.error("❌ Error eliminando miembro:", err);
-    res.status(500).json({ error: "Error en el servidor" });
+  } catch (error) {
+    return next(error);
   }
 };
 
 // ==================================================
 // Abandonar un servidor
 // ==================================================
-export const leaveServer = async (req, res) => {
+export const leaveServer = async (req, res, next) => {
   try {
     const { serverId } = req.params;
     const userId = req.user._id.toString();
 
     if (!serverId) {
-      return res.status(400).json({ error: "Se requiere el serverId" });
+      throw validationError("Se requiere el serverId");
     }
 
     const server = await Server.findById(serverId);
     if (!server) {
-      return res.status(404).json({ error: "Servidor no encontrado" });
+      throw createHttpError(404, "Servidor no encontrado", { code: "SERVER_NOT_FOUND" });
     }
 
     if (server.owner.toString() === userId) {
-      return res
-        .status(400)
-        .json({ error: "El dueño no puede abandonar su servidor" });
+      throw createHttpError(400, "El dueño no puede abandonar su servidor", {
+        code: "INVALID_OPERATION",
+      });
     }
 
     const isMember = server.members.some(
       (m) => m.toString() === userId.toString()
     );
     if (!isMember) {
-      return res.status(400).json({ error: "No perteneces a este servidor" });
+      throw createHttpError(400, "No perteneces a este servidor", {
+        code: "INVALID_OPERATION",
+      });
     }
 
     server.members = server.members.filter(
@@ -202,9 +238,8 @@ export const leaveServer = async (req, res) => {
     );
     await server.save();
 
-    res.json({ message: "Has salido del servidor" });
-  } catch (err) {
-    console.error("❌ Error al salir del servidor:", err);
-    res.status(500).json({ error: "Error en el servidor" });
+    return ok(res, { message: "Has salido del servidor" });
+  } catch (error) {
+    return next(error);
   }
 };
