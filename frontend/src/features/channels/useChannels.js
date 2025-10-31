@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import { useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   fetchChannels,
   addChannel,
@@ -23,9 +23,28 @@ export function useChannels() {
   const loading = useSelector(selectChannelsLoading);
   const error = useSelector(selectChannelsError);
 
-  // Memoizar para evitar que cambien en cada render
+  // 🔹 Estados locales de modales
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showEditServerModal, setShowEditServerModal] = useState(false);
+  const [showDeleteMembersModal, setShowDeleteMembersModal] = useState(false);
+  const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
+  const [channelTypeToCreate, setChannelTypeToCreate] = useState("text");
+  const [channelToEdit, setChannelToEdit] = useState(null);
+  const [channelToDelete, setChannelToDelete] = useState(null);
+
+  // 🔹 Memoizar canales por tipo
+  const textChannels = useMemo(
+    () => (channels ?? []).filter((ch) => ch.type === "text"),
+    [channels]
+  );
+  const voiceChannels = useMemo(
+    () => (channels ?? []).filter((ch) => ch.type === "voice"),
+    [channels]
+  );
+
+  // 🔹 Funciones Redux
   const loadChannels = useCallback(
-    (serverId) => dispatch(fetchChannels(serverId)),
+    (id) => dispatch(fetchChannels(id)),
     [dispatch]
   );
 
@@ -51,7 +70,21 @@ export function useChannels() {
 
   const clear = useCallback(() => dispatch(clearChannels()), [dispatch]);
 
+  // 🔹 Funciones de modales
+  const openCreateChannelModal = (type = "text") => {
+    setChannelTypeToCreate(type);
+    setShowCreateChannelModal(true);
+  };
+
+  const handleEditChannel = (channel) => setChannelToEdit(channel);
+  const handleDeleteChannel = (channel) => setChannelToDelete(channel);
+
+  const handleOpenInviteModal = () => setShowInviteModal(true);
+  const handleOpenEditServerModal = () => setShowEditServerModal(true);
+  const handleOpenDeleteMembersModal = () => setShowDeleteMembersModal(true);
+
   return {
+    // Redux
     channels,
     activeChannel,
     activeServer,
@@ -63,5 +96,32 @@ export function useChannels() {
     updateChannelById,
     setActive,
     clear,
+
+    // Canales clasificados
+    textChannels,
+    voiceChannels,
+
+    // Estados modales
+    showInviteModal,
+    showEditServerModal,
+    showDeleteMembersModal,
+    showCreateChannelModal,
+    channelTypeToCreate,
+    channelToEdit,
+    channelToDelete,
+
+    // Acciones modales
+    setShowInviteModal,
+    setShowEditServerModal,
+    setShowDeleteMembersModal,
+    setShowCreateChannelModal,
+    setChannelToEdit,
+    setChannelToDelete,
+    openCreateChannelModal,
+    handleEditChannel,
+    handleDeleteChannel,
+    handleOpenInviteModal,
+    handleOpenEditServerModal,
+    handleOpenDeleteMembersModal,
   };
 }
