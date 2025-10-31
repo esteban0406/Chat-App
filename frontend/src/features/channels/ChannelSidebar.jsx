@@ -46,7 +46,7 @@ export default function ChannelSidebar({ serverId }) {
     handleOpenInviteModal,
     handleOpenEditServerModal,
     handleOpenDeleteServerModal,
-  } = useChannels();
+  } = useChannels(serverId);
 
   useEffect(() => {
     if (serverId && !loadedServerIds.includes(serverId) && !loading) {

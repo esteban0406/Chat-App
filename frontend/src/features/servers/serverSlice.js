@@ -24,7 +24,9 @@ export const addServer = createAsyncThunk(
   async (serverData, { rejectWithValue }) => {
     try {
       const res = await createServer(serverData);
-      return res?.server ?? res;
+      const server = res?.server ?? res;
+      const defaultChannel = res?.defaultChannel ?? null;
+      return { server, defaultChannel };
     } catch (err) {
       console.error("❌ Error addServer:", err);
       return rejectWithValue(err.message || "Error creando servidor");
@@ -115,7 +117,9 @@ const serverSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(addServer.fulfilled, (state, action) => {
-        const server = normalizeServer(action.payload);
+        const payload = action.payload ?? {};
+        const serverData = payload.server ?? payload;
+        const server = normalizeServer(serverData);
         if (server) {
           state.list.push(server);
         }

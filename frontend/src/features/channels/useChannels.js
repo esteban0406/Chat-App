@@ -14,7 +14,20 @@ import {
 } from "./channelSlice";
 import { selectActiveServer } from "../servers/serverSlice";
 
-export function useChannels() {
+const toIdString = (value) => {
+  if (!value) return null;
+  if (typeof value === "string") return value;
+  if (typeof value === "object") {
+    const candidate =
+      value._id ??
+      value.id ??
+      (typeof value.toString === "function" ? value.toString() : null);
+    return typeof candidate === "string" ? candidate : candidate?.toString?.() ?? null;
+  }
+  return value.toString?.() ?? String(value);
+};
+
+export function useChannels(serverIdOverride = null) {
   const dispatch = useDispatch();
 
   const channels = useSelector(selectChannels);
@@ -32,14 +45,28 @@ export function useChannels() {
   const [channelToEdit, setChannelToEdit] = useState(null);
   const [channelToDelete, setChannelToDelete] = useState(null);
 
+  const resolvedServerId = useMemo(() => {
+    const selected = serverIdOverride ?? activeServer?._id ?? activeServer?.id ?? null;
+    return toIdString(selected);
+  }, [serverIdOverride, activeServer]);
+
+  const serverChannels = useMemo(() => {
+    if (!resolvedServerId) {
+      return channels ?? [];
+    }
+    return (channels ?? []).filter(
+      (channel) => toIdString(channel?.server) === resolvedServerId
+    );
+  }, [channels, resolvedServerId]);
+
   // 🔹 Memoizar canales por tipo
   const textChannels = useMemo(
-    () => (channels ?? []).filter((ch) => ch.type === "text"),
-    [channels]
+    () => serverChannels.filter((ch) => ch.type === "text"),
+    [serverChannels]
   );
   const voiceChannels = useMemo(
-    () => (channels ?? []).filter((ch) => ch.type === "voice"),
-    [channels]
+    () => serverChannels.filter((ch) => ch.type === "voice"),
+    [serverChannels]
   );
 
   // 🔹 Funciones Redux
@@ -86,6 +113,7 @@ export function useChannels() {
   return {
     // Redux
     channels,
+    serverChannels,
     activeChannel,
     activeServer,
     loading,

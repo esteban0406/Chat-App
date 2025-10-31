@@ -10,10 +10,8 @@ export default function ChatInput({ className = "" }) {
   const activeChannel = useSelector(selectActiveChannel);
 
   const handleSend = (e) => {
-    console.log( user );
     e.preventDefault();
     const senderId = user?._id || user?.id;
-    console.log("Sender ID:", senderId);
     if (text.trim() === "" || !activeChannel?._id || !senderId) return;
 
     dispatch(
