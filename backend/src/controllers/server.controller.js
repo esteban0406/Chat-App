@@ -19,11 +19,47 @@ const serializePlainChannel = (channel) => {
   };
 };
 
+const serializeMember = (member) => {
+  if (!member) return null;
+
+  if (typeof member === "object") {
+    const base = member.toObject ? member.toObject() : member;
+    const id =
+      base._id?.toString?.() ??
+      base.id?.toString?.() ??
+      member.toString?.() ??
+      String(member);
+
+    return {
+      id,
+      _id: id,
+      username: base.username,
+      email: base.email,
+      avatar: base.avatar,
+    };
+  }
+
+  const id = member.toString?.() ?? String(member);
+  return { id, _id: id };
+};
+
 const serializeServer = (server) => {
   const plain = server.toObject();
   plain.id = plain._id.toString();
-  plain.owner = plain.owner.toString();
-  plain.members = plain.members.map((member) => member.toString());
+  if (plain.owner) {
+    if (typeof plain.owner === "object") {
+      const owner =
+        plain.owner._id?.toString?.() ??
+        plain.owner.id?.toString?.() ??
+        plain.owner.toString?.();
+      plain.owner = owner ?? String(plain.owner);
+    } else {
+      plain.owner = plain.owner.toString();
+    }
+  }
+  plain.members = plain.members
+    .map(serializeMember)
+    .filter((member) => member !== null);
   if (plain.channels) {
     plain.channels = plain.channels.map((channel) =>
       channel && typeof channel === "object"
@@ -70,6 +106,7 @@ export const createServer = async (req, res, next) => {
 
     server.channels.push(channel._id);
     await server.save();
+    await server.populate("members", "username email avatar");
 
     return ok(res, {
       status: 201,
@@ -110,6 +147,8 @@ export const joinServer = async (req, res, next) => {
       await server.save();
     }
 
+    await server.populate("members", "username email avatar");
+
     return ok(res, {
       message: "Usuario unido al servidor",
       data: { server: serializeServer(server) },
@@ -126,7 +165,9 @@ export const getServers = async (req, res, next) => {
   try {
     const userId = req.user._id.toString();
 
-    const servers = await Server.find({ members: userId }).populate("channels");
+    const servers = await Server.find({ members: userId })
+      .populate("channels")
+      .populate("members", "username email avatar");
 
     return ok(res, {
       data: {
@@ -191,6 +232,7 @@ export const removeMember = async (req, res, next) => {
       (m) => m.toString() !== memberId.toString()
     );
     await server.save();
+    await server.populate("members", "username email avatar");
 
     return ok(res, {
       message: "Miembro eliminado",

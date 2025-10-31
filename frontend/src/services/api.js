@@ -14,7 +14,8 @@ API.interceptors.request.use((config) => {
 const request = async (promise) => {
   try {
     const { data } = await promise;
-    return data;
+    // Backend responses now use { success, message, data }
+    return data?.data ?? data;
   } catch (error) {
     throw error.response?.data || error;
   }

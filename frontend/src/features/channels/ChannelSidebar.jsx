@@ -27,7 +27,7 @@ export default function ChannelSidebar({ serverId }) {
     // estados modales
     showInviteModal,
     showEditServerModal,
-    showDeleteMembersModal,
+    showDeleteServerModal,
     showCreateChannelModal,
     channelTypeToCreate,
     channelToEdit,
@@ -35,7 +35,7 @@ export default function ChannelSidebar({ serverId }) {
     // setters modales
     setShowInviteModal,
     setShowEditServerModal,
-    setShowDeleteMembersModal,
+    setShowDeleteServerModal,
     setShowCreateChannelModal,
     setChannelToEdit,
     setChannelToDelete,
@@ -45,7 +45,7 @@ export default function ChannelSidebar({ serverId }) {
     handleDeleteChannel,
     handleOpenInviteModal,
     handleOpenEditServerModal,
-    handleOpenDeleteMembersModal,
+    handleOpenDeleteServerModal,
   } = useChannels();
 
   useEffect(() => {
@@ -67,8 +67,8 @@ export default function ChannelSidebar({ serverId }) {
       <ChannelSidebarHeader
         server={server}
         onInvite={handleOpenInviteModal}
-        onDeleteMembers={handleOpenDeleteMembersModal}
-        onDeleteServer={handleOpenEditServerModal}
+        onEditServer={handleOpenEditServerModal}
+        onDeleteServer={handleOpenDeleteServerModal}
       />
 
       <ChannelListSection
@@ -102,10 +102,10 @@ export default function ChannelSidebar({ serverId }) {
           onClose={() => setShowEditServerModal(false)}
         />
       )}
-      {showDeleteMembersModal && (
+      {showDeleteServerModal && (
         <DeleteServerModal
           server={server}
-          onClose={() => setShowDeleteMembersModal(false)}
+          onClose={() => setShowDeleteServerModal(false)}
         />
       )}
       {showCreateChannelModal && (
@@ -133,7 +133,7 @@ export default function ChannelSidebar({ serverId }) {
 
 /* ===== Subcomponentes autocontenidos (opcional mover a archivos propios) ===== */
 
-function ChannelSidebarHeader({ server, onInvite, onDeleteMembers, onDeleteServer }) {
+function ChannelSidebarHeader({ server, onInvite, onEditServer, onDeleteServer }) {
   return (
     <div className="flex items-center justify-between mb-4 relative">
       <h2 className="text-gray-200 font-semibold truncate">{server.name}</h2>
@@ -143,7 +143,7 @@ function ChannelSidebarHeader({ server, onInvite, onDeleteMembers, onDeleteServe
         </Menu.Button>
         <Menu.Items className="absolute right-0 mt-2 w-44 bg-gray-700 rounded shadow-lg z-10 ring-1 ring-black ring-opacity-5 focus:outline-none">
           <ActionMenuItem onClick={onInvite}>Invitar amigo</ActionMenuItem>
-          <ActionMenuItem onClick={onDeleteMembers}>Eliminar miembros</ActionMenuItem>
+          <ActionMenuItem onClick={onEditServer}>Editar servidor</ActionMenuItem>
           <ActionMenuItem onClick={onDeleteServer} danger>
             Eliminar servidor
           </ActionMenuItem>
