@@ -1,33 +1,98 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { sendFriendInvite } from "./friend.service";
 import { searchUser } from "../user/user.service";
+import { fetchFriends } from "./friendsSlice";
 
 export default function InviteForm() {
   const [username, setUsername] = useState("");
-  const [result, setResult] = useState(null);
+  const [results, setResults] = useState([]);
   const [status, setStatus] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [sendingId, setSendingId] = useState(null);
+
+  const dispatch = useDispatch();
+  const { items: friends } = useSelector((state) => state.friends);
+  const currentUser = useSelector((state) => state.auth.user);
+
+  useEffect(() => {
+    if (!friends || friends.length === 0) {
+      dispatch(fetchFriends());
+    }
+  }, [dispatch, friends?.length]);
+
+  const friendIdSet = new Set(
+    (friends || []).map((friend) => friend.id || friend._id).filter(Boolean)
+  );
+  const friendEmailSet = new Set(
+    (friends || []).map((friend) => friend.email?.toLowerCase()).filter(Boolean)
+  );
 
   const handleSearch = async () => {
+    const query = username.trim();
+    if (!query) {
+      setStatus("Ingresa un nombre de usuario");
+      setResults([]);
+      return;
+    }
+
+    setSearching(true);
     try {
-      const res = await searchUser(username);
-      setResult(res);
-      setStatus("");
+      const users = await searchUser(query);
+
+      const filtered = users.filter((user) => {
+        const id = user.id || user._id;
+        const email = user.email?.toLowerCase();
+        if (currentUser) {
+          const currentId = currentUser.id || currentUser._id;
+          const currentEmail = currentUser.email?.toLowerCase();
+          if (id && currentId && id === currentId) return false;
+          if (email && currentEmail && email === currentEmail) return false;
+        }
+        if (id && friendIdSet.has(id)) return false;
+        if (email && friendEmailSet.has(email)) return false;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        setStatus("No se encontraron usuarios disponibles ❌");
+      } else {
+        setStatus("");
+      }
+
+      setResults(filtered);
     } catch (err) {
-      setResult(null);
+      setResults([]);
       if (err.response?.status === 404) {
         setStatus("Usuario no encontrado ❌");
+      } else if (err.response?.data?.message) {
+        setStatus(`${err.response.data.message} ❌`);
       } else {
         setStatus("Error en la búsqueda ❌");
       }
+    } finally {
+      setSearching(false);
     }
   };
 
-  const handleInvite = async () => {
+  const handleInvite = async (user) => {
+    if (!user) return;
+
+    const userId = user.id || user._id;
+    if (!userId) return;
+
+    setSendingId(userId);
     try {
-      await sendFriendInvite({ to: result._id });
-      setStatus("Invitación enviada ✅");
+      await sendFriendInvite({ to: userId });
+      setStatus(`Invitación enviada a ${user.username} ✅`);
+      setResults((prev) =>
+        prev.filter((item) => (item.id || item._id) !== userId)
+      );
     } catch (err) {
-      setStatus("Error al enviar invitación ❌", console.error(err));
+      console.error(err);
+      setStatus("Error al enviar invitación ❌");
+    } finally {
+      setSendingId(null);
     }
   };
 
@@ -41,25 +106,42 @@ export default function InviteForm() {
           onChange={(e) => setUsername(e.target.value)}
           placeholder="Nombre de usuario"
           className="flex-1 p-2 rounded bg-gray-700 text-white outline-none"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleSearch();
+            }
+          }}
         />
         <button
           onClick={handleSearch}
-          className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded"
+          disabled={searching}
+          className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded disabled:opacity-60"
         >
-          Buscar
+          {searching ? "Buscando..." : "Buscar"}
         </button>
       </div>
 
-      {result && (
-        <div className="bg-gray-700 p-3 rounded flex items-center justify-between">
-          <span>Encontrado: {result.username}</span>
-          <button
-            onClick={handleInvite}
-            className="bg-green-600 hover:bg-green-500 px-3 py-1 rounded text-sm"
-          >
-            Enviar invitación
-          </button>
-        </div>
+      {results.length > 0 && (
+        <ul className="space-y-2">
+          {results.map((user) => (
+            <li
+              key={user.id || user._id}
+              className="bg-gray-700 p-3 rounded flex items-center justify-between"
+            >
+              <span className="truncate">
+                {user.username} <span className="text-sm text-gray-400">({user.email})</span>
+              </span>
+              <button
+                onClick={() => handleInvite(user)}
+                disabled={sendingId === (user.id || user._id)}
+                className="bg-green-600 hover:bg-green-500 px-3 py-1 rounded text-sm disabled:opacity-60"
+              >
+                {sendingId === (user.id || user._id) ? "Enviando..." : "Enviar invitación"}
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
 
       {status && <p className="text-sm text-gray-300 mt-2">{status}</p>}

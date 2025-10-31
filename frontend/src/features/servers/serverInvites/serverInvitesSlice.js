@@ -4,6 +4,7 @@ import {
   acceptServerInvite,
   rejectServerInvite,
 } from "./serverInvite.service";
+import { fetchServers } from "../serverSlice";
 
 export const fetchServerInvites = createAsyncThunk(
   "serverInvites/fetchServerInvites",
@@ -11,6 +12,7 @@ export const fetchServerInvites = createAsyncThunk(
     try {
       const res = await getServerInvites();
       if (Array.isArray(res)) return res;
+      if (Array.isArray(res?.invites)) return res.invites;
       return [];
     } catch (err) {
       return rejectWithValue(err.message || "Error al cargar invitaciones de servidor");
@@ -20,12 +22,16 @@ export const fetchServerInvites = createAsyncThunk(
 
 export const respondServerInvite = createAsyncThunk(
   "serverInvites/respondServerInvite",
-  async ({ id, status }, { rejectWithValue }) => {
+  async ({ id, status }, { rejectWithValue, dispatch }) => {
     try {
       const res =
         status === "accepted"
           ? await acceptServerInvite(id)
           : await rejectServerInvite(id);
+
+      if (status === "accepted") {
+        dispatch(fetchServers());
+      }
 
       return { id, status, res };
     } catch (err) {
@@ -57,7 +63,9 @@ const serverInvitesSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(respondServerInvite.fulfilled, (state, action) => {
-        state.items = state.items.filter((i) => i._id !== action.payload.id);
+        state.items = state.items.filter(
+          (invite) => (invite.id || invite._id) !== action.payload.id
+        );
       })
       .addCase(respondServerInvite.rejected, (state, action) => {
         state.error = action.payload;

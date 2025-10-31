@@ -11,6 +11,7 @@ export const fetchFriendInvites = createAsyncThunk(
     try {
       const res = await getFriendInvites();
       if (Array.isArray(res)) return res;
+      if (Array.isArray(res?.requests)) return res.requests;
       return [];
     } catch (err) {
       return rejectWithValue(err.message || "Error al cargar invitaciones de amistad");
@@ -61,7 +62,9 @@ const friendInvitesSlice = createSlice({
       // respondFriendInvite
       .addCase(respondFriendInvite.fulfilled, (state, action) => {
         // Eliminar la invitación de la lista
-        state.items = state.items.filter((i) => i._id !== action.payload.id);
+        state.items = state.items.filter(
+          (invite) => (invite.id || invite._id) !== action.payload.id
+        );
       })
       .addCase(respondFriendInvite.rejected, (state, action) => {
         state.error = action.payload;

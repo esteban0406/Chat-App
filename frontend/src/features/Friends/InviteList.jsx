@@ -21,7 +21,7 @@ export default function InviteList() {
         <ul className="space-y-2">
           {invites.map((invite) => (
             <li
-              key={invite._id}
+              key={invite.id || invite._id}
               className="flex items-center justify-between bg-gray-800 px-4 py-2 rounded-md"
             >
               <span>
@@ -31,7 +31,12 @@ export default function InviteList() {
               <div className="space-x-2">
                 <button
                   onClick={() =>
-                    dispatch(respondFriendInvite({ id: invite._id, status: "accepted" }))
+                    dispatch(
+                      respondFriendInvite({
+                        id: invite.id || invite._id,
+                        status: "accepted",
+                      })
+                    )
                   }
                   className="bg-green-600 hover:bg-green-500 px-3 py-1 rounded text-sm"
                 >
@@ -39,7 +44,12 @@ export default function InviteList() {
                 </button>
                 <button
                   onClick={() =>
-                    dispatch(respondFriendInvite({ id: invite._id, status: "rejected" }))
+                    dispatch(
+                      respondFriendInvite({
+                        id: invite.id || invite._id,
+                        status: "rejected",
+                      })
+                    )
                   }
                   className="bg-red-600 hover:bg-red-500 px-3 py-1 rounded text-sm"
                 >

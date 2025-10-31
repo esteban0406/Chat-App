@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { getFriends } from "../../Friends/friend.service.js";
 import { sendServerInvite } from "../serverInvites/serverInvite.service.js";
 import { useServers } from "../useServers";
-import { API } from "../../../services/api"; // 👈 tu wrapper axios
+import { API, request } from "../../../services/api";
 
 export default function InviteFriendsModal({ onClose }) {
   const [friends, setFriends] = useState([]);
@@ -16,7 +16,13 @@ export default function InviteFriendsModal({ onClose }) {
     const fetchFriends = async () => {
       try {
         const res = await getFriends();
-        setFriends(Array.isArray(res) ? res : []);
+        if (Array.isArray(res?.friends)) {
+          setFriends(res.friends);
+        } else if (Array.isArray(res)) {
+          setFriends(res);
+        } else {
+          setFriends([]);
+        }
       } catch (err) {
         console.error("Error cargando amigos:", err);
         setFriends([]);
@@ -30,8 +36,18 @@ export default function InviteFriendsModal({ onClose }) {
     const fetchPending = async () => {
       try {
         if (!server?._id) return;
-        const res = await API.get(`/invites/pending?serverId=${server._id}`);
-        setPendingInvites(Array.isArray(res.data) ? res.data : []);
+        const res = await request(
+          API.get("/invites/pending", {
+            params: { serverId: server._id },
+          })
+        );
+        if (Array.isArray(res?.invites)) {
+          setPendingInvites(res.invites);
+        } else if (Array.isArray(res)) {
+          setPendingInvites(res);
+        } else {
+          setPendingInvites([]);
+        }
       } catch (err) {
         console.error("Error cargando pendientes:", err);
         setPendingInvites([]);
@@ -43,29 +59,40 @@ export default function InviteFriendsModal({ onClose }) {
   // miembros actuales
   const memberIds = useMemo(() => {
     if (!server?.members) return new Set();
-    return new Set(server.members.map((m) => String(m._id)));
+    return new Set(
+      server.members
+        .map((member) => member && (member.id || member._id || member))
+        .filter(Boolean)
+        .map((id) => String(id))
+    );
   }, [server]);
 
   // IDs ya pendientes
   const pendingIds = useMemo(() => {
-    return new Set(pendingInvites.map((inv) => String(inv.to)));
+    return new Set(
+      pendingInvites
+        .map((inv) => inv && (inv.to?.id || inv.to || inv._id))
+        .filter(Boolean)
+        .map((id) => String(id))
+    );
   }, [pendingInvites]);
 
   // filtrar amigos
   const eligibleFriends = useMemo(() => {
     return friends.filter(
       (f) =>
-        !memberIds.has(String(f._id)) &&
-        !pendingIds.has(String(f._id)) &&
-        !invitedIds.has(String(f._id))
+        !memberIds.has(String(f.id || f._id)) &&
+        !pendingIds.has(String(f.id || f._id)) &&
+        !invitedIds.has(String(f.id || f._id))
     );
   }, [friends, memberIds, pendingIds, invitedIds]);
 
   const handleInvite = async (friendId) => {
     try {
       if (!server) return;
-      await sendServerInvite({ serverId: server._id, to: friendId });
-      setInvitedIds((prev) => new Set(prev).add(String(friendId)));
+      const id = String(friendId);
+      await sendServerInvite({ serverId: server._id, to: id });
+      setInvitedIds((prev) => new Set(prev).add(id));
       setStatus("Invitación enviada ✅");
     } catch (err) {
       setStatus("Error enviando invitación ❌");
@@ -93,12 +120,12 @@ export default function InviteFriendsModal({ onClose }) {
           <ul className="space-y-2 mb-4">
             {eligibleFriends.map((f) => (
               <li
-                key={f._id}
+                key={f.id || f._id}
                 className="flex justify-between items-center bg-gray-700 px-3 py-2 rounded"
               >
                 <span>{f.username}</span>
                 <button
-                  onClick={() => handleInvite(f._id)}
+                  onClick={() => handleInvite(f.id || f._id)}
                   className="bg-indigo-600 hover:bg-indigo-500 px-3 py-1 rounded text-sm"
                 >
                   Invitar

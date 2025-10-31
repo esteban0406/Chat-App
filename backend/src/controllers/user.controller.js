@@ -46,15 +46,18 @@ export const searchUser = async (req, res, next) => {
       throw validationError("Debes proporcionar un username");
     }
 
-    const user = await User.findOne({
-      username: new RegExp(username, "i"),
-    }).select("-password");
+    const regex = new RegExp(username.trim(), "i");
+    const users = await User.find({ username: regex }).select("-password").limit(10);
 
-    if (!user) {
+    if (!users.length) {
       throw createHttpError(404, "Usuario no encontrado", { code: "USER_NOT_FOUND" });
     }
 
-    return ok(res, { data: { user: sanitizeUser(user) } });
+    return ok(res, {
+      data: {
+        users: users.map(sanitizeUser),
+      },
+    });
   } catch (error) {
     return next(error);
   }

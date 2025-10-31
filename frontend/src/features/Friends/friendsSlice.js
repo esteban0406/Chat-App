@@ -7,6 +7,7 @@ export const fetchFriends = createAsyncThunk(
     try {
       const res = await getFriends();
       if (Array.isArray(res)) return res;
+      if (Array.isArray(res?.friends)) return res.friends;
       return [];
     } catch (err) {
       return rejectWithValue(err.message || "Error al cargar amigos");

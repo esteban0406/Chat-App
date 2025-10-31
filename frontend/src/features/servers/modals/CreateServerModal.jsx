@@ -1,16 +1,51 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useServers } from "../useServers";
 
 export default function CreateServerModal({ onClose }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  const { createServer } = useServers();
+  const { createServer, setActive } = useServers();
+  const navigate = useNavigate();
+
+  const toId = (entity, fallbackIds = []) => {
+    if (!entity) {
+      return fallbackIds.find(Boolean) || null;
+    }
+    if (typeof entity === "string") return entity;
+    const id =
+      entity.id ??
+      entity._id ??
+      (typeof entity.toString === "function" ? entity.toString() : null);
+    if (id) return id;
+    if (Array.isArray(fallbackIds)) {
+      return fallbackIds.find(Boolean) || null;
+    }
+    return null;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createServer({ name, description }).unwrap();
+      const result = await createServer({ name, description }).unwrap();
+      const server = result?.server ?? result ?? null;
+      const defaultChannel = result?.defaultChannel ?? null;
+
+      if (server) {
+        setActive(server);
+        const serverId = toId(server);
+        const fallbackChannelCandidates = Array.isArray(server?.channels)
+          ? server.channels.map((channel) => toId(channel))
+          : [];
+        const channelId = toId(defaultChannel, fallbackChannelCandidates);
+
+        if (serverId && channelId) {
+          navigate(`/servers/${serverId}/channels/${channelId}`);
+        } else if (serverId) {
+          navigate(`/servers/${serverId}`);
+        }
+      }
       onClose();
     } catch (err) {
       console.error("Error creando servidor:", err);
