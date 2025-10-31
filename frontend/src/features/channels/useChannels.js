@@ -26,7 +26,7 @@ export function useChannels() {
   // 🔹 Estados locales de modales
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showEditServerModal, setShowEditServerModal] = useState(false);
-  const [showDeleteMembersModal, setShowDeleteMembersModal] = useState(false);
+  const [showDeleteServerModal, setShowDeleteServerModal] = useState(false);
   const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
   const [channelTypeToCreate, setChannelTypeToCreate] = useState("text");
   const [channelToEdit, setChannelToEdit] = useState(null);
@@ -81,7 +81,7 @@ export function useChannels() {
 
   const handleOpenInviteModal = () => setShowInviteModal(true);
   const handleOpenEditServerModal = () => setShowEditServerModal(true);
-  const handleOpenDeleteMembersModal = () => setShowDeleteMembersModal(true);
+  const handleOpenDeleteServerModal = () => setShowDeleteServerModal(true);
 
   return {
     // Redux
@@ -104,7 +104,7 @@ export function useChannels() {
     // Estados modales
     showInviteModal,
     showEditServerModal,
-    showDeleteMembersModal,
+    showDeleteServerModal,
     showCreateChannelModal,
     channelTypeToCreate,
     channelToEdit,
@@ -113,7 +113,7 @@ export function useChannels() {
     // Acciones modales
     setShowInviteModal,
     setShowEditServerModal,
-    setShowDeleteMembersModal,
+    setShowDeleteServerModal,
     setShowCreateChannelModal,
     setChannelToEdit,
     setChannelToDelete,
@@ -122,6 +122,6 @@ export function useChannels() {
     handleDeleteChannel,
     handleOpenInviteModal,
     handleOpenEditServerModal,
-    handleOpenDeleteMembersModal,
+    handleOpenDeleteServerModal,
   };
 }

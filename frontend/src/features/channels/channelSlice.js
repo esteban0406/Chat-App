@@ -11,8 +11,8 @@ export const fetchChannels = createAsyncThunk(
   "channels/fetchChannels",
   async (serverId, { rejectWithValue }) => {
     try {
-      const res = await getChannels(serverId); // res = canales directamente
-      return res;
+      const res = await getChannels(serverId);
+      return res?.channels ?? res;
     } catch (err) {
       console.error("❌ Error fetchChannels:", err);
       return rejectWithValue(err.message || "Error cargando canales");
@@ -24,8 +24,8 @@ export const addChannel = createAsyncThunk(
   "channels/addChannel",
   async ({ name, type, serverId }, { rejectWithValue }) => {
     try {
-      const res = await createChannel({ name, type, serverId }); // res = canal creado
-      return res;
+      const res = await createChannel({ name, type, serverId });
+      return res?.channel ?? res;
     } catch (err) {
       console.error("❌ Error addChannel:", err);
       return rejectWithValue(err.message || "Error creando canal");
@@ -51,13 +51,21 @@ export const updateChannelName = createAsyncThunk(
   async ({ channelId, name }, { rejectWithValue }) => {
     try {
       const updatedChannel = await updateChannel(channelId, { name });
-      return updatedChannel;
+      return updatedChannel?.channel ?? updatedChannel;
     } catch (err) {
       console.error("❌ Error updateChannelName:", err);
       return rejectWithValue(err.message || "Error actualizando canal");
     }
   }
 );
+
+const normalizeChannel = (channel) => {
+  if (!channel) return channel;
+  return {
+    ...channel,
+    _id: channel._id ?? channel.id,
+  };
+};
 
 
 // --- SLICE ---
@@ -73,7 +81,7 @@ const channelSlice = createSlice({
   },
   reducers: {
     setActiveChannel: (state, action) => {
-      state.activeChannel = action.payload;
+      state.activeChannel = normalizeChannel(action.payload);
     },
     setPreferredChannelId: (state, action) => {
       state.preferredChannelId = action.payload || null;
@@ -94,9 +102,13 @@ const channelSlice = createSlice({
       .addCase(fetchChannels.fulfilled, (state, action) => {
         state.loading = false;
         const serverId = action.meta.arg;
+        const channels = Array.isArray(action.payload)
+          ? action.payload
+          : action.payload?.channels ?? [];
+        const normalizedChannels = channels.map(normalizeChannel);
         state.list = [
           ...state.list.filter((channel) => channel.server !== serverId),
-          ...action.payload,
+          ...normalizedChannels,
         ];
 
         const findChannel = (id) =>
@@ -116,8 +128,8 @@ const channelSlice = createSlice({
           nextActive = findChannel(state.activeChannel._id);
         }
 
-        if (!nextActive && action.payload.length > 0) {
-          nextActive = action.payload[0];
+        if (!nextActive && normalizedChannels.length > 0) {
+          nextActive = normalizedChannels[0];
         }
 
         state.activeChannel = nextActive;
@@ -130,7 +142,10 @@ const channelSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(addChannel.fulfilled, (state, action) => {
-        state.list.push(action.payload);
+        const channel = normalizeChannel(action.payload);
+        if (channel) {
+          state.list.push(channel);
+        }
       })
       .addCase(removeChannel.fulfilled, (state, action) => {
         state.list = state.list.filter((ch) => ch._id !== action.payload);
@@ -142,7 +157,7 @@ const channelSlice = createSlice({
         }
       })
       .addCase(updateChannelName.fulfilled, (state, action) => {
-        const updatedChannel = action.payload;
+        const updatedChannel = normalizeChannel(action.payload);
         const index = state.list.findIndex((ch) => ch._id === updatedChannel._id);
         if (index !== -1) {
           state.list[index] = updatedChannel;

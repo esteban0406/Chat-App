@@ -8,6 +8,7 @@ export default function ServerSidebar() {
   const dispatch = useDispatch();
   const servers = useSelector(selectServers);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const serverList = Array.isArray(servers) ? servers : [];
 
   useEffect(() => {
     dispatch(fetchServers()); 
@@ -26,7 +27,7 @@ export default function ServerSidebar() {
       <div className="border-t border-gray-700 w-10" />
 
       {/* Lista de servidores */}
-      {servers.map((server) => (
+      {serverList.map((server) => (
         <Link
           key={server._id}
           to={`/servers/${server._id}`}

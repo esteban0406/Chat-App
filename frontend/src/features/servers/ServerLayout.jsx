@@ -15,7 +15,9 @@ export default function ServerLayout() {
     if (!serverId) {
       return;
     }
-    const current = servers.find((server) => server._id === serverId);
+    const current = servers.find(
+      (server) => server._id === serverId || server.id === serverId
+    );
     if (current) {
       setActive(current);
     }

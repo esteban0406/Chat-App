@@ -11,7 +11,7 @@ export const fetchServers = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const res = await getServers();
-      return res;
+      return res?.servers ?? res;
     } catch (err) {
       console.error("❌ Error fetchServers:", err);
       return rejectWithValue(err.message || "Error cargando servidores");
@@ -24,7 +24,7 @@ export const addServer = createAsyncThunk(
   async (serverData, { rejectWithValue }) => {
     try {
       const res = await createServer(serverData);
-      return res;
+      return res?.server ?? res;
     } catch (err) {
       console.error("❌ Error addServer:", err);
       return rejectWithValue(err.message || "Error creando servidor");
@@ -47,11 +47,42 @@ export const removeServer = createAsyncThunk(
 
 export const removeMember = createAsyncThunk(
   "servers/removeMember",
-  async ({ serverId, memberId }) => {
-    const res = await removeMemberApi(serverId, memberId);
-    return res.data;
+  async ({ serverId, memberId }, { rejectWithValue }) => {
+    try {
+      const res = await removeMemberApi(serverId, memberId);
+      return res?.server ?? res;
+    } catch (err) {
+      console.error("❌ Error removeMember:", err);
+      return rejectWithValue(err.message || "Error eliminando miembro");
+    }
   }
 );
+
+const normalizeServer = (server) => {
+  if (!server) return server;
+  const normalizedChannels = Array.isArray(server.channels)
+    ? server.channels.map((channel) =>
+        typeof channel === "object" && channel !== null
+          ? { ...channel, _id: channel._id ?? channel.id }
+          : { _id: channel, id: channel }
+      )
+    : server.channels;
+
+  const normalizedMembers = Array.isArray(server.members)
+    ? server.members.map((member) =>
+        typeof member === "object" && member !== null
+          ? { ...member, _id: member._id ?? member.id }
+          : { _id: member, id: member }
+      )
+    : server.members;
+
+  return {
+    ...server,
+    _id: server._id ?? server.id,
+    channels: normalizedChannels,
+    members: normalizedMembers,
+  };
+};
 
 const serverSlice = createSlice({
   name: "servers",
@@ -63,7 +94,7 @@ const serverSlice = createSlice({
   },
   reducers: {
     setActiveServer: (state, action) => {
-      state.activeServer = action.payload;
+      state.activeServer = normalizeServer(action.payload);
     },
   },
   extraReducers: (builder) => {
@@ -74,14 +105,20 @@ const serverSlice = createSlice({
       })
       .addCase(fetchServers.fulfilled, (state, action) => {
         state.loading = false;
-        state.list = action.payload;
+        const servers = Array.isArray(action.payload)
+          ? action.payload
+          : action.payload?.servers ?? [];
+        state.list = servers.map(normalizeServer);
       })
       .addCase(fetchServers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
       .addCase(addServer.fulfilled, (state, action) => {
-        state.list.push(action.payload);
+        const server = normalizeServer(action.payload);
+        if (server) {
+          state.list.push(server);
+        }
       })
       .addCase(removeServer.fulfilled, (state, action) => {
         state.list = state.list.filter((s) => s._id !== action.payload);
@@ -90,12 +127,14 @@ const serverSlice = createSlice({
         }
       })
       .addCase(removeMember.fulfilled, (state, action) => {
-        const updatedServer = action.payload;
-        const index = state.list.findIndex((s) => s._id === updatedServer._id);
+        const updatedServer = normalizeServer(action.payload);
+        const index = state.list.findIndex(
+          (s) => s._id === updatedServer?._id
+        );
         if (index !== -1) {
           state.list[index] = updatedServer;
         }
-        if (state.activeServer?._id === updatedServer._id) {
+        if (state.activeServer?._id === updatedServer?._id) {
           state.activeServer = updatedServer;
         }
       });

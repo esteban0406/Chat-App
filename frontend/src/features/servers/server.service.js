@@ -7,6 +7,6 @@ export const getServers = () => request(API.get("/servers"));
 export const deleteServer = (serverId) =>
   request(API.delete(`/servers/${serverId}`));
 export const removeMember = (serverId, memberId) =>
-  API.delete(`/servers/${serverId}/members/${memberId}`);
+  request(API.delete(`/servers/${serverId}/members/${memberId}`));
 export const leaveServer = (serverId) =>
   request(API.post(`/servers/${serverId}/leave`));
