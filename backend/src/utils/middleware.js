@@ -1,6 +1,7 @@
-import logger from "./logger.js";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import logger from "./logger.js";
+import { fail } from "./response.js";
 
 export const requestLogger = (request, response, next) => {
   logger.info("Method:", request.method);
@@ -11,16 +12,24 @@ export const requestLogger = (request, response, next) => {
   next();
 };
 
-export const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: "unknown endpoint" });
-};
+export const unknownEndpoint = (request, response) =>
+  fail(response, { status: 404, message: "Unknown endpoint", code: "NOT_FOUND" });
 
 export const errorHandler = (error, request, response, next) => {
   logger.error(error.message, error);
 
   const status = error.status || 500;
-  response.status(status).json({
-    error: error.message || "Error en el servidor",
+  const code = error.code || (status === 500 ? "INTERNAL_ERROR" : undefined);
+  const message =
+    error.expose || status < 500
+      ? error.message
+      : "Internal server error";
+
+  fail(response, {
+    status,
+    message,
+    code,
+    details: error.details,
   });
 };
 
@@ -28,7 +37,7 @@ export const authMiddleware = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "No token provided" });
+      return fail(res, { status: 401, message: "No token provided", code: "AUTH_REQUIRED" });
     }
 
     const token = authHeader.split(" ")[1];
@@ -38,11 +47,11 @@ export const authMiddleware = async (req, res, next) => {
     req.user = await User.findById(decoded.id).select("-password");
 
     if (!req.user) {
-      return res.status(401).json({ error: "Usuario no encontrado" });
+      return fail(res, { status: 401, message: "Usuario no encontrado", code: "USER_NOT_FOUND" });
     }
 
     next();
   } catch (err) {
-    res.status(401).json({ error: "Token inválido o expirado" });
+    fail(res, { status: 401, message: "Token inválido o expirado", code: "INVALID_TOKEN" });
   }
 };

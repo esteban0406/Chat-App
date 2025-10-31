@@ -1,22 +1,41 @@
 import Channel from "../models/Channel.js";
 import Server from "../models/Server.js";
+import { ok } from "../utils/response.js";
+import { createHttpError, validationError } from "../utils/httpError.js";
 
-export const createChannel = async (req, res) => {
+const serializeChannel = (channel) => {
+  const plain = channel.toObject();
+  plain.id = plain._id.toString();
+  if (plain.server) {
+    plain.server = plain.server.toString();
+  }
+  if (Array.isArray(plain.messages)) {
+    plain.messages = plain.messages.map((message) =>
+      message?.toString?.() ?? message
+    );
+  }
+  delete plain._id;
+  delete plain.__v;
+  return plain;
+};
+
+export const createChannel = async (req, res, next) => {
   try {
     const { name, type, serverId } = req.body;
     const userId = req.user._id; 
 
     if (!name || !serverId) {
-      return res.status(400).json({ error: "El nombre y el serverId son requeridos" });
+      throw validationError("El nombre y el serverId son requeridos");
     }
 
     const server = await Server.findById(serverId);
     if (!server) {
-      return res.status(404).json({ error: "Servidor no encontrado" });
+      throw createHttpError(404, "Servidor no encontrado", { code: "SERVER_NOT_FOUND" });
     }
 
-    if (!server.members.includes(userId)) {
-      return res.status(403).json({ error: "No eres miembro de este servidor" });
+    const isMember = server.members.some((member) => member.toString() === userId.toString());
+    if (!isMember) {
+      throw createHttpError(403, "No eres miembro de este servidor", { code: "FORBIDDEN" });
     }
 
     // Crear canal
@@ -31,40 +50,48 @@ export const createChannel = async (req, res) => {
     server.channels.push(channel._id);
     await server.save();
 
-    res.status(201).json(channel);
-  } catch (err) {
-    console.error("Error creando canal:", err);
-    res.status(500).json({ error: err.message });
+    return ok(res, {
+      status: 201,
+      message: "Canal creado correctamente",
+      data: { channel: serializeChannel(channel) },
+    });
+  } catch (error) {
+    return next(error);
   }
 };
 
-export const getChannels = async (req, res) => {
+export const getChannels = async (req, res, next) => {
   try {
     const { serverId } = req.params;
     const userId = req.user._id;
 
     const server = await Server.findById(serverId).populate("channels");
     if (!server) {
-      return res.status(404).json({ error: "Servidor no encontrado" });
+      throw createHttpError(404, "Servidor no encontrado", { code: "SERVER_NOT_FOUND" });
     }
 
-    if (!server.members.includes(userId)) {
-      return res.status(403).json({ error: "No eres miembro de este servidor" });
+    const isMember = server.members.some((member) => member.toString() === userId.toString());
+    if (!isMember) {
+      throw createHttpError(403, "No eres miembro de este servidor", { code: "FORBIDDEN" });
     }
 
-    res.json(server.channels);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    return ok(res, {
+      data: {
+        channels: server.channels.map(serializeChannel),
+      },
+    });
+  } catch (error) {
+    return next(error);
   }
 };
 
-export const deleteChannel = async (req, res) => {
+export const deleteChannel = async (req, res, next) => {
   try {
     const { channelId } = req.params;
 
     const channel = await Channel.findById(channelId);
     if (!channel) {
-      return res.status(404).json({ error: "Canal no encontrado" });
+      throw createHttpError(404, "Canal no encontrado", { code: "CHANNEL_NOT_FOUND" });
     }
 
     await Server.findByIdAndUpdate(channel.server, {
@@ -73,41 +100,48 @@ export const deleteChannel = async (req, res) => {
 
     await Channel.findByIdAndDelete(channelId);
 
-    res.json({ message: "Canal eliminado correctamente", channelId });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    return ok(res, {
+      message: "Canal eliminado correctamente",
+      data: { channelId },
+    });
+  } catch (error) {
+    return next(error);
   }
 };
 
-export const updateChannel = async (req, res) => {
+export const updateChannel = async (req, res, next) => {
   try {
     const { channelId } = req.params;
     const { name } = req.body;
     const userId = req.user._id;
 
     if (!name) {
-      return res.status(400).json({ error: "El nombre es requerido" });
+      throw validationError("El nombre es requerido");
     }
 
     const channel = await Channel.findById(channelId);
     if (!channel) {
-      return res.status(404).json({ error: "Canal no encontrado" });
+      throw createHttpError(404, "Canal no encontrado", { code: "CHANNEL_NOT_FOUND" });
     }
 
     const server = await Server.findById(channel.server);
     if (!server) {
-      return res.status(404).json({ error: "Servidor no encontrado" });
+      throw createHttpError(404, "Servidor no encontrado", { code: "SERVER_NOT_FOUND" });
     }
 
-    if (!server.members.includes(userId)) {
-      return res.status(403).json({ error: "No eres miembro de este servidor" });
+    const isMember = server.members.some((member) => member.toString() === userId.toString());
+    if (!isMember) {
+      throw createHttpError(403, "No eres miembro de este servidor", { code: "FORBIDDEN" });
     }
 
     channel.name = name;
     await channel.save();
 
-    res.json(channel);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    return ok(res, {
+      message: "Canal actualizado correctamente",
+      data: { channel: serializeChannel(channel) },
+    });
+  } catch (error) {
+    return next(error);
   }
 };
