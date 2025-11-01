@@ -1,9 +1,16 @@
 import axios from "axios";
 
-const BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:4000").replace(/\/$/, "");
+const RAW_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const TRIMMED_BASE_URL = RAW_BASE_URL.replace(/\/$/, "");
+const API_BASE_URL = TRIMMED_BASE_URL.endsWith("/api")
+  ? TRIMMED_BASE_URL
+  : `${TRIMMED_BASE_URL}/api`;
+const SERVER_BASE_URL = API_BASE_URL.replace(/\/api$/, "");
+
+export { API_BASE_URL, SERVER_BASE_URL };
 
 export const API = axios.create({
-  baseURL: BASE_URL, 
+  baseURL: API_BASE_URL,
   withCredentials: true,
 });
 
@@ -23,6 +30,6 @@ export const request = async (promise) => {
 };
 
 export const apiRequest = (method, path, data) => {
-  const url = `/api${path.startsWith("/") ? path : `/${path}`}`;
-  return request(API[method.toLowerCase()](url, data));
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return request(API[method.toLowerCase()](normalizedPath, data));
 };

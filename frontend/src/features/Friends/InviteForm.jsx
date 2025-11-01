@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { sendFriendInvite } from "./friend.service";
 import { searchUser } from "../user/user.service";
 import { fetchFriends } from "./friendsSlice";
+import { normalizeUser } from "../auth/authSlice";
 
 export default function InviteForm() {
   const [username, setUsername] = useState("");
@@ -13,7 +14,7 @@ export default function InviteForm() {
 
   const dispatch = useDispatch();
   const { items: friends } = useSelector((state) => state.friends);
-  const currentUser = useSelector((state) => state.auth.user);
+  const currentUser = useSelector((state) => normalizeUser(state.auth.user));
 
   useEffect(() => {
     if (!friends || friends.length === 0) {

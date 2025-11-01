@@ -1,6 +1,23 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { loginUser, registerUser } from "./auth.service";
 
+export const normalizeUser = (user) => {
+  if (!user) return null;
+  if (user.user) return normalizeUser(user.user);
+  return user;
+};
+
+const loadStoredUser = () => {
+  try {
+    const stored = localStorage.getItem("user");
+    if (!stored) return null;
+    return normalizeUser(JSON.parse(stored));
+  } catch {
+    localStorage.removeItem("user");
+    return null;
+  }
+};
+
 export const login = createAsyncThunk("auth/login", async (data, thunkAPI) => {
   try {
     const res = await loginUser(data); 
@@ -24,9 +41,14 @@ export const signup = createAsyncThunk("auth/signup", async (data, thunkAPI) => 
 });
 
 
+const initialUser = loadStoredUser();
+if (initialUser) {
+  localStorage.setItem("user", JSON.stringify(initialUser));
+}
+
 // 🔹 Estado inicial
 const initialState = {
-  user: JSON.parse(localStorage.getItem("user")) || null,
+  user: initialUser,
   token: localStorage.getItem("token") || null,
   loading: false,
   error: null,
@@ -44,9 +66,10 @@ const authSlice = createSlice({
       localStorage.removeItem("user");
     },
     setUser: (state, action) => {
-      state.user = action.payload;
-      if (action.payload) {
-        localStorage.setItem("user", JSON.stringify(action.payload));
+      const normalized = normalizeUser(action.payload);
+      state.user = normalized;
+      if (normalized) {
+        localStorage.setItem("user", JSON.stringify(normalized));
       } else {
         localStorage.removeItem("user");
       }
@@ -61,7 +84,7 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload.user;
+        state.user = normalizeUser(action.payload.user);
         state.token = action.payload.token;
       })
       .addCase(login.rejected, (state, action) => {
@@ -75,7 +98,7 @@ const authSlice = createSlice({
       })
       .addCase(signup.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload.user;
+        state.user = normalizeUser(action.payload.user);
         state.token = action.payload.token;
       })
       .addCase(signup.rejected, (state, action) => {

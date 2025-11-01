@@ -1,12 +1,12 @@
 import { Dialog } from "@headlessui/react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setUser } from "../../auth/authSlice";
+import { setUser, normalizeUser } from "../../auth/authSlice";
 import { updateProfileName } from "../user.service";
 
 export default function EditNameModal({ open, setOpen }) {
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.auth.user);
+  const user = useSelector((state) => normalizeUser(state.auth.user));
   const [name, setName] = useState(user?.username || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
