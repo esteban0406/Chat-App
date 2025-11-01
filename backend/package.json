@@ -8,17 +8,17 @@
     "coverage": "npm run test -- --coverage"
   },
   "dependencies": {
-    "axios": "^1.12.2",
+    "axios": "^1.13.1",
     "bcryptjs": "^3.0.2",
     "chokidar": "^4.0.3",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.2",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-list-endpoints": "^7.1.1",
     "express-session": "^1.18.2",
     "jsonwebtoken": "^9.0.2",
-    "livekit-server-sdk": "^2.13.3",
-    "mongoose": "^8.18.1",
+    "livekit-server-sdk": "^2.14.0",
+    "mongoose": "^8.19.2",
     "passport": "^0.7.0",
     "passport-azure-ad": "^4.3.5",
     "passport-google-oauth20": "^2.0.0",
@@ -26,10 +26,11 @@
   },
   "devDependencies": {
     "cross-env": "^10.1.0",
-    "jest": "^29.7.0",
-    "mongodb-memory-server": "^10.2.2",
+    "jest": "^30.2.0",
+    "mongodb-memory-server": "^10.3.0",
     "nodemon": "^3.1.10",
     "passport-local": "^1.0.0",
+    "socket.io-client": "^4.8.1",
     "supertest": "^7.1.4"
   }
 }

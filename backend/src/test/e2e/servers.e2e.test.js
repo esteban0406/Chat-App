@@ -1,41 +1,42 @@
 import { jest } from "@jest/globals";
 import request from "supertest";
 import mongoose from "mongoose";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import {
+  resetDatabase,
+  startE2EServer,
+  stopE2EServer,
+} from "../../../test/helpers/e2eServer.js";
 
 // 🔹 Evitamos conflictos con mongoose.connect en tests
-let app, server, mongo, serverModule;
+let app;
+let serverModule;
 
 beforeAll(async () => {
-  mongo = await MongoMemoryServer.create();
-  process.env.MONGODB_URI = mongo.getUri();
-  process.env.NODE_ENV = "test";
-  process.env.JWT_SECRET = "testsecret";
-
-  // Import dinámico para poder inyectar rutas extra
-  serverModule = await import("../../server.js");
-
-  const result = await serverModule.createServer({
-    extraRoutes: (app) => {
-      // 👉 Inyectamos ruta de error solo en test
-      app.get("/force-error", (req, res, next) => {
+  ({ app } = await startE2EServer({
+    extraRoutes: (expressApp) => {
+      expressApp.get("/force-error", (req, res, next) => {
         next(new Error("Test error"));
       });
     },
-  });
+    env: {
+      GOOGLE_CLIENT_ID: "fake-client-id",
+      GOOGLE_CLIENT_SECRET: "fake-client-secret",
+      GOOGLE_CALLBACK_URL: "http://localhost:4000/auth/google/callback",
+      MS_CLIENT_ID: "fake-ms-id",
+      MS_CLIENT_SECRET: "fake-ms-secret",
+    },
+  }));
 
-  app = result.app;
-  server = result.server;
+  // Importar después de levantar el servidor para reutilizar sus exports
+  serverModule = await import("../../server.js");
+});
 
-  await new Promise((resolve) => server.listen(4060, resolve));
+beforeEach(async () => {
+  await resetDatabase();
 });
 
 afterAll(async () => {
-  if (mongoose.connection.readyState === 1) {
-    await mongoose.disconnect();
-  }
-  if (mongo) await mongo.stop();
-  if (server) server.close();
+  await stopE2EServer();
 });
 
 describe("server.js extra coverage", () => {
@@ -48,13 +49,21 @@ describe("server.js extra coverage", () => {
   test("GET /ruta-inexistente devuelve 404 con unknownEndpoint", async () => {
     const res = await request(app).get("/ruta-inexistente");
     expect(res.status).toBe(404);
-    expect(res.body).toHaveProperty("error", "unknown endpoint");
+    expect(res.body).toMatchObject({
+      success: false,
+      message: "Unknown endpoint",
+      code: "NOT_FOUND",
+    });
   });
 
   test("Forzar error y validar errorHandler", async () => {
     const res = await request(app).get("/force-error");
     expect(res.status).toBe(500);
-    expect(res.body).toHaveProperty("error", "Test error");
+    expect(res.body).toMatchObject({
+      success: false,
+      message: "Internal server error",
+      code: "INTERNAL_ERROR",
+    });
   });
 
   test("startServer maneja SIGINT y cierra conexión", async () => {

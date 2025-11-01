@@ -2,42 +2,32 @@
 import { jest } from "@jest/globals";
 import request from "supertest";
 import mongoose from "mongoose";
-import { MongoMemoryServer } from "mongodb-memory-server";
 import jwt from "jsonwebtoken";
 import passport from "passport";
+import {
+  resetDatabase,
+  startE2EServer,
+  stopE2EServer,
+} from "../../../test/helpers/e2eServer.js";
 
-let app, server, mongo;
+let app;
 
 beforeAll(async () => {
-  // DB en memoria
-  mongo = await MongoMemoryServer.create();
-  process.env.MONGODB_URI = mongo.getUri();
-  process.env.JWT_SECRET = "testsecret";
-  process.env.NODE_ENV = "test";
-  process.env.GOOGLE_CLIENT_ID = "fake-client-id";
-  process.env.GOOGLE_CLIENT_SECRET = "fake-client-secret";
-  process.env.GOOGLE_CALLBACK_URL = "http://localhost:4000/auth/google/callback";
-
-  const { createServer } = await import("../../server.js");
-  const result = await createServer();
-  app = result.app;
-  server = result.server;
-
-  await new Promise((resolve) => server.listen(4050, resolve));
+  ({ app } = await startE2EServer({
+    env: {
+      GOOGLE_CLIENT_ID: "fake-client-id",
+      GOOGLE_CLIENT_SECRET: "fake-client-secret",
+      GOOGLE_CALLBACK_URL: "http://localhost:4000/auth/google/callback",
+    },
+  }));
 });
 
 afterAll(async () => {
-  await mongoose.disconnect();
-  if (mongo) await mongo.stop();
-  if (server) {
-    await new Promise((resolve) => server.close(resolve));
-  }
+  await stopE2EServer();
 });
 
 beforeEach(async () => {
-  if (mongoose.connection.readyState === 1) {
-    await mongoose.connection.db.dropDatabase();
-  }
+  await resetDatabase();
 });
 
 describe("Passport integration (JWT + Session)", () => {

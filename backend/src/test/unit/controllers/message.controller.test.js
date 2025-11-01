@@ -1,9 +1,8 @@
 import { jest } from "@jest/globals";
+import { HttpError } from "../../../utils/httpError.js";
 
 const MessageMock = jest.fn();
 MessageMock.find = jest.fn();
-MessageMock.prototype.save = jest.fn().mockResolvedValue(undefined);
-MessageMock.prototype.populate = jest.fn().mockResolvedValue(undefined);
 
 const ChannelMock = {
   findById: jest.fn(),
@@ -26,10 +25,46 @@ jest.unstable_mockModule("../../../models/Channel.js", () => ({
 
 const { messageController } = await import("../../../controllers/message.controller.js");
 
+const createMessageDoc = (overrides = {}) => {
+  const doc = {
+    _id: "message123",
+    text: "Hola",
+    sender: { _id: "user123", username: "test" },
+    channel: "channel123",
+    createdAt: new Date("2025-10-31T23:07:04.791Z"),
+    save: jest.fn().mockResolvedValue(undefined),
+    populate: jest.fn().mockResolvedValue(undefined),
+  };
+
+  Object.assign(doc, overrides);
+
+  doc.populate.mockImplementation(async () => doc);
+  doc.toObject =
+    overrides.toObject ??
+    jest.fn(() => ({
+      _id: doc._id,
+      text: doc.text,
+      sender: doc.sender,
+      channel: doc.channel,
+      createdAt: doc.createdAt,
+    }));
+
+  return doc;
+};
+
+const createFindQuery = (result) => {
+  const query = {
+    populate: jest.fn(),
+  };
+  query.populate.mockImplementation(() => Promise.resolve(result));
+  return query;
+};
+
 describe("message.controller", () => {
   let controller;
   let req;
   let res;
+  let next;
 
   beforeEach(() => {
     controller = messageController(ioMock);
@@ -38,40 +73,45 @@ describe("message.controller", () => {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
     };
+    next = jest.fn();
+
     jest.clearAllMocks();
+    MessageMock.mockReset();
+    MessageMock.find.mockReset();
+    ChannelMock.findById.mockReset();
+    ioMock.to.mockReturnThis();
+    ioMock.to.mockClear();
+    ioMock.emit.mockClear();
   });
 
   describe("sendMessage", () => {
     test("retorna 400 cuando faltan campos obligatorios", async () => {
       req.body = { text: "", senderId: "", channelId: "" };
 
-      await controller.sendMessage(req, res);
+      await controller.sendMessage(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: "Faltan campos obligatorios" });
+      expect(next).toHaveBeenCalledTimes(1);
+      const error = next.mock.calls[0][0];
+      expect(error).toBeInstanceOf(HttpError);
+      expect(error.status).toBe(400);
+      expect(error.code).toBe("VALIDATION_ERROR");
+      expect(error.message).toBe("Faltan campos obligatorios");
+      expect(res.status).not.toHaveBeenCalled();
     });
 
     test("crea mensaje, lo asocia y emite por socket", async () => {
       req.body = { text: "Hola", senderId: "user123", channelId: "channel123" };
 
-      const messageInstance = {
-        _id: "message123",
-        text: "Hola",
-        sender: { _id: "user123", username: "test" },
-        channel: "channel123",
-        createdAt: new Date(),
-        save: jest.fn().mockResolvedValue(true),
-        populate: jest.fn().mockResolvedValue(true),
-      };
+      const messageInstance = createMessageDoc();
       MessageMock.mockImplementation(() => messageInstance);
 
       const channel = {
         messages: [],
-        save: jest.fn().mockResolvedValue(true),
+        save: jest.fn().mockResolvedValue(undefined),
       };
       ChannelMock.findById.mockResolvedValue(channel);
 
-      await controller.sendMessage(req, res);
+      await controller.sendMessage(req, res, next);
 
       expect(MessageMock).toHaveBeenCalledWith({
         text: "Hola",
@@ -84,14 +124,31 @@ describe("message.controller", () => {
       expect(channel.save).toHaveBeenCalled();
       expect(messageInstance.populate).toHaveBeenCalledWith("sender", "username");
       expect(ioMock.to).toHaveBeenCalledWith("channel123");
-      expect(ioMock.emit).toHaveBeenCalledWith("message", expect.objectContaining({
+      expect(ioMock.emit).toHaveBeenCalledWith("message", {
         _id: "message123",
         text: "Hola",
         sender: messageInstance.sender,
         channel: "channel123",
-      }));
+        createdAt: messageInstance.createdAt,
+      });
       expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith(messageInstance);
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        message: "Mensaje enviado",
+        data: {
+          message: {
+            id: "message123",
+            text: "Hola",
+            sender: {
+              id: "user123",
+              username: "test",
+            },
+            channel: "channel123",
+            createdAt: messageInstance.createdAt,
+          },
+        },
+      });
+      expect(next).not.toHaveBeenCalled();
     });
 
     test("retorna 500 cuando ocurre un error", async () => {
@@ -99,28 +156,57 @@ describe("message.controller", () => {
       const error = new Error("save failed");
       MessageMock.mockImplementation(() => ({
         save: jest.fn().mockRejectedValue(error),
+        populate: jest.fn(),
       }));
 
-      await controller.sendMessage(req, res);
+      await controller.sendMessage(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: error.message });
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledWith(error);
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
   describe("getMessages", () => {
     test("retorna mensajes del canal", async () => {
       req.params = { channelId: "channel123" };
-      const messages = [{ _id: "message123" }];
-      MessageMock.find.mockReturnValue({
-        populate: jest.fn().mockResolvedValue(messages),
-        then: (resolve) => Promise.resolve(messages).then(resolve),
-      });
+      const messageDocs = [
+        createMessageDoc({
+          _id: "message123",
+          channel: "channel123",
+          text: "Hola",
+          sender: { _id: "user123", username: "test" },
+          toObject: jest.fn(() => ({
+            _id: "message123",
+            channel: "channel123",
+            text: "Hola",
+            sender: { _id: "user123", username: "test" },
+            createdAt: new Date("2025-10-31T23:07:04.791Z"),
+          })),
+        }),
+      ];
+      MessageMock.find.mockReturnValue(createFindQuery(messageDocs));
 
-      await controller.getMessages(req, res);
+      await controller.getMessages(req, res, next);
 
       expect(MessageMock.find).toHaveBeenCalledWith({ channel: "channel123" });
-      expect(res.json).toHaveBeenCalledWith(messages);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        message: "Success",
+        data: {
+          messages: [
+            {
+              id: "message123",
+              channel: "channel123",
+              text: "Hola",
+              sender: { id: "user123", username: "test" },
+              createdAt: expect.any(Date),
+            },
+          ],
+        },
+      });
+      expect(next).not.toHaveBeenCalled();
     });
 
     test("retorna 500 cuando ocurre un error", async () => {
@@ -130,10 +216,11 @@ describe("message.controller", () => {
         throw error;
       });
 
-      await controller.getMessages(req, res);
+      await controller.getMessages(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: error.message });
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledWith(error);
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 });

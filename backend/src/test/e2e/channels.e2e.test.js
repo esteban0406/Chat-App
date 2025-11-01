@@ -1,33 +1,38 @@
 import request from "supertest";
-import mongoose from "mongoose";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import {
+  resetDatabase,
+  startE2EServer,
+  stopE2EServer,
+} from "../../../test/helpers/e2eServer.js";
 
 let app;
-let server;
-let mongo;
 
 beforeAll(async () => {
-  mongo = await MongoMemoryServer.create();
-  process.env.MONGODB_URI = mongo.getUri();
-  process.env.JWT_SECRET = "testsecret";
-
-  const { createServer } = await import("../../server.js");
-  const result = await createServer();
-  app = result.app;
-  server = result.server;
+  ({ app } = await startE2EServer());
 });
 
 beforeEach(async () => {
-  if (mongoose.connection.readyState === 1) {
-    await mongoose.connection.db.dropDatabase();
-  }
+  await resetDatabase();
 });
 
 afterAll(async () => {
-  await mongoose.disconnect();
-  if (mongo) await mongo.stop();
-  if (server) server.close();
+  await stopE2EServer();
 });
+
+const expectOk = (response, status) => {
+  expect(response.status).toBe(status);
+  expect(response.body.success).toBe(true);
+  return response.body.data;
+};
+
+const expectFail = (response, status, message, code) => {
+  expect(response.status).toBe(status);
+  expect(response.body).toMatchObject({
+    success: false,
+    message,
+    code,
+  });
+};
 
 const registerUser = async ({ username, email }) => {
   const res = await request(app).post("/api/auth/register").send({
@@ -35,7 +40,9 @@ const registerUser = async ({ username, email }) => {
     email,
     password: "123456",
   });
-  return { token: res.body.token, user: res.body.user };
+
+  const data = expectOk(res, 201);
+  return { token: data.token, user: data.user };
 };
 
 const authHeader = (token) => ({
@@ -46,8 +53,8 @@ const invalidAuthHeader = () => ({
   Authorization: "Bearer invalid-token",
 });
 
-const createServerForUser = async (token, body = {}) =>
-  request(app)
+const createServerForUser = async (token, body = {}) => {
+  const res = await request(app)
     .post("/api/servers")
     .set(authHeader(token))
     .send({
@@ -55,39 +62,40 @@ const createServerForUser = async (token, body = {}) =>
       description: body.description ?? "desc",
     });
 
+  const data = expectOk(res, 201);
+  return data.server;
+};
+
 const createChannel = (token, payload) =>
-  request(app)
-    .post("/api/channels")
-    .set(authHeader(token))
-    .send(payload);
+  request(app).post("/api/channels").set(authHeader(token)).send(payload);
 
 describe("/api/channels E2E", () => {
   test("POST /api/channels crea un canal cuando el usuario es miembro", async () => {
-    const { token, user } = await registerUser({
+    const { token } = await registerUser({
       username: "owner",
       email: "owner@mail.com",
     });
-    const serverRes = await createServerForUser(token);
-    const serverId = serverRes.body._id;
+    const serverDoc = await createServerForUser(token);
 
     const res = await createChannel(token, {
       name: "voz",
       type: "voice",
-      serverId,
+      serverId: serverDoc.id,
     });
 
-    expect(res.status).toBe(201);
-    expect(res.body).toMatchObject({
+    const { channel } = expectOk(res, 201);
+    expect(channel).toMatchObject({
       name: "voz",
       type: "voice",
-      server: serverId,
+      server: serverDoc.id,
     });
 
-    const list = await request(app)
-      .get(`/api/channels/${serverId}`)
+    const listRes = await request(app)
+      .get(`/api/channels/${serverDoc.id}`)
       .set(authHeader(token));
-    expect(list.body.map((c) => c.name)).toContain("voz");
-    expect(list.body.map((c) => c.name)).toContain("general");
+    const { channels } = expectOk(listRes, 200);
+    const names = channels.map((c) => c.name);
+    expect(names).toEqual(expect.arrayContaining(["voz", "general"]));
   });
 
   test("POST /api/channels rechaza crear canal si falta nombre o serverId", async () => {
@@ -98,11 +106,7 @@ describe("/api/channels E2E", () => {
 
     const res = await createChannel(token, { name: "" });
 
-    expect(res.status).toBe(400);
-    expect(res.body).toHaveProperty(
-      "error",
-      "El nombre y el serverId son requeridos"
-    );
+    expectFail(res, 400, "El nombre y el serverId son requeridos", "VALIDATION_ERROR");
   });
 
   test("POST /api/channels rechaza si el usuario no es miembro", async () => {
@@ -110,8 +114,7 @@ describe("/api/channels E2E", () => {
       username: "owner",
       email: "owner@mail.com",
     });
-    const serverRes = await createServerForUser(ownerToken);
-    const serverId = serverRes.body._id;
+    const serverDoc = await createServerForUser(ownerToken);
 
     const { token: otherToken } = await registerUser({
       username: "other",
@@ -120,14 +123,10 @@ describe("/api/channels E2E", () => {
 
     const res = await createChannel(otherToken, {
       name: "nuevo",
-      serverId,
+      serverId: serverDoc.id,
     });
 
-    expect(res.status).toBe(403);
-    expect(res.body).toHaveProperty(
-      "error",
-      "No eres miembro de este servidor"
-    );
+    expectFail(res, 403, "No eres miembro de este servidor", "FORBIDDEN");
   });
 
   test("GET /api/channels/:serverId devuelve canales cuando el usuario pertenece", async () => {
@@ -135,20 +134,17 @@ describe("/api/channels E2E", () => {
       username: "owner",
       email: "owner@mail.com",
     });
-    const serverRes = await createServerForUser(token);
-    const serverId = serverRes.body._id;
+    const serverDoc = await createServerForUser(token);
 
-    await createChannel(token, { name: "chat", serverId });
+    expectOk(await createChannel(token, { name: "chat", serverId: serverDoc.id }), 201);
 
     const res = await request(app)
-      .get(`/api/channels/${serverId}`)
+      .get(`/api/channels/${serverDoc.id}`)
       .set(authHeader(token));
 
-    expect(res.status).toBe(200);
-    expect(res.body).toHaveLength(2);
-    expect(res.body.map((c) => c.name)).toEqual(
-      expect.arrayContaining(["general", "chat"])
-    );
+    const { channels } = expectOk(res, 200);
+    expect(channels).toHaveLength(2);
+    expect(channels.map((c) => c.name)).toEqual(expect.arrayContaining(["general", "chat"]));
   });
 
   test("GET /api/channels/:serverId devuelve 403 cuando el usuario no pertenece", async () => {
@@ -156,8 +152,7 @@ describe("/api/channels E2E", () => {
       username: "owner",
       email: "owner@mail.com",
     });
-    const serverRes = await createServerForUser(ownerToken);
-    const serverId = serverRes.body._id;
+    const serverDoc = await createServerForUser(ownerToken);
 
     const { token } = await registerUser({
       username: "other",
@@ -165,14 +160,10 @@ describe("/api/channels E2E", () => {
     });
 
     const res = await request(app)
-      .get(`/api/channels/${serverId}`)
+      .get(`/api/channels/${serverDoc.id}`)
       .set(authHeader(token));
 
-    expect(res.status).toBe(403);
-    expect(res.body).toHaveProperty(
-      "error",
-      "No eres miembro de este servidor"
-    );
+    expectFail(res, 403, "No eres miembro de este servidor", "FORBIDDEN");
   });
 
   test("DELETE /api/channels/:channelId elimina el canal", async () => {
@@ -180,28 +171,26 @@ describe("/api/channels E2E", () => {
       username: "owner",
       email: "owner@mail.com",
     });
-    const serverRes = await createServerForUser(token);
-    const serverId = serverRes.body._id;
+    const serverDoc = await createServerForUser(token);
 
     const channelRes = await createChannel(token, {
       name: "temporal",
-      serverId,
+      serverId: serverDoc.id,
     });
+    const { channel } = expectOk(channelRes, 201);
 
     const deleteRes = await request(app)
-      .delete(`/api/channels/${channelRes.body._id}`)
+      .delete(`/api/channels/${channel.id}`)
       .set(authHeader(token));
 
-    expect(deleteRes.status).toBe(200);
-    expect(deleteRes.body).toEqual({
-      message: "Canal eliminado correctamente",
-      channelId: channelRes.body._id,
-    });
+    const deleteData = expectOk(deleteRes, 200);
+    expect(deleteData).toMatchObject({ channelId: channel.id });
 
-    const list = await request(app)
-      .get(`/api/channels/${serverId}`)
+    const listRes = await request(app)
+      .get(`/api/channels/${serverDoc.id}`)
       .set(authHeader(token));
-    expect(list.body.map((c) => c.name)).not.toContain("temporal");
+    const { channels } = expectOk(listRes, 200);
+    expect(channels.map((c) => c.name)).not.toContain("temporal");
   });
 
   test("POST /api/channels requiere autenticación", async () => {
@@ -209,24 +198,18 @@ describe("/api/channels E2E", () => {
       username: "owner",
       email: "owner@mail.com",
     });
-    const serverRes = await createServerForUser(token);
-    const serverId = serverRes.body._id;
+    const serverDoc = await createServerForUser(token);
 
-    const payload = { name: "seguro", serverId };
+    const payload = { name: "seguro", serverId: serverDoc.id };
 
     const noTokenRes = await request(app).post("/api/channels").send(payload);
-    expect(noTokenRes.status).toBe(401);
-    expect(noTokenRes.body).toHaveProperty("error", "No token provided");
+    expectFail(noTokenRes, 401, "No token provided", "AUTH_REQUIRED");
 
     const invalidTokenRes = await request(app)
       .post("/api/channels")
       .set(invalidAuthHeader())
       .send(payload);
-    expect(invalidTokenRes.status).toBe(401);
-    expect(invalidTokenRes.body).toHaveProperty(
-      "error",
-      "Token inválido o expirado"
-    );
+    expectFail(invalidTokenRes, 401, "Token inválido o expirado", "INVALID_TOKEN");
   });
 
   test("GET /api/channels/:serverId requiere autenticación", async () => {
@@ -234,18 +217,15 @@ describe("/api/channels E2E", () => {
       username: "owner",
       email: "owner@mail.com",
     });
-    const serverRes = await createServerForUser(token);
-    const serverId = serverRes.body._id;
+    const serverDoc = await createServerForUser(token);
 
-    const noTokenRes = await request(app).get(`/api/channels/${serverId}`);
-    expect(noTokenRes.status).toBe(401);
-    expect(noTokenRes.body).toHaveProperty("error", "No token provided");
+    const noTokenRes = await request(app).get(`/api/channels/${serverDoc.id}`);
+    expectFail(noTokenRes, 401, "No token provided", "AUTH_REQUIRED");
 
     const invalidRes = await request(app)
-      .get(`/api/channels/${serverId}`)
+      .get(`/api/channels/${serverDoc.id}`)
       .set(invalidAuthHeader());
-    expect(invalidRes.status).toBe(401);
-    expect(invalidRes.body).toHaveProperty("error", "Token inválido o expirado");
+    expectFail(invalidRes, 401, "Token inválido o expirado", "INVALID_TOKEN");
   });
 
   test("DELETE /api/channels/:channelId requiere autenticación", async () => {
@@ -253,26 +233,19 @@ describe("/api/channels E2E", () => {
       username: "owner",
       email: "owner@mail.com",
     });
-    const serverRes = await createServerForUser(token);
-    const serverId = serverRes.body._id;
+    const serverDoc = await createServerForUser(token);
     const channelRes = await createChannel(token, {
       name: "secure-delete",
-      serverId,
+      serverId: serverDoc.id,
     });
+    const { channel } = expectOk(channelRes, 201);
 
-    const noTokenRes = await request(app).delete(
-      `/api/channels/${channelRes._id}`
-    );
-    expect(noTokenRes.status).toBe(401);
-    expect(noTokenRes.body).toHaveProperty("error", "No token provided");
+    const noTokenRes = await request(app).delete(`/api/channels/${channel.id}`);
+    expectFail(noTokenRes, 401, "No token provided", "AUTH_REQUIRED");
 
     const invalidTokenRes = await request(app)
-      .delete(`/api/channels/${channelRes._id}`)
+      .delete(`/api/channels/${channel.id}`)
       .set(invalidAuthHeader());
-    expect(invalidTokenRes.status).toBe(401);
-    expect(invalidTokenRes.body).toHaveProperty(
-      "error",
-      "Token inválido o expirado"
-    );
+    expectFail(invalidTokenRes, 401, "Token inválido o expirado", "INVALID_TOKEN");
   });
 });
