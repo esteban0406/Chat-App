@@ -143,7 +143,7 @@ function ChannelSidebarHeader({ server, onInvite, onEditServer, onDeleteServer }
         </Menu.Button>
         <Menu.Items className="absolute right-0 mt-2 w-44 bg-gray-700 rounded shadow-lg z-10 ring-1 ring-black ring-opacity-5 focus:outline-none">
           <ActionMenuItem onClick={onInvite}>Invitar amigo</ActionMenuItem>
-          <ActionMenuItem onClick={onEditServer}>Editar servidor</ActionMenuItem>
+          <ActionMenuItem onClick={onEditServer}>Eliminar miembros</ActionMenuItem>
           <ActionMenuItem onClick={onDeleteServer} danger>
             Eliminar servidor
           </ActionMenuItem>
