@@ -1,6 +1,11 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useOutletContext, useParams } from "react-router-dom";
+import {
+  Bars3Icon,
+  HashtagIcon,
+  UserCircleIcon,
+} from "@heroicons/react/24/outline";
 import ChatMessages from "./ChatMessages";
 import ChatInput from "./ChatInput";
 import VoiceControls from "../voice/VoiceControls";
@@ -14,6 +19,12 @@ import {
 export default function ChatSection() {
   const { serverId, channelId } = useParams();
   const dispatch = useDispatch();
+  const layoutContext = useOutletContext() ?? {};
+  const {
+    openServerDrawer = () => {},
+    openSectionSidebar = () => {},
+    openProfileDrawer = () => {},
+  } = layoutContext;
   const activeChannel = useSelector(selectActiveChannel);
   const channels = useSelector((state) =>
     selectChannelsByServer(state, serverId)
@@ -45,12 +56,43 @@ export default function ChatSection() {
   const isVoice = activeChannel.type === "voice";
 
   return (
-    <div className="flex flex-col h-full bg-gray-900">
+    <div className="flex h-full flex-col bg-gray-900">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-gray-700 bg-gray-800">
-        <h2 className="text-lg font-semibold flex items-center gap-2 text-white">
-          {isVoice ? "🔊" : "#"} {activeChannel.name}
-        </h2>
+      <header className="flex items-center justify-between border-b border-gray-700 bg-gray-800 px-4 py-3">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={openServerDrawer}
+            className="rounded-md p-2 text-gray-400 transition hover:bg-gray-700 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 md:hidden"
+            aria-label="Abrir servidores"
+          >
+            <Bars3Icon className="h-5 w-5" />
+          </button>
+
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
+            <span>{isVoice ? "🔊" : "#"}</span>
+            <span className="truncate">{activeChannel.name}</span>
+          </h2>
+        </div>
+
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            type="button"
+            onClick={openSectionSidebar}
+            className="rounded-md p-2 text-gray-400 transition hover:bg-gray-700 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            aria-label="Abrir canales"
+          >
+            <HashtagIcon className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={openProfileDrawer}
+            className="rounded-md p-2 text-gray-400 transition hover:bg-gray-700 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            aria-label="Abrir perfil"
+          >
+            <UserCircleIcon className="h-5 w-5" />
+          </button>
+        </div>
       </header>
 
       {/* Contenido */}
@@ -63,8 +105,8 @@ export default function ChatSection() {
       </div>
 
       {!isVoice && (
-        <div className="flex h-20 items-center border-t border-gray-700 bg-gray-800 px-3">
-          <ChatInput className="h-full" />
+        <div className="border-t border-gray-700 bg-gray-800 px-3 py-3">
+          <ChatInput className="min-h-[48px]" />
         </div>
       )}
     </div>

@@ -17,7 +17,7 @@ export default function ChatMessages({ channelId }) {
         return (
           <div
             key={msg._id}
-            className={`flex flex-col max-w-[70%] ${
+            className={`flex flex-col max-w-[85%] sm:max-w-[70%] ${
               isOwn ? "self-end items-end" : "self-start items-start"
             }`}
           >

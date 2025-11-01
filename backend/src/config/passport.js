@@ -7,7 +7,7 @@ import User from "../models/User.js";
 // Google Strategy
 // =====================
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-  passport.use(
+  passport.use( 
     new GoogleStrategy(
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
@@ -16,6 +16,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
+          console.log("🟢 GOOGLE_CALLBACK_URL in use:", JSON.stringify(process.env.GOOGLE_CALLBACK_URL));
           let user = await User.findOne({ email: profile.emails[0].value });
 
           if (!user) {

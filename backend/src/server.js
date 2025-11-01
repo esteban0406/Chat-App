@@ -1,21 +1,18 @@
+// src/server.js
 import express from "express";
 import http from "http";
 import mongoose from "mongoose";
 import cors from "cors";
+import session from "express-session";
+import passport from "passport";
 import jwt from "jsonwebtoken";
 
 import { setupSocket, getIO } from "./sockets/index.js";
-import {
-  requestLogger,
-  unknownEndpoint,
-  errorHandler,
-} from "./utils/middleware.js";
-
-import passport from "passport";
-import session from "express-session";
+import { requestLogger, unknownEndpoint, errorHandler } from "./utils/middleware.js";
 import "./config/passport.js";
 
-import authRoutes from "./routes/auth.routes.js";
+import authRoutes from "./routes/auth.routes.js";     
+import oauthRoutes from "./routes/oauth.routes.js";  
 import userRoutes from "./routes/user.routes.js";
 import serverRoutes from "./routes/server.routes.js";
 import channelRoutes from "./routes/channel.routes.js";
@@ -31,20 +28,24 @@ export async function createServer(options = {}) {
   const app = express();
   const server = http.createServer(app);
 
-  // Middlewares
+  // =======================
+  // 🔧 Middlewares base
+  // =======================
   app.use(cors(corsConfig));
   app.options(/.*/, cors(corsConfig)); // ✅ handle preflight globally
   app.use(express.json());
   app.use(requestLogger);
 
-  // Passport middleware
-  app.use(
-    session({ secret: "secret", resave: false, saveUninitialized: true })
-  );
+  // =======================
+  // 🪪 Passport + Session
+  // =======================
+  app.use(session({ secret: "secret", resave: false, saveUninitialized: true }));
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // DB connection
+  // =======================
+  // 🧠 Conexión a MongoDB
+  // =======================
   try {
     await mongoose.connect(MONGODB_URI);
     console.log(
@@ -57,12 +58,15 @@ export async function createServer(options = {}) {
     process.exit(1);
   }
 
-  // Sockets
+  // =======================
+  // 🔌 Configuración Sockets
+  // =======================
   setupSocket(server);
   const io = getIO();
 
-  // REST routes
-  app.use("/auth", authRoutes);
+  // =======================
+  // 📡 Rutas REST API (JSON)
+  // =======================
   app.use("/api/auth", authRoutes);
   app.use("/api/users", userRoutes);
   app.use("/api/servers", serverRoutes);
@@ -72,12 +76,15 @@ export async function createServer(options = {}) {
   app.use("/api/invites", serverInviteRoutes);
   app.use("/api/voice", voiceRoutes);
 
-  if (typeof extraRoutes === "function") {
-    extraRoutes(app);
-  }
+  // =======================
+  // 🌐 Rutas de OAuth
+  // =======================
+  // (Sin prefijo /api porque usan redirecciones externas)
+  app.use("/auth", oauthRoutes);
 
-  // ✅ Solo en test: rutas y estrategia dummy para Passport
-
+  // =======================
+  // 🧪 Rutas de test (solo NODE_ENV=test)
+  // =======================
   if (NODE_ENV === "test") {
     const jwt = await import("jsonwebtoken").then((m) => m.default);
     const User = (await import("./models/User.js")).default;
@@ -89,7 +96,7 @@ export async function createServer(options = {}) {
           user = await User.create({
             username: "tester",
             email: "tester@test.com",
-            password: "hashedpass", // requerido
+            password: "hashedpass",
             avatar: null,
             provider: "local",
           });
@@ -102,13 +109,6 @@ export async function createServer(options = {}) {
       } catch (err) {
         next(err);
       }
-    });
-
-    app.get("/session/protected", (req, res) => {
-      if (req.isAuthenticated()) {
-        return res.json({ user: req.user });
-      }
-      return res.status(401).json({ error: "Unauthorized" });
     });
 
     app.get("/api/protected", (req, res) => {
@@ -124,10 +124,10 @@ export async function createServer(options = {}) {
     });
   }
 
-  // Root
+  // =======================
+  // 🌍 Root & Error Handlers
+  // =======================
   app.get("/", (req, res) => res.send("API funcionando 🚀"));
-
-  // Error handlers
   app.use(unknownEndpoint);
   app.use(errorHandler);
 
@@ -136,20 +136,16 @@ export async function createServer(options = {}) {
 
 export async function startServer(createServerFn = createServer) {
   const { server } = await createServerFn();
-
   server.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
   });
 
-  // Graceful shutdown
-  const handleSigint = async () => {
+  process.once("SIGINT", async () => {
     console.log("🛑 Shutting down...");
     await mongoose.disconnect();
     server.close(() => {
       console.log("👋 Server closed gracefully");
       process.exit(0);
     });
-  };
-
-  process.once("SIGINT", handleSigint);
+  });
 }

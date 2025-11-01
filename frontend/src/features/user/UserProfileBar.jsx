@@ -1,27 +1,30 @@
 import { useSelector, useDispatch } from "react-redux";
 import { Menu } from "@headlessui/react";
 import { useState } from "react";
-import { logout } from "../auth/authSlice";
+import { logout, normalizeUser } from "../auth/authSlice";
 import EditNameModal from "./modals/EditNameModal";
 import EditAvatarModal from "./modals/EditAvatarModal";
+import { API_BASE_URL } from "../../services/api";
 
 export default function UserProfileBar() {
-  const user = useSelector((state) => state.auth.user);
+  const rawUser = useSelector((state) => state.auth.user);
+  const user = normalizeUser(rawUser);
   const dispatch = useDispatch();
 
   const [openNameModal, setOpenNameModal] = useState(false);
   const [openAvatarModal, setOpenAvatarModal] = useState(false);
 
-  const rawApiBase = import.meta.env.VITE_API_URL || "/api";
-  const trimmedApiBase = rawApiBase.replace(/\/$/, "");
-  const usersBase = trimmedApiBase.endsWith("/api")
-    ? trimmedApiBase
-    : `${trimmedApiBase}/api`;
+  const usersBase = API_BASE_URL;
   const userId = user?.id || user?._id;
-  const fallbackAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-  const avatarVersion = user?.updatedAt ? new Date(user.updatedAt).getTime() : 0;
+  const fallbackAvatar =
+    "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+  const avatarVersion = user?.updatedAt
+    ? new Date(user.updatedAt).getTime()
+    : 0;
   const avatarSrc = userId
-    ? `${usersBase}/users/${userId}/avatar${avatarVersion ? `?v=${avatarVersion}` : ""}`
+    ? `${usersBase}/users/${userId}/avatar${
+        avatarVersion ? `?v=${avatarVersion}` : ""
+      }`
     : fallbackAvatar;
 
   return (
@@ -46,10 +49,11 @@ export default function UserProfileBar() {
 
       {/* Buttons */}
       <div className="flex space-x-2">
-
         {/* Settings dropdown */}
         <Menu as="div" className="relative">
-          <Menu.Button className="text-gray-400 hover:text-white transition-colors">⚙️</Menu.Button>
+          <Menu.Button className="text-gray-400 hover:text-white transition-colors">
+            ⚙️
+          </Menu.Button>
           <Menu.Items className="absolute right-0 bottom-10 w-40 bg-gray-700 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
             <div className="p-1">
               <Menu.Item>

@@ -13,7 +13,12 @@ export const searchUser = async (username) => {
   if (data?.user) return [data.user];
   return [];
 };
-export const updateProfileName = (username) =>
-  request(API.patch("/users/me", { username }));
-export const updateProfileAvatar = (avatar) =>
-  request(API.patch("/users/me/avatar", { avatar }));
+export const updateProfileName = async (username) => {
+  const data = await request(API.patch("/users/me", { username }));
+  return data?.user ?? data;
+};
+
+export const updateProfileAvatar = async (avatar) => {
+  const data = await request(API.patch("/users/me/avatar", { avatar }));
+  return data?.user ?? data;
+};

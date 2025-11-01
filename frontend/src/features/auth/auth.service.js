@@ -1,12 +1,12 @@
-import { API, request } from "../../services/api";
+import { apiRequest, SERVER_BASE_URL } from "../../services/api";
 
-export const registerUser = (data) => request(API.post("/auth/register", data));
-export const loginUser = (data) => request(API.post("/auth/login", data));
+export const registerUser = (data) => apiRequest("post", "/auth/register", data);
+export const loginUser = (data) => apiRequest("post", "/auth/login", data);
 
 export const loginWithGoogle = () => {
-  window.location.href = `${API.defaults.baseURL}/auth/google`;
+  window.location.href = `${SERVER_BASE_URL}/auth/google`;
 };
 
 export const loginWithMicrosoft = () => {
-  window.location.href = `${API.defaults.baseURL}/auth/microsoft`;
+  window.location.href = `${SERVER_BASE_URL}/auth/microsoft`;
 };
