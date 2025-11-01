@@ -1,31 +1,27 @@
 import { io as Client } from "socket.io-client";
 import mongoose from "mongoose";
-import { MongoMemoryServer } from "mongodb-memory-server";
 
 // Importa modelos reales
 import User from "../../models/User.js";
 import Channel from "../../models/Channel.js";
 import Server from "../../models/Server.js";
+import {
+  resetDatabase,
+  startE2EServer,
+  stopE2EServer,
+} from "../../../test/helpers/e2eServer.js";
 
-let appServer;
-let mongo;
-let clientA, clientB;
+let clientA;
+let clientB;
+let serverInfo;
 
 beforeAll(async () => {
-  mongo = await MongoMemoryServer.create();
-  process.env.MONGODB_URI = mongo.getUri();
-  process.env.JWT_SECRET = "testsecret";
-  process.env.NODE_ENV = "test";
-  process.env.DISABLE_DB_WRITE = "false"; // usamos DB real
+  serverInfo = await startE2EServer({
+    env: { DISABLE_DB_WRITE: "false" },
+  });
 
-  const { createServer } = await import("../../server.js");
-  const { server } = await createServer();
-  appServer = server;
-
-  await new Promise((resolve) => server.listen(4030, resolve));
-
-  clientA = new Client("http://localhost:4030", { query: { token: "fake" } });
-  clientB = new Client("http://localhost:4030", { query: { token: "fake" } });
+  clientA = new Client(serverInfo.url, { query: { token: "fake" } });
+  clientB = new Client(serverInfo.url, { query: { token: "fake" } });
 
   await Promise.all([
     new Promise((resolve) => clientA.on("connect", resolve)),
@@ -34,17 +30,13 @@ beforeAll(async () => {
 });
 
 afterEach(async () => {
-  if (mongoose.connection.readyState === 1) {
-    await mongoose.connection.db.dropDatabase();
-  }
+  await resetDatabase();
 });
 
 afterAll(async () => {
   clientA?.close();
   clientB?.close();
-  await mongoose.disconnect();
-  await mongo.stop();
-  await new Promise((resolve) => appServer.close(resolve));
+  await stopE2EServer();
 });
 
 describe("Sockets E2E con DB real", () => {

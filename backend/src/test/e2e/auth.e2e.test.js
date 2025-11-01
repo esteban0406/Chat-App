@@ -1,40 +1,37 @@
-import { jest } from "@jest/globals";
 import request from "supertest";
-import mongoose from "mongoose";
-import { MongoMemoryServer } from "mongodb-memory-server";
 import User from "../../models/User.js";
+import {
+  resetDatabase,
+  startE2EServer,
+  stopE2EServer,
+} from "../../../test/helpers/e2eServer.js";
 
-// aumentar timeout global (MongoMemoryServer puede tardar en levantar)
-jest.setTimeout(20000);
+let app;
 
-let app, server, mongo;
+const expectOk = (res, status) => {
+  expect(res.status).toBe(status);
+  expect(res.body.success).toBe(true);
+  return res.body.data;
+};
+
+const expectFail = (res, status, message) => {
+  expect(res.status).toBe(status);
+  expect(res.body).toMatchObject({
+    success: false,
+    message,
+  });
+};
 
 beforeAll(async () => {
-  // ⚡ Forzar modo test antes de importar server.js
-  process.env.NODE_ENV = "test";
-  process.env.JWT_SECRET = "testsecret";
-
-  // ⚡ Usar MongoDB en memoria
-  mongo = await MongoMemoryServer.create();
-  process.env.MONGODB_URI = mongo.getUri();
-
-  // Importar server después de setear las env vars
-  const { createServer } = await import("../../server.js");
-  const result = await createServer();
-  app = result.app;
-  server = result.server;
+  ({ app } = await startE2EServer());
 });
 
 beforeEach(async () => {
-  if (mongoose.connection.readyState === 1) {
-    await mongoose.connection.db.dropDatabase();
-  }
+  await resetDatabase();
 });
 
 afterAll(async () => {
-  await mongoose.disconnect();
-  if (mongo) await mongo.stop();
-  if (server) server.close();
+  await stopE2EServer();
 });
 
 describe("Auth E2E", () => {
@@ -47,10 +44,15 @@ describe("Auth E2E", () => {
         password: "123456",
       });
 
-    expect(res.status).toBe(201);
-    expect(res.body).toHaveProperty("token");
-    expect(res.body).toHaveProperty("user");
-    expect(res.body.user).toHaveProperty("username", "testuser");
+    const data = expectOk(res, 201);
+    expect(data).toMatchObject({
+      token: expect.any(String),
+      user: expect.objectContaining({
+        username: "testuser",
+        email: "test@mail.com",
+        provider: "local",
+      }),
+    });
   });
 
   test("❌ Debe rechazar registro con email duplicado", async () => {
@@ -62,24 +64,20 @@ describe("Auth E2E", () => {
 
     await request(app).post("/api/auth/register").send(payload);
 
-    const res = await request(app).post("/api/auth/register").send({
-      ...payload,
-      username: "dupuser2",
-    });
+    const res = await request(app)
+      .post("/api/auth/register")
+      .send({ ...payload, username: "dupuser2" });
 
-    expect(res.status).toBe(400);
-    expect(res.body).toHaveProperty("message", "User already exists");
+    expectFail(res, 409, "User already exists");
   });
 
   test("✅ Debe loguear un usuario existente", async () => {
-    // primero registrar
     await request(app).post("/api/auth/register").send({
       username: "loginuser",
       email: "login@mail.com",
       password: "123456",
     });
 
-    // luego loguear
     const res = await request(app)
       .post("/api/auth/login")
       .send({
@@ -87,8 +85,14 @@ describe("Auth E2E", () => {
         password: "123456",
       });
 
-    expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty("token");
+    const data = expectOk(res, 200);
+    expect(data).toMatchObject({
+      token: expect.any(String),
+      user: expect.objectContaining({
+        email: "login@mail.com",
+        username: "loginuser",
+      }),
+    });
   });
 
   test("❌ Debe rechazar login con usuario inexistente", async () => {
@@ -97,8 +101,7 @@ describe("Auth E2E", () => {
       password: "123456",
     });
 
-    expect(res.status).toBe(404);
-    expect(res.body).toHaveProperty("message", "User not found");
+    expectFail(res, 404, "User not found");
   });
 
   test("❌ Debe rechazar login con contraseña inválida", async () => {
@@ -113,8 +116,7 @@ describe("Auth E2E", () => {
       password: "wrongpass",
     });
 
-    expect(res.status).toBe(401);
-    expect(res.body).toHaveProperty("message", "Invalid credentials");
+    expectFail(res, 401, "Invalid credentials");
   });
 
   test("❌ Debe rechazar registro local sin contraseña", async () => {
@@ -123,8 +125,7 @@ describe("Auth E2E", () => {
       email: "nopass@mail.com",
     });
 
-    expect(res.status).toBe(400);
-    expect(res.body).toHaveProperty("message", "Password requerido para registro local");
+    expectFail(res, 400, "Password requerido para registro local");
   });
 
   test("✅ Debe permitir crear un usuario OAuth sin password en DB", async () => {

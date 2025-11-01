@@ -1,33 +1,39 @@
 import request from "supertest";
-import mongoose from "mongoose";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import { Types } from "mongoose";
+import {
+  resetDatabase,
+  startE2EServer,
+  stopE2EServer,
+} from "../../../test/helpers/e2eServer.js";
 
 let app;
-let server;
-let mongo;
 
 beforeAll(async () => {
-  mongo = await MongoMemoryServer.create();
-  process.env.MONGODB_URI = mongo.getUri();
-  process.env.JWT_SECRET = "testsecret";
-
-  const { createServer } = await import("../../server.js");
-  const result = await createServer();
-  app = result.app;
-  server = result.server;
+  ({ app } = await startE2EServer());
 });
 
 beforeEach(async () => {
-  if (mongoose.connection.readyState === 1) {
-    await mongoose.connection.db.dropDatabase();
-  }
+  await resetDatabase();
 });
 
 afterAll(async () => {
-  await mongoose.disconnect();
-  if (mongo) await mongo.stop();
-  if (server) server.close();
+  await stopE2EServer();
 });
+
+const expectOk = (res, status) => {
+  expect(res.status).toBe(status);
+  expect(res.body.success).toBe(true);
+  return res.body.data;
+};
+
+const expectFail = (res, status, message, code) => {
+  expect(res.status).toBe(status);
+  expect(res.body).toMatchObject({
+    success: false,
+    message,
+    code,
+  });
+};
 
 const registerUser = async ({ username, email }) => {
   const res = await request(app).post("/api/auth/register").send({
@@ -35,7 +41,8 @@ const registerUser = async ({ username, email }) => {
     email,
     password: "123456",
   });
-  return { token: res.body.token, user: res.body.user };
+  const data = expectOk(res, 201);
+  return { token: data.token, user: data.user };
 };
 
 const authHeader = (token) => ({
@@ -46,14 +53,17 @@ const invalidAuthHeader = () => ({
   Authorization: "Bearer invalid-token",
 });
 
-const createServerForUser = async (token, body = {}) =>
-  request(app)
+const createServerForUser = async (token, body = {}) => {
+  const res = await request(app)
     .post("/api/servers")
     .set(authHeader(token))
     .send({
       name: body.name ?? "Servidor Base",
       description: body.description ?? "desc",
     });
+  const data = expectOk(res, 201);
+  return data.server;
+};
 
 const sendInvite = ({ token, to, serverId }) =>
   request(app)
@@ -72,48 +82,50 @@ describe("/api/invites E2E", () => {
       email: "invited@mail.com",
     });
 
-    const serverRes = await createServerForUser(ownerToken);
-    const serverId = serverRes.body._id;
+    const serverDoc = await createServerForUser(ownerToken);
 
     const sendRes = await sendInvite({
       token: ownerToken,
       to: invited.id,
-      serverId,
+      serverId: serverDoc.id,
     });
-
-    expect(sendRes.status).toBe(201);
-    expect(sendRes.body).toMatchObject({
+    const { invite } = expectOk(sendRes, 201);
+    expect(invite).toMatchObject({
       from: owner.id,
       to: invited.id,
-      server: serverId,
+      server: serverDoc.id,
       status: "pending",
     });
 
     const pendingRes = await request(app)
       .get("/api/invites/pending")
       .set(authHeader(invitedToken));
-
-    expect(pendingRes.status).toBe(200);
-    expect(pendingRes.body).toHaveLength(1);
-    expect(pendingRes.body[0].status).toBe("pending");
-    expect(pendingRes.body[0].server.name).toBe("Servidor Base");
+    const { invites } = expectOk(pendingRes, 200);
+    expect(invites).toHaveLength(1);
+    expect(invites[0]).toMatchObject({
+      status: "pending",
+      server: {
+        id: serverDoc.id,
+        name: "Servidor Base",
+      },
+      from: {
+        id: owner.id,
+      },
+    });
 
     const acceptRes = await request(app)
-      .post(`/api/invites/accept/${sendRes.body._id}`)
+      .post(`/api/invites/accept/${invite.id}`)
       .set(authHeader(invitedToken));
-
-    expect(acceptRes.status).toBe(200);
-    expect(acceptRes.body).toMatchObject({ success: true });
-    expect(acceptRes.body.invite.status).toBe("accepted");
+    const acceptData = expectOk(acceptRes, 200);
+    expect(acceptData.invite.status).toBe("accepted");
 
     const serversRes = await request(app)
       .get("/api/servers")
       .set(authHeader(invitedToken));
 
-    expect(serversRes.body).toHaveLength(1);
-    const memberIds = serversRes.body[0].members.map((m) =>
-      m._id ? m._id.toString() : m.toString()
-    );
+    const { servers } = expectOk(serversRes, 200);
+    expect(servers).toHaveLength(1);
+    const memberIds = servers[0].members.map((m) => m.id);
     expect(memberIds).toContain(invited.id);
   });
 
@@ -127,26 +139,26 @@ describe("/api/invites E2E", () => {
       email: "invited@mail.com",
     });
 
-    const serverRes = await createServerForUser(ownerToken);
-    const serverId = serverRes.body._id;
+    const serverDoc = await createServerForUser(ownerToken);
 
     const sendRes = await sendInvite({
       token: ownerToken,
       to: invited.id,
-      serverId,
+      serverId: serverDoc.id,
     });
+    const { invite } = expectOk(sendRes, 201);
 
     const rejectRes = await request(app)
-      .post(`/api/invites/reject/${sendRes.body._id}`)
+      .post(`/api/invites/reject/${invite.id}`)
       .set(authHeader(invitedToken));
-
-    expect(rejectRes.status).toBe(200);
-    expect(rejectRes.body.invite.status).toBe("rejected");
+    const rejectData = expectOk(rejectRes, 200);
+    expect(rejectData.invite.status).toBe("rejected");
 
     const serversRes = await request(app)
       .get("/api/servers")
       .set(authHeader(invitedToken));
-    expect(serversRes.body).toEqual([]);
+    const { servers } = expectOk(serversRes, 200);
+    expect(servers).toEqual([]);
   });
 
   test("evita enviar invitaciones duplicadas pendientes", async () => {
@@ -158,24 +170,28 @@ describe("/api/invites E2E", () => {
       username: "invited",
       email: "invited@mail.com",
     });
-    const serverRes = await createServerForUser(ownerToken);
 
-    await sendInvite({
-      token: ownerToken,
-      to: invited.id,
-      serverId: serverRes.body._id,
-    });
+    const serverDoc = await createServerForUser(ownerToken);
+
+    expectOk(
+      await sendInvite({
+        token: ownerToken,
+        to: invited.id,
+        serverId: serverDoc.id,
+      }),
+      201
+    );
 
     const duplicateRes = await sendInvite({
       token: ownerToken,
       to: invited.id,
-      serverId: serverRes.body._id,
+      serverId: serverDoc.id,
     });
-
-    expect(duplicateRes.status).toBe(400);
-    expect(duplicateRes.body).toHaveProperty(
-      "error",
-      "Ya existe una invitación pendiente a este usuario para este servidor"
+    expectFail(
+      duplicateRes,
+      409,
+      "Ya existe una invitación pendiente a este usuario para este servidor",
+      "INVITE_EXISTS"
     );
   });
 
@@ -189,25 +205,29 @@ describe("/api/invites E2E", () => {
       email: "invited@mail.com",
     });
 
-    const serverRes = await createServerForUser(ownerToken);
-    const serverId = serverRes.body._id;
+    const serverDoc = await createServerForUser(ownerToken);
 
-    await sendInvite({
-      token: ownerToken,
-      to: invited.id,
-      serverId,
-    });
+    expectOk(
+      await sendInvite({
+        token: ownerToken,
+        to: invited.id,
+        serverId: serverDoc.id,
+      }),
+      201
+    );
 
-    await request(app)
-      .delete(`/api/servers/${serverId}`)
-      .set(authHeader(ownerToken));
+    expectOk(
+      await request(app)
+        .delete(`/api/servers/${serverDoc.id}`)
+        .set(authHeader(ownerToken)),
+      200
+    );
 
     const pendingRes = await request(app)
       .get("/api/invites/pending")
       .set(authHeader(invitedToken));
-
-    expect(pendingRes.status).toBe(200);
-    expect(pendingRes.body).toEqual([]);
+    const { invites } = expectOk(pendingRes, 200);
+    expect(invites).toEqual([]);
   });
 
   test("responder invitación inexistente devuelve 404", async () => {
@@ -217,75 +237,52 @@ describe("/api/invites E2E", () => {
     });
 
     const res = await request(app)
-      .post(`/api/invites/accept/${new mongoose.Types.ObjectId()}`)
+      .post(`/api/invites/accept/${new Types.ObjectId()}`)
       .set(authHeader(token));
 
-    expect(res.status).toBe(404);
-    expect(res.body).toHaveProperty("error", "Invitación no encontrada");
+    expectFail(res, 404, "Invitación no encontrada", "INVITE_NOT_FOUND");
   });
 
   test("requiere autenticación para enviar invitaciones", async () => {
-    const resNoToken = await request(app).post("/api/invites/send").send({
-      to: new mongoose.Types.ObjectId().toString(),
-      serverId: new mongoose.Types.ObjectId().toString(),
-    });
-    expect(resNoToken.status).toBe(401);
-    expect(resNoToken.body).toHaveProperty("error", "No token provided");
+    const payload = {
+      to: new Types.ObjectId().toString(),
+      serverId: new Types.ObjectId().toString(),
+    };
+
+    const resNoToken = await request(app).post("/api/invites/send").send(payload);
+    expectFail(resNoToken, 401, "No token provided", "AUTH_REQUIRED");
 
     const resInvalid = await request(app)
       .post("/api/invites/send")
       .set(invalidAuthHeader())
-      .send({
-        to: new mongoose.Types.ObjectId().toString(),
-        serverId: new mongoose.Types.ObjectId().toString(),
-      });
-    expect(resInvalid.status).toBe(401);
-    expect(resInvalid.body).toHaveProperty(
-      "error",
-      "Token inválido o expirado"
-    );
+      .send(payload);
+    expectFail(resInvalid, 401, "Token inválido o expirado", "INVALID_TOKEN");
   });
 
   test("requiere autenticación para aceptar o rechazar invitaciones", async () => {
-    const inviteId = new mongoose.Types.ObjectId().toString();
+    const inviteId = new Types.ObjectId().toString();
 
-    const acceptNoToken = await request(app).post(
-      `/api/invites/accept/${inviteId}`
-    );
-    expect(acceptNoToken.status).toBe(401);
-    expect(acceptNoToken.body).toHaveProperty("error", "No token provided");
+    const acceptNoToken = await request(app).post(`/api/invites/accept/${inviteId}`);
+    expectFail(acceptNoToken, 401, "No token provided", "AUTH_REQUIRED");
 
     const acceptInvalid = await request(app)
       .post(`/api/invites/accept/${inviteId}`)
       .set(invalidAuthHeader());
-    expect(acceptInvalid.status).toBe(401);
-    expect(acceptInvalid.body).toHaveProperty(
-      "error",
-      "Token inválido o expirado"
-    );
+    expectFail(acceptInvalid, 401, "Token inválido o expirado", "INVALID_TOKEN");
 
     const rejectInvalid = await request(app)
       .post(`/api/invites/reject/${inviteId}`)
       .set(invalidAuthHeader());
-    expect(rejectInvalid.status).toBe(401);
-    expect(rejectInvalid.body).toHaveProperty(
-      "error",
-      "Token inválido o expirado"
-    );
+    expectFail(rejectInvalid, 401, "Token inválido o expirado", "INVALID_TOKEN");
   });
 
   test("requiere autenticación para listar invitaciones pendientes", async () => {
     const resNoToken = await request(app).get("/api/invites/pending");
-    expect(resNoToken.status).toBe(401);
-    expect(resNoToken.body).toHaveProperty("error", "No token provided");
+    expectFail(resNoToken, 401, "No token provided", "AUTH_REQUIRED");
 
     const resInvalid = await request(app)
       .get("/api/invites/pending")
       .set(invalidAuthHeader());
-    expect(resInvalid.status).toBe(401);
-    expect(resInvalid.body).toHaveProperty(
-      "error",
-      "Token inválido o expirado"
-    );
+    expectFail(resInvalid, 401, "Token inválido o expirado", "INVALID_TOKEN");
   });
 });

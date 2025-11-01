@@ -1,32 +1,23 @@
 import request from "supertest";
-import mongoose from "mongoose";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import { Types } from "mongoose";
+import {
+  resetDatabase,
+  startE2EServer,
+  stopE2EServer,
+} from "../../../test/helpers/e2eServer.js";
 
 let app;
-let server;
-let mongo;
 
 beforeAll(async () => {
-  mongo = await MongoMemoryServer.create();
-  process.env.MONGODB_URI = mongo.getUri();
-  process.env.JWT_SECRET = "testsecret";
-
-  const { createServer } = await import("../../server.js");
-  const result = await createServer();
-  app = result.app;
-  server = result.server;
+  ({ app } = await startE2EServer());
 });
 
 beforeEach(async () => {
-  if (mongoose.connection.readyState === 1) {
-    await mongoose.connection.db.dropDatabase();
-  }
+  await resetDatabase();
 });
 
 afterAll(async () => {
-  await mongoose.disconnect();
-  if (mongo) await mongo.stop();
-  if (server) server.close();
+  await stopE2EServer();
 });
 
 const registerUser = (payload) =>
@@ -83,9 +74,7 @@ describe("/api/users E2E", () => {
   });
 
   test("GET /api/users/:id retorna 404 cuando el usuario no existe", async () => {
-    const res = await request(app).get(
-      `/api/users/${new mongoose.Types.ObjectId()}`
-    );
+    const res = await request(app).get(`/api/users/${new Types.ObjectId()}`);
 
     expect(res.status).toBe(404);
     expect(res.body).toMatchObject({

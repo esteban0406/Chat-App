@@ -1,32 +1,37 @@
 import request from "supertest";
-import mongoose from "mongoose";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import {
+  resetDatabase,
+  startE2EServer,
+  stopE2EServer,
+} from "../../../test/helpers/e2eServer.js";
 
 let app;
-let server;
-let mongo;
+
+const expectOk = (res, status) => {
+  expect(res.status).toBe(status);
+  expect(res.body.success).toBe(true);
+  return res.body.data;
+};
+
+const expectFail = (res, status, message, code) => {
+  expect(res.status).toBe(status);
+  expect(res.body).toMatchObject({
+    success: false,
+    message,
+    code,
+  });
+};
 
 beforeAll(async () => {
-  mongo = await MongoMemoryServer.create();
-  process.env.MONGODB_URI = mongo.getUri();
-  process.env.JWT_SECRET = "testsecret";
-
-  const { createServer } = await import("../../server.js");
-  const result = await createServer();
-  app = result.app;
-  server = result.server;
+  ({ app } = await startE2EServer());
 });
 
 beforeEach(async () => {
-  if (mongoose.connection.readyState === 1) {
-    await mongoose.connection.db.dropDatabase();
-  }
+  await resetDatabase();
 });
 
 afterAll(async () => {
-  await mongoose.disconnect();
-  if (mongo) await mongo.stop();
-  if (server) server.close();
+  await stopE2EServer();
 });
 
 const registerUser = async ({ username, email }) => {
@@ -35,36 +40,26 @@ const registerUser = async ({ username, email }) => {
     email,
     password: "123456",
   });
-  return { token: res.body.token, user: res.body.user };
+  const data = expectOk(res, 201);
+  return { token: data.token, user: data.user };
 };
 
 const authHeader = (token) => ({
   Authorization: `Bearer ${token}`,
 });
 
-const createServerForUser = async (token, body = {}) =>
-  request(app)
+const createServerForUser = async (token, body = {}) => {
+  const res = await request(app)
     .post("/api/servers")
     .set(authHeader(token))
     .send({
       name: body.name ?? "Servidor Base",
       description: body.description ?? "desc",
     });
-
-const createChannel = async (token, serverId, channel = {}) => {
-  const res = await request(app)
-    .post("/api/channels")
-    .set(authHeader(token))
-    .send({
-      name: channel.name ?? "chat",
-      type: channel.type ?? "text",
-      serverId,
-    });
-  return res.body;
+  return expectOk(res, 201);
 };
 
-const sendMessage = (payload) =>
-  request(app).post("/api/messages").send(payload);
+const sendMessage = (payload) => request(app).post("/api/messages").send(payload);
 
 describe("/api/messages E2E", () => {
   test("POST /api/messages crea un mensaje y lo asocia al canal", async () => {
@@ -77,36 +72,36 @@ describe("/api/messages E2E", () => {
       email: "member@mail.com",
     });
 
-    const serverRes = await createServerForUser(memberToken);
-    const serverId = serverRes.body._id;
-    const channel = serverRes.body.defaultChannel;
+    const serverData = await createServerForUser(memberToken);
+    const serverId = serverData.server.id;
+    const channel = serverData.defaultChannel;
 
-    await request(app).post("/api/servers/join").send({
+    const joinRes = await request(app).post("/api/servers/join").send({
       serverId,
       userId: owner.id,
     });
+    expectOk(joinRes, 200);
 
     const res = await sendMessage({
       text: "Hola mundo",
       senderId: owner.id,
-      channelId: channel._id,
+      channelId: channel.id,
+    });
+    const { message } = expectOk(res, 201);
+    expect(message).toMatchObject({
+      text: "Hola mundo",
+      channel: channel.id,
+      sender: expect.objectContaining({ id: owner.id }),
     });
 
-    expect(res.status).toBe(201);
-    expect(res.body).toMatchObject({
+    const list = await request(app).get(`/api/messages/${channel.id}`);
+    const { messages } = expectOk(list, 200);
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toMatchObject({
       text: "Hola mundo",
-      channel: channel._id,
+      channel: channel.id,
+      sender: expect.objectContaining({ id: owner.id, username: owner.username }),
     });
-    expect(res.body).toHaveProperty("sender");
-
-    const list = await request(app).get(`/api/messages/${channel._id}`);
-    expect(list.status).toBe(200);
-    expect(list.body).toHaveLength(1);
-    expect(list.body[0]).toMatchObject({
-      text: "Hola mundo",
-      channel: channel._id,
-    });
-    expect(list.body[0]).toHaveProperty("sender.username");
   });
 
   test("POST /api/messages valida campos obligatorios", async () => {
@@ -116,8 +111,7 @@ describe("/api/messages E2E", () => {
       channelId: "",
     });
 
-    expect(res.status).toBe(400);
-    expect(res.body).toHaveProperty("error", "Faltan campos obligatorios");
+    expectFail(res, 400, "Faltan campos obligatorios", "VALIDATION_ERROR");
   });
 
   test("GET /api/messages/:channelId retorna lista vacía cuando no hay mensajes", async () => {
@@ -125,12 +119,11 @@ describe("/api/messages E2E", () => {
       username: "owner",
       email: "owner@mail.com",
     });
-    const serverRes = await createServerForUser(token);
-    const channelId = serverRes.body.defaultChannel._id;
+    const serverData = await createServerForUser(token);
+    const channelId = serverData.defaultChannel.id;
 
     const res = await request(app).get(`/api/messages/${channelId}`);
-
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual([]);
+    const { messages } = expectOk(res, 200);
+    expect(messages).toEqual([]);
   });
 });

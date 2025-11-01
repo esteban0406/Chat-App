@@ -1,7 +1,10 @@
 import { jest } from "@jest/globals";
 import request from "supertest";
-import mongoose from "mongoose";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import {
+  resetDatabase,
+  startE2EServer,
+  stopE2EServer,
+} from "../../../test/helpers/e2eServer.js";
 
 const accessTokenCalls = [];
 const addGrantMock = jest.fn();
@@ -24,36 +27,26 @@ jest.unstable_mockModule("livekit-server-sdk", () => ({
 }));
 
 let app;
-let server;
-let mongo;
 
 beforeAll(async () => {
-  mongo = await MongoMemoryServer.create();
-  process.env.MONGODB_URI = mongo.getUri();
-  process.env.JWT_SECRET = "testsecret";
-  process.env.LIVEKIT_API_KEY = "lk-key";
-  process.env.LIVEKIT_API_SECRET = "lk-secret";
-  process.env.LIVEKIT_URL = "wss://livekit.test";
-
-  const { createServer } = await import("../../server.js");
-  const result = await createServer();
-  app = result.app;
-  server = result.server;
+  ({ app } = await startE2EServer({
+    env: {
+      LIVEKIT_API_KEY: "lk-key",
+      LIVEKIT_API_SECRET: "lk-secret",
+      LIVEKIT_URL: "wss://livekit.test",
+    },
+  }));
 });
 
 beforeEach(async () => {
-  if (mongoose.connection.readyState === 1) {
-    await mongoose.connection.db.dropDatabase();
-  }
+  await resetDatabase();
   accessTokenCalls.length = 0;
   addGrantMock.mockClear();
   toJwtMock.mockClear();
 });
 
 afterAll(async () => {
-  await mongoose.disconnect();
-  if (mongo) await mongo.stop();
-  if (server) server.close();
+  await stopE2EServer();
 });
 
 describe("/api/voice E2E", () => {
