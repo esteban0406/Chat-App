@@ -1,15 +1,14 @@
-import { API, request } from "../../services/api";
+import { API, apiRequest } from "../../services/api";
 
-export const registerUser = (data) =>
-  request(API.post("/api/auth/register", data));
-export const loginUser = (data) => request(API.post("/api/auth/login", data));
+export const registerUser = (data) => apiRequest("post", "/auth/register", data);
+export const loginUser = (data) => apiRequest("post", "/auth/login", data);
 
 export const loginWithGoogle = () => {
-  const base = API.defaults.baseURL?.replace(/\/$/, "");
-  window.location.href = `${base}/auth/google`;
+  const base = API.defaults.baseURL.replace(/\/$/, ""); // remove trailing slash
+  window.location.href = `${base}/auth/google`; // ✅ no /api here
 };
 
 export const loginWithMicrosoft = () => {
-  const base = API.defaults.baseURL?.replace(/\/$/, "");
+  const base = API.defaults.baseURL.replace(/\/$/, "");
   window.location.href = `${base}/auth/microsoft`;
 };

@@ -1,20 +1,9 @@
-import { API, apiRequest } from "../../services/api";
+import express from "express";
+import { register, login } from "../controllers/auth.controller.js";
 
-/**
- * 🧩 Classic authentication (JSON)
- */
-export const registerUser = (data) => apiRequest("post", "/auth/register", data);
-export const loginUser = (data) => apiRequest("post", "/auth/login", data);
+const router = express.Router();
 
-/**
- * 🌐 OAuth (browser redirects)
- */
-export const loginWithGoogle = () => {
-  const base = API.defaults.baseURL.replace(/\/$/, ""); // remove trailing slash
-  window.location.href = `${base}/auth/google`; // ✅ no /api here
-};
+router.post("/register", register);
+router.post("/login", login);
 
-export const loginWithMicrosoft = () => {
-  const base = API.defaults.baseURL.replace(/\/$/, "");
-  window.location.href = `${base}/auth/microsoft`;
-};
+export default router;
