@@ -33,6 +33,7 @@ export async function createServer(options = {}) {
 
   // Middlewares
   app.use(cors(corsConfig));
+  app.options(/.*/, cors(corsConfig)); // ✅ handle preflight globally
   app.use(express.json());
   app.use(requestLogger);
 
