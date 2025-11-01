@@ -1,15 +1,21 @@
-import { Outlet, useParams } from "react-router-dom";
+import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { useServers } from "./useServers";
 import ChannelSidebar from "../channels/ChannelSidebar";
 
-export function ServerSectionSidebar() {
+export function ServerSectionSidebar({ sidebarControls }) {
   const { serverId } = useParams();
-  return <ChannelSidebar serverId={serverId} />;
+  return (
+    <ChannelSidebar
+      serverId={serverId}
+      sidebarControls={sidebarControls}
+    />
+  );
 }
 export default function ServerLayout() {
   const { serverId } = useParams();
   const { servers, setActive } = useServers();
+  const layoutContext = useOutletContext();
 
   useEffect(() => {
     if (!serverId) {
@@ -22,5 +28,5 @@ export default function ServerLayout() {
       setActive(current);
     }
   }, [serverId, servers, setActive]);
-  return <Outlet />;
+  return <Outlet context={layoutContext} />;
 }
