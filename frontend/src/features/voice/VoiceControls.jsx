@@ -25,9 +25,14 @@ export default function VoiceControls({ channel, user }) {
     dispatch(leaveVoice());
   };
 
-  const handleToggleMute = () => {
-    setMic(muted ? false : true);
-    dispatch(toggleMute());
+  const handleToggleMute = async () => {
+    const nextMuted = !muted;
+    try {
+      await setMic(!nextMuted);
+      dispatch(toggleMute());
+    } catch (err) {
+      console.error("❌ Error cambiando estado del micrófono:", err);
+    }
   };
 
   return (
@@ -51,7 +56,7 @@ export default function VoiceControls({ channel, user }) {
             onClick={handleToggleMute}
             className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"
           >
-            {muted ? "🔇 Mutear" : "🎤 Desmutear"}
+            {muted ? "🎤 Desmutear" : "🔇 Mutear"}
           </button>
         </>
       )}
