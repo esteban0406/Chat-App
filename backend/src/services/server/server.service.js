@@ -1,4 +1,4 @@
-import Channel from "../../models/Channel.js";
+import Channel from "../channel/Channel.model.js";
 import Server from "./Server.model.js";
 import { createHttpError, validationError } from "../../utils/httpError.js";
 

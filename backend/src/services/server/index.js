@@ -10,11 +10,11 @@ export function registerServerService(
     controller,
     router,
     authMiddleware,
-  } = {},
+  } = {}
 ) {
   if (!app || typeof app.use !== "function") {
     throw new Error(
-      "Se requiere una instancia válida de Express para registrar el servicio de servidores",
+      "Se requiere una instancia válida de Express para registrar el servicio de servidores"
     );
   }
 
@@ -44,5 +44,19 @@ export {
   serverController as defaultServerController,
 } from "./server.controller.js";
 export { createServerRouter } from "./server.routes.js";
+
+export {
+  registerServerInviteService,
+  createServerInviteService,
+  defaultServerInviteService,
+  createServerInviteController,
+  defaultServerInviteController,
+  sendServerInvite,
+  acceptServerInvite,
+  rejectServerInvite,
+  getPendingServerInvites,
+  createServerInviteRouter,
+  ServerInviteModel,
+} from "./invite/index.js";
 
 export default registerServerService;

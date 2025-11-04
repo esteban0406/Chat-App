@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import FriendRequest from "../../../models/friendRequest.js";
+import FriendRequest from "../../../services/user/friendRequest/FriendRequest.model.js";
 
 describe("FriendRequest Model", () => {
   let mongo;

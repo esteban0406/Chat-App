@@ -2,9 +2,9 @@ import { jest } from "@jest/globals";
 import { Server } from "socket.io";
 import { io as Client } from "socket.io-client";
 import registerChatHandlers from "../../../sockets/chat.js";
-import Message from "../../../models/Message.js";
+import Message from "../../../services/message/Message.model.js";
 
-jest.mock("../../../models/Message.js"); // evitar DB real
+jest.mock("../../../services/message/Message.model.js"); // evitar DB real
 
 let io, serverSocket, clientSocket;
 

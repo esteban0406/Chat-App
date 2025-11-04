@@ -13,13 +13,15 @@ import "./config/passport.js";
 
 import authRoutes from "./routes/auth.routes.js";     
 import oauthRoutes from "./routes/oauth.routes.js";  
-import channelRoutes from "./routes/channel.routes.js";
-import createMessageRoutes from "./routes/message.routes.js";
-import friendRoutes from "./routes/friend.routes.js";
-import serverInviteRoutes from "./routes/serverInvite.routes.js";
 import voiceRoutes from "./routes/voice.routes.js";
-import registerUserService from "./services/user/index.js";
-import registerServerService from "./services/server/index.js";
+import registerUserService, {
+  registerFriendRequestService,
+} from "./services/user/index.js";
+import registerServerService, {
+  registerServerInviteService,
+} from "./services/server/index.js";
+import registerChannelService from "./services/channel/index.js";
+import registerMessageService from "./services/message/index.js";
 
 import { corsConfig, MONGODB_URI, PORT, NODE_ENV } from "./config/config.js";
 
@@ -70,10 +72,10 @@ export async function createServer(options = {}) {
   app.use("/api/auth", authRoutes);
   registerUserService(app);
   registerServerService(app);
-  app.use("/api/channels", channelRoutes);
-  app.use("/api/messages", createMessageRoutes(io));
-  app.use("/api/friends", friendRoutes);
-  app.use("/api/ServerInvites", serverInviteRoutes);
+  registerServerInviteService(app);
+  registerChannelService(app);
+  registerMessageService(app, { io });
+  registerFriendRequestService(app);
   app.use("/api/voice", voiceRoutes);
   app.use("/auth", oauthRoutes);
 

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import ServerInvite from "../../../models/serverInvite.js";
+import ServerInvite from "../../../services/server/invite/ServerInvite.model.js";
 
 describe("ServerInvite Model", () => {
   let mongo;

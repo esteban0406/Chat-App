@@ -10,7 +10,7 @@ const ServerMock = {
   findByIdAndUpdate: jest.fn(),
 };
 
-jest.unstable_mockModule("../../../models/serverInvite.js", () => ({
+jest.unstable_mockModule("../../../services/server/invite/ServerInvite.model.js", () => ({
   __esModule: true,
   default: ServerInviteMock,
 }));
@@ -25,7 +25,7 @@ const {
   acceptServerInvite,
   rejectServerInvite,
   getPendingServerInvites,
-} = await import("../../../controllers/serverInvite.controller.js");
+} = await import("../../../services/server/invite/serverInvite.controller.js");
 
 const createInviteDoc = (overrides = {}) => {
   const doc = {

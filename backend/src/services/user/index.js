@@ -43,4 +43,18 @@ export {
 } from "./user.controller.js";
 export { createUserRouter } from "./user.routes.js";
 
+export {
+  registerFriendRequestService,
+  createFriendRequestService,
+  defaultFriendRequestService,
+  createFriendRequestController,
+  defaultFriendRequestController,
+  sendFriendRequest,
+  respondFriendRequest,
+  getPendingFriendRequests,
+  getFriends,
+  createFriendRequestRouter,
+  FriendRequestModel,
+} from "./friendRequest/index.js";
+
 export default registerUserService;

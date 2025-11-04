@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import Channel from "../../../models/Channel.js";
+import Channel from "../../../services/channel/Channel.model.js";
 
 describe("Channel Model", () => {
   let mongo;

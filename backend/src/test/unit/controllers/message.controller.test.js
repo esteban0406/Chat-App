@@ -13,17 +13,19 @@ const ioMock = {
   emit: jest.fn(),
 };
 
-jest.unstable_mockModule("../../../models/Message.js", () => ({
+jest.unstable_mockModule("../../../services/message/Message.model.js", () => ({
   __esModule: true,
   default: MessageMock,
 }));
 
-jest.unstable_mockModule("../../../models/Channel.js", () => ({
+jest.unstable_mockModule("../../../services/channel/Channel.model.js", () => ({
   __esModule: true,
   default: ChannelMock,
 }));
 
-const { messageController } = await import("../../../controllers/message.controller.js");
+const { createMessageController } = await import(
+  "../../../services/message/message.controller.js",
+);
 
 const createMessageDoc = (overrides = {}) => {
   const doc = {
@@ -67,7 +69,7 @@ describe("message.controller", () => {
   let next;
 
   beforeEach(() => {
-    controller = messageController(ioMock);
+    controller = createMessageController({ io: ioMock });
     req = { body: {}, params: {} };
     res = {
       status: jest.fn().mockReturnThis(),
@@ -127,7 +129,10 @@ describe("message.controller", () => {
       expect(ioMock.emit).toHaveBeenCalledWith("message", {
         _id: "message123",
         text: "Hola",
-        sender: messageInstance.sender,
+        sender: {
+          id: "user123",
+          username: "test",
+        },
         channel: "channel123",
         createdAt: messageInstance.createdAt,
       });

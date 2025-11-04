@@ -12,7 +12,7 @@ const UserMock = {
   find: jest.fn(),
 };
 
-jest.unstable_mockModule("../../../models/friendRequest.js", () => ({
+jest.unstable_mockModule("../../../services/user/friendRequest/FriendRequest.model.js", () => ({
   __esModule: true,
   default: FriendRequestMock,
 }));
@@ -27,7 +27,7 @@ const {
   respondFriendRequest,
   getPendingFriendRequests,
   getFriends,
-} = await import("../../../controllers/friend.controller.js");
+} = await import("../../../services/user/friendRequest/friendRequest.controller.js");
 
 const SELF_ID = "507f191e810c19729de860ea";
 const OTHER_ID = "507f191e810c19729de860eb";

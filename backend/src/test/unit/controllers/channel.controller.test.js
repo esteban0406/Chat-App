@@ -10,7 +10,7 @@ const ServerMock = {
   findByIdAndUpdate: jest.fn(),
 };
 
-jest.unstable_mockModule("../../../models/Channel.js", () => ({
+jest.unstable_mockModule("../../../services/channel/Channel.model.js", () => ({
   __esModule: true,
   default: ChannelMock,
 }));
@@ -20,11 +20,9 @@ jest.unstable_mockModule("../../../services/server/Server.model.js", () => ({
   default: ServerMock,
 }));
 
-const {
-  createChannel,
-  getChannels,
-  deleteChannel,
-} = await import("../../../controllers/channel.controller.js");
+const { createChannel, getChannels, deleteChannel } = await import(
+  "../../../services/channel/channel.controller.js"
+);
 
 const createChannelDoc = (overrides = {}) => {
   const doc = {

@@ -8,10 +8,10 @@ const serverInviteSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["pending", "accepted", "rejected"],
-      default: "pending"
-    }
+      default: "pending",
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 serverInviteSchema.index({ from: 1, to: 1, server: 1 }, { unique: true });

@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 // Importa modelos reales
 import User from "../../services/user/User.model.js";
-import Channel from "../../models/Channel.js";
+import Channel from "../../services/channel/Channel.model.js";
 import Server from "../../services/server/Server.model.js";
 import {
   resetDatabase,

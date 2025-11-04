@@ -1,4 +1,4 @@
-import Message from "../models/Message.js";
+import Message from "../services/message/Message.model.js";
 
 export default function registerChatHandlers(io, socket) {
   socket.on("message", async (data) => {
