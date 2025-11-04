@@ -13,13 +13,13 @@ import "./config/passport.js";
 
 import authRoutes from "./routes/auth.routes.js";     
 import oauthRoutes from "./routes/oauth.routes.js";  
-import serverRoutes from "./routes/server.routes.js";
 import channelRoutes from "./routes/channel.routes.js";
 import createMessageRoutes from "./routes/message.routes.js";
 import friendRoutes from "./routes/friend.routes.js";
 import serverInviteRoutes from "./routes/serverInvite.routes.js";
 import voiceRoutes from "./routes/voice.routes.js";
 import registerUserService from "./services/user/index.js";
+import registerServerService from "./services/server/index.js";
 
 import { corsConfig, MONGODB_URI, PORT, NODE_ENV } from "./config/config.js";
 
@@ -69,7 +69,7 @@ export async function createServer(options = {}) {
   // =======================
   app.use("/api/auth", authRoutes);
   registerUserService(app);
-  app.use("/api/servers", serverRoutes);
+  registerServerService(app);
   app.use("/api/channels", channelRoutes);
   app.use("/api/messages", createMessageRoutes(io));
   app.use("/api/friends", friendRoutes);
@@ -82,7 +82,7 @@ export async function createServer(options = {}) {
   // =======================
   if (NODE_ENV === "test") {
     const jwt = await import("jsonwebtoken").then((m) => m.default);
-    const User = (await import("./models/User.js")).default;
+    const User = (await import("./services/user/User.model.js")).default;
 
     app.post("/auth/test-login", async (req, res, next) => {
       try {

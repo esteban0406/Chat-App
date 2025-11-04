@@ -1,5 +1,5 @@
 import request from "supertest";
-import User from "../../models/User.js";
+import User from "../../services/user/User.model.js";
 import {
   resetDatabase,
   startE2EServer,

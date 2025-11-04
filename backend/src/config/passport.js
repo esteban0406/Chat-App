@@ -1,7 +1,7 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { OIDCStrategy } from "passport-azure-ad";
-import User from "../models/User.js";
+import User from "../services/user/User.model.js";
 
 // =====================
 // Google Strategy

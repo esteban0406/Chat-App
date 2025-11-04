@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import User from "../services/user/User.model.js";
 import logger from "./logger.js";
 import { fail } from "./response.js";
 

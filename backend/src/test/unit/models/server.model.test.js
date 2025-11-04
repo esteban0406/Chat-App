@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import Server from "../../../models/Server.js";
+import Server from "../../../services/server/Server.model.js";
 
 describe("Server Model", () => {
   let mongo;

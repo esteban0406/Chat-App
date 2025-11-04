@@ -6,12 +6,12 @@ UserMock.find = jest.fn();
 UserMock.findById = jest.fn();
 UserMock.findOne = jest.fn(); // kept for completeness if other controllers reuse
 
-jest.unstable_mockModule("../../../models/User.js", () => ({
+jest.unstable_mockModule("../../../services/user/User.model.js", () => ({
   __esModule: true,
   default: UserMock,
 }));
 
-const { getUsers, getUser, searchUser } = await import("../../../controllers/user.controller.js");
+const { getUsers, getUser, searchUser } = await import("../../../services/user/user.controller.js");
 
 const createUserDoc = (overrides = {}) => {
   const doc = {

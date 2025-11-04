@@ -1,7 +1,7 @@
 import { jest } from "@jest/globals";
 
 // Mock de User.js (no usamos DB real aquí)
-jest.unstable_mockModule("../../models/User.js", () => ({
+jest.unstable_mockModule("../../services/user/User.model.js", () => ({
   __esModule: true,
   default: {
     findOne: jest.fn(),
@@ -21,7 +21,7 @@ describe("Passport strategies (unit con mocks)", () => {
     process.env.MS_CLIENT_ID = "fake-ms-id";
     process.env.MS_CLIENT_SECRET = "fake-ms-secret";
 
-    ({ default: User } = await import("../../models/User.js"));
+    ({ default: User } = await import("../../services/user/User.model.js"));
     passport = (await import("../../config/passport.js")).default;
   });
 

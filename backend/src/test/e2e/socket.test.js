@@ -2,9 +2,9 @@ import { io as Client } from "socket.io-client";
 import mongoose from "mongoose";
 
 // Importa modelos reales
-import User from "../../models/User.js";
+import User from "../../services/user/User.model.js";
 import Channel from "../../models/Channel.js";
-import Server from "../../models/Server.js";
+import Server from "../../services/server/Server.model.js";
 import {
   resetDatabase,
   startE2EServer,

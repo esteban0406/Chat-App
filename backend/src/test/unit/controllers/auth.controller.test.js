@@ -13,7 +13,7 @@ const jwtMock = {
   sign: jest.fn(),
 };
 
-jest.unstable_mockModule("../../../models/User.js", () => ({
+jest.unstable_mockModule("../../../services/user/User.model.js", () => ({
   __esModule: true,
   default: UserMock,
 }));

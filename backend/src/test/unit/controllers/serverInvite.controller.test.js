@@ -15,7 +15,7 @@ jest.unstable_mockModule("../../../models/serverInvite.js", () => ({
   default: ServerInviteMock,
 }));
 
-jest.unstable_mockModule("../../../models/Server.js", () => ({
+jest.unstable_mockModule("../../../services/server/Server.model.js", () => ({
   __esModule: true,
   default: ServerMock,
 }));

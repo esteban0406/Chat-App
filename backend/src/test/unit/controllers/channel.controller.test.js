@@ -15,7 +15,7 @@ jest.unstable_mockModule("../../../models/Channel.js", () => ({
   default: ChannelMock,
 }));
 
-jest.unstable_mockModule("../../../models/Server.js", () => ({
+jest.unstable_mockModule("../../../services/server/Server.model.js", () => ({
   __esModule: true,
   default: ServerMock,
 }));

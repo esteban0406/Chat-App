@@ -1,4 +1,4 @@
-import Server from "../models/Server.js";
+import Server from "../services/server/Server.model.js";
 import ServerInvite from "../models/serverInvite.js";
 import { ok } from "../utils/response.js";
 import { createHttpError, validationError } from "../utils/httpError.js";

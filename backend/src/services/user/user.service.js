@@ -1,5 +1,5 @@
 import axios from "axios";
-import User from "../../models/User.js";
+import User from "./User.model.js";
 import { createHttpError, validationError } from "../../utils/httpError.js";
 
 const DATA_URL_REGEX = /^data:(.+);base64$/i;

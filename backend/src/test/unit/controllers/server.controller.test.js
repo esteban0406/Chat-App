@@ -9,7 +9,7 @@ ServerMock.findByIdAndDelete = jest.fn();
 const ChannelMock = jest.fn();
 ChannelMock.deleteMany = jest.fn();
 
-jest.unstable_mockModule("../../../models/Server.js", () => ({
+jest.unstable_mockModule("../../../services/server/Server.model.js", () => ({
   __esModule: true,
   default: ServerMock,
 }));
@@ -26,7 +26,7 @@ const {
   deleteServer,
   removeMember,
   leaveServer,
-} = await import("../../../controllers/server.controller.js");
+} = await import("../../../services/server/server.controller.js");
 
 const createServerDoc = (overrides = {}) => {
   const doc = {

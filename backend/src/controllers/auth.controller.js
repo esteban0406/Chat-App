@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import User from "../services/user/User.model.js";
 import { ok } from "../utils/response.js";
 import { createHttpError, validationError } from "../utils/httpError.js";
 

@@ -17,7 +17,7 @@ jest.unstable_mockModule("../../../models/friendRequest.js", () => ({
   default: FriendRequestMock,
 }));
 
-jest.unstable_mockModule("../../../models/User.js", () => ({
+jest.unstable_mockModule("../../../services/user/User.model.js", () => ({
   __esModule: true,
   default: UserMock,
 }));
