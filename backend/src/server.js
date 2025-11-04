@@ -13,13 +13,13 @@ import "./config/passport.js";
 
 import authRoutes from "./routes/auth.routes.js";     
 import oauthRoutes from "./routes/oauth.routes.js";  
-import userRoutes from "./routes/user.routes.js";
 import serverRoutes from "./routes/server.routes.js";
 import channelRoutes from "./routes/channel.routes.js";
 import createMessageRoutes from "./routes/message.routes.js";
 import friendRoutes from "./routes/friend.routes.js";
 import serverInviteRoutes from "./routes/serverInvite.routes.js";
 import voiceRoutes from "./routes/voice.routes.js";
+import registerUserService from "./services/user/index.js";
 
 import { corsConfig, MONGODB_URI, PORT, NODE_ENV } from "./config/config.js";
 
@@ -68,18 +68,13 @@ export async function createServer(options = {}) {
   // 📡 Rutas REST API (JSON)
   // =======================
   app.use("/api/auth", authRoutes);
-  app.use("/api/users", userRoutes);
+  registerUserService(app);
   app.use("/api/servers", serverRoutes);
   app.use("/api/channels", channelRoutes);
   app.use("/api/messages", createMessageRoutes(io));
   app.use("/api/friends", friendRoutes);
-  app.use("/api/invites", serverInviteRoutes);
+  app.use("/api/ServerInvites", serverInviteRoutes);
   app.use("/api/voice", voiceRoutes);
-
-  // =======================
-  // 🌐 Rutas de OAuth
-  // =======================
-  // (Sin prefijo /api porque usan redirecciones externas)
   app.use("/auth", oauthRoutes);
 
   // =======================
@@ -122,6 +117,17 @@ export async function createServer(options = {}) {
         return res.status(401).json({ error: "Token inválido o expirado" });
       }
     });
+
+    app.get("/session/protected", (req, res) => {
+      if (typeof req.isAuthenticated === "function" && req.isAuthenticated()) {
+        return res.json({ user: req.user });
+      }
+      return res.status(401).json({ error: "Not authenticated" });
+    });
+  }
+
+  if (typeof extraRoutes === "function") {
+    extraRoutes(app);
   }
 
   // =======================

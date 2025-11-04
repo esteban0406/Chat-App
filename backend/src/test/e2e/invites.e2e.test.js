@@ -67,11 +67,11 @@ const createServerForUser = async (token, body = {}) => {
 
 const sendInvite = ({ token, to, serverId }) =>
   request(app)
-    .post("/api/invites/send")
+    .post("/api/ServerInvites/send")
     .set(authHeader(token))
     .send({ to, serverId });
 
-describe("/api/invites E2E", () => {
+describe("/api/ServerInvites E2E", () => {
   test("permite enviar y aceptar una invitación de servidor", async () => {
     const { token: ownerToken, user: owner } = await registerUser({
       username: "owner",
@@ -98,7 +98,7 @@ describe("/api/invites E2E", () => {
     });
 
     const pendingRes = await request(app)
-      .get("/api/invites/pending")
+      .get("/api/ServerInvites/pending")
       .set(authHeader(invitedToken));
     const { invites } = expectOk(pendingRes, 200);
     expect(invites).toHaveLength(1);
@@ -114,7 +114,7 @@ describe("/api/invites E2E", () => {
     });
 
     const acceptRes = await request(app)
-      .post(`/api/invites/accept/${invite.id}`)
+      .post(`/api/ServerInvites/accept/${invite.id}`)
       .set(authHeader(invitedToken));
     const acceptData = expectOk(acceptRes, 200);
     expect(acceptData.invite.status).toBe("accepted");
@@ -149,7 +149,7 @@ describe("/api/invites E2E", () => {
     const { invite } = expectOk(sendRes, 201);
 
     const rejectRes = await request(app)
-      .post(`/api/invites/reject/${invite.id}`)
+      .post(`/api/ServerInvites/reject/${invite.id}`)
       .set(authHeader(invitedToken));
     const rejectData = expectOk(rejectRes, 200);
     expect(rejectData.invite.status).toBe("rejected");
@@ -224,7 +224,7 @@ describe("/api/invites E2E", () => {
     );
 
     const pendingRes = await request(app)
-      .get("/api/invites/pending")
+      .get("/api/ServerInvites/pending")
       .set(authHeader(invitedToken));
     const { invites } = expectOk(pendingRes, 200);
     expect(invites).toEqual([]);
@@ -237,7 +237,7 @@ describe("/api/invites E2E", () => {
     });
 
     const res = await request(app)
-      .post(`/api/invites/accept/${new Types.ObjectId()}`)
+      .post(`/api/ServerInvites/accept/${new Types.ObjectId()}`)
       .set(authHeader(token));
 
     expectFail(res, 404, "Invitación no encontrada", "INVITE_NOT_FOUND");
@@ -249,11 +249,11 @@ describe("/api/invites E2E", () => {
       serverId: new Types.ObjectId().toString(),
     };
 
-    const resNoToken = await request(app).post("/api/invites/send").send(payload);
+    const resNoToken = await request(app).post("/api/ServerInvites/send").send(payload);
     expectFail(resNoToken, 401, "No token provided", "AUTH_REQUIRED");
 
     const resInvalid = await request(app)
-      .post("/api/invites/send")
+      .post("/api/ServerInvites/send")
       .set(invalidAuthHeader())
       .send(payload);
     expectFail(resInvalid, 401, "Token inválido o expirado", "INVALID_TOKEN");
@@ -262,26 +262,26 @@ describe("/api/invites E2E", () => {
   test("requiere autenticación para aceptar o rechazar invitaciones", async () => {
     const inviteId = new Types.ObjectId().toString();
 
-    const acceptNoToken = await request(app).post(`/api/invites/accept/${inviteId}`);
+    const acceptNoToken = await request(app).post(`/api/ServerInvites/accept/${inviteId}`);
     expectFail(acceptNoToken, 401, "No token provided", "AUTH_REQUIRED");
 
     const acceptInvalid = await request(app)
-      .post(`/api/invites/accept/${inviteId}`)
+      .post(`/api/ServerInvites/accept/${inviteId}`)
       .set(invalidAuthHeader());
     expectFail(acceptInvalid, 401, "Token inválido o expirado", "INVALID_TOKEN");
 
     const rejectInvalid = await request(app)
-      .post(`/api/invites/reject/${inviteId}`)
+      .post(`/api/ServerInvites/reject/${inviteId}`)
       .set(invalidAuthHeader());
     expectFail(rejectInvalid, 401, "Token inválido o expirado", "INVALID_TOKEN");
   });
 
   test("requiere autenticación para listar invitaciones pendientes", async () => {
-    const resNoToken = await request(app).get("/api/invites/pending");
+    const resNoToken = await request(app).get("/api/ServerInvites/pending");
     expectFail(resNoToken, 401, "No token provided", "AUTH_REQUIRED");
 
     const resInvalid = await request(app)
-      .get("/api/invites/pending")
+      .get("/api/ServerInvites/pending")
       .set(invalidAuthHeader());
     expectFail(resInvalid, 401, "Token inválido o expirado", "INVALID_TOKEN");
   });

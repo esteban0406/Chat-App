@@ -12,12 +12,23 @@ export default function registerChannelHandlers(io, socket) {
     if (ack) ack(true); // 👈 confirmación al cliente
   });
 
-  socket.on("leaveChannel", (channelId, ack) => {
-    if (channelId) {
-      socket.leave(channelId);
+  socket.on("leaveChannel", async (channelId, ack) => {
+    const activeChannel = socket.data?.channelId;
+    const targetChannel = channelId || activeChannel;
+
+    if (!targetChannel) {
+      if (ack) ack(false);
+      return;
     }
 
-    if (socket.data) {
+    try {
+      await socket.leave(targetChannel);
+    } catch (err) {
+      if (ack) ack(false);
+      return;
+    }
+
+    if (socket.data && socket.data.channelId === activeChannel) {
       delete socket.data.channelId;
     }
 

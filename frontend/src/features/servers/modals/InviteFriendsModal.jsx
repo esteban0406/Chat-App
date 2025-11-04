@@ -37,7 +37,7 @@ export default function InviteFriendsModal({ onClose }) {
       try {
         if (!server?._id) return;
         const res = await request(
-          API.get("/invites/pending", {
+          API.get("/ServerInvites/pending", {
             params: { serverId: server._id },
           })
         );
