@@ -9,7 +9,7 @@ export default function registerChannelHandlers(io, socket) {
     socket.data = socket.data || {};
     socket.data.channelId = channelId;
 
-    if (ack) ack(true); // 👈 confirmación al cliente
+    if (ack) ack(true); 
   });
 
   socket.on("leaveChannel", async (channelId, ack) => {
@@ -32,6 +32,6 @@ export default function registerChannelHandlers(io, socket) {
       delete socket.data.channelId;
     }
 
-    if (ack) ack(true); // 👈 confirmación al cliente
+    if (ack) ack(true); 
   });
 }
