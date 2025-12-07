@@ -1,9 +1,15 @@
-'use client';
+// app/(auth)/signup/page.tsx
+"use client";
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { authClient } from "@/app/lib/auth-client";
+
+type OAuthProvider = "google" | "microsoft-entra-id";
+
+const getErrorMessage = (result: any) =>
+  result && "error" in result ? result.error?.message : null;
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -19,48 +25,45 @@ export default function SignUpPage() {
     setError(null);
     setLoading(true);
 
-    try {
-      // ⚠️ Adjust this URL or create a /api/auth/signup route that proxies
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/register`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, email, password }),
-        }
-      );
+    const result = await authClient.signUp.email({
+      name: username,
+      email,
+      password,
+    });
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.message || "Error al registrarse");
-      }
+    setLoading(false);
 
-      // ✅ After registering, log in with credentials
-      const loginRes = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (loginRes?.error) {
-        throw new Error(loginRes.error);
-      }
-
-      router.push("/friends"); // or /me, /servers, etc.
-      router.refresh();
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Error inesperado");
-      }
+    if (!result || "error" in result) {
+      setError(getErrorMessage(result) || "Error al registrarse");
+      return;
     }
+
+    router.push("/friends");
+    router.refresh();
   };
 
-  const handleOAuthSignUp = async (provider: "google" | "azure-ad") => {
-    await signIn(provider, {
-      callbackUrl: "/friends", // After first OAuth login
+  const handleOAuthSignUp = async (provider: OAuthProvider) => {
+    setLoading(true);
+    setError(null);
+
+    const result = await authClient.signIn.social({
+      provider,
+      callbackURL: `${window.location.origin}/friends`,
+      errorCallbackURL: `${window.location.origin}/signup`,
     });
+
+    setLoading(false);
+
+    if (!result || "error" in result) {
+      setError(getErrorMessage(result) || "No se pudo continuar con OAuth");
+      return;
+    }
+
+    const redirectUrl = (result as any)?.data?.url;
+    const shouldRedirect = (result as any)?.data?.redirect !== false;
+    if (redirectUrl && shouldRedirect) {
+      window.location.href = redirectUrl;
+    }
   };
 
   return (
@@ -104,14 +107,12 @@ export default function SignUpPage() {
         {error && <p className="text-red-400 text-center text-sm">{error}</p>}
       </form>
 
-      {/* 🔹 Separator */}
       <div className="flex items-center my-4">
         <hr className="flex-grow border-gray-600" />
         <span className="px-2 text-gray-400">o</span>
         <hr className="flex-grow border-gray-600" />
       </div>
 
-      {/* 🔹 OAuth buttons */}
       <div className="flex flex-col gap-3">
         <button
           onClick={() => handleOAuthSignUp("google")}
@@ -120,7 +121,7 @@ export default function SignUpPage() {
           Continuar con Google
         </button>
         <button
-          onClick={() => handleOAuthSignUp("azure-ad")}
+          onClick={() => handleOAuthSignUp("microsoft-entra-id")}
           className="w-full bg-indigo-600 hover:bg-indigo-700 py-2 rounded text-white font-semibold"
         >
           Continuar con Microsoft
@@ -139,3 +140,4 @@ export default function SignUpPage() {
     </div>
   );
 }
+

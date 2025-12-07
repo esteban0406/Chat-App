@@ -4,7 +4,12 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { authClient } from "@/app/lib/auth-client";
+
+type OAuthProvider = "google" | "microsoft-entra-id";
+
+const getErrorMessage = (result: any) =>
+  result && "error" in result ? result.error?.message : null;
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,33 +23,45 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const res = await signIn("credentials", {
+    const result = await authClient.signIn.email({
       email,
       password,
-      redirect: false, // we'll handle redirect manually
     });
 
     setLoading(false);
 
-    if (!res) {
-      setError("Unexpected error");
+    if (!result || "error" in result) {
+      setError(getErrorMessage(result) || "Invalid credentials");
       return;
     }
 
-    if (res.error) {
-      setError(res.error || "Invalid credentials");
-      return;
-    }
-
-    // ✅ Logged in
-    router.push("/servers"); // or /friends, /servers, etc.
+    router.push("/servers");
     router.refresh();
   };
 
-  const handleOAuthLogin = async (provider: "google" | "azure-ad") => {
-    await signIn(provider, {
-      callbackUrl: "/servers", // where to go after OAuth
+  const handleOAuthLogin = async (provider: OAuthProvider) => {
+    setLoading(true);
+    setError(null);
+
+    const result = await authClient.signIn.social({
+      provider,
+      callbackURL: `${window.location.origin}/servers`,
+      errorCallbackURL: `${window.location.origin}/login`,
     });
+
+    setLoading(false);
+
+    if (!result || "error" in result) {
+      setError(getErrorMessage(result) || "No se pudo iniciar sesión");
+      return;
+    }
+
+    const redirectUrl = (result as any)?.data?.url;
+    const shouldRedirect = (result as any)?.data?.redirect !== false;
+
+    if (redirectUrl && shouldRedirect) {
+      window.location.href = redirectUrl;
+    }
   };
 
   return (
@@ -81,14 +98,12 @@ export default function LoginPage() {
         {error && <p className="text-red-400 text-sm">{error}</p>}
       </form>
 
-      {/* 🔹 Separator */}
       <div className="flex items-center my-4">
         <hr className="flex-grow border-gray-600" />
         <span className="px-2 text-gray-400">o</span>
         <hr className="flex-grow border-gray-600" />
       </div>
 
-      {/* 🔹 OAuth buttons */}
       <div className="flex flex-col gap-3">
         <button
           onClick={() => handleOAuthLogin("google")}
@@ -97,7 +112,7 @@ export default function LoginPage() {
           Continuar con Google
         </button>
         <button
-          onClick={() => handleOAuthLogin("azure-ad")}
+          onClick={() => handleOAuthLogin("microsoft-entra-id")}
           className="w-full bg-indigo-600 hover:bg-indigo-700 py-2 rounded text-white font-semibold"
         >
           Continuar con Microsoft
@@ -116,3 +131,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

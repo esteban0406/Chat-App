@@ -6,6 +6,7 @@ dotenv.config({
 
 export const PORT = process.env.PORT || 4000;
 export const MONGODB_URI = process.env.MONGODB_URI;
+console.log("MONGODB_URI:", MONGODB_URI);
 export const NODE_ENV = process.env.NODE_ENV || "development";
 
 export const corsConfig = {
