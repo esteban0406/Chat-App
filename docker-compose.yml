@@ -17,6 +17,9 @@ services:
     build: ./backend
     ports:
       - "4000:4000"
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
     environment:
       - CLIENT_URL=http://frontend:5173
       - MONGODB_URI=${MONGODB_URI}

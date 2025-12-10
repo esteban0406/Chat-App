@@ -4,17 +4,13 @@ import { bearer, genericOAuth, microsoftEntraId } from "better-auth/plugins";
 import { toNodeHandler } from "better-auth/node";
 import mongoose from "mongoose";
 
-import { PORT } from "../config/config.js";
-
 let cached;
 
-/**
- * Initialize Better Auth once and reuse the handler for Express.
- */
 export async function getBetterAuth() {
   if (cached) return cached;
 
   const client = mongoose.connection.getClient();
+  console.log(client)
   const db = client.db();
 
   const plugins = [bearer()];
@@ -34,7 +30,7 @@ export async function getBetterAuth() {
   }
 
   const auth = betterAuth({
-    baseURL: process.env.BACKEND_URL || `http://localhost:${PORT}`,
+    baseURL: process.env.BACKEND_URL || `http://localhost:3000`,
     basePath: "/api/auth",
     secret: process.env.BETTER_AUTH_SECRET,
     database: mongodbAdapter(db, { client }),

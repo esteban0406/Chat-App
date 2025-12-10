@@ -9,7 +9,7 @@ import { authClient } from "@/app/lib/auth-client";
 type OAuthProvider = "google" | "microsoft-entra-id";
 
 const getErrorMessage = (result: any) =>
-  result && "error" in result ? result.error?.message : null;
+  result?.error ? result.error?.message || String(result.error) : null;
 
 export default function LoginPage() {
   const router = useRouter();
@@ -30,7 +30,7 @@ export default function LoginPage() {
 
     setLoading(false);
 
-    if (!result || "error" in result) {
+    if (!result || result.error) {
       setError(getErrorMessage(result) || "Invalid credentials");
       return;
     }
@@ -51,7 +51,7 @@ export default function LoginPage() {
 
     setLoading(false);
 
-    if (!result || "error" in result) {
+    if (!result || result.error) {
       setError(getErrorMessage(result) || "No se pudo iniciar sesión");
       return;
     }

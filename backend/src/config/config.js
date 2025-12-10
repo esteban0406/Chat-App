@@ -12,6 +12,7 @@ export const NODE_ENV = process.env.NODE_ENV || "development";
 export const corsConfig = {
   origin: [
     "http://localhost:5173",
+    "http://localhost:3000",
     "https://chatapp-frontend-020n.onrender.com",
   ],
   credentials: true,

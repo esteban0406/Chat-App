@@ -48,8 +48,7 @@ export async function createServer(options = {}) {
   // Better Auth (REST endpoints under /api/auth/*)
   // =======================
   const { handler: betterAuthHandler } = await getBetterAuth();
-  app.all("/api/auth/*", betterAuthHandler);
-  app.all("/api/auth", betterAuthHandler);
+  app.use("/api/auth", betterAuthHandler);
 
   // Parse JSON for the rest of the API
   app.use(express.json());
