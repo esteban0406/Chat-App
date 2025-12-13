@@ -1,4 +1,3 @@
-import User from "../services/user/User.model.js";
 import logger from "./logger.js";
 import { fail } from "./response.js";
 import { fromNodeHeaders } from "better-auth/node";
@@ -39,16 +38,21 @@ export const authMiddleware = async (req, res, next) => {
     });
 
     const payload = "data" in sessionResult ? sessionResult.data : sessionResult;
-    const sessionUser = payload?.user;
+    const sessionUser =
+      payload?.user ??
+      payload?.session?.user ??
+      payload?.data?.user ??
+      payload?.session?.data?.user;
 
     if (!sessionUser) {
       return fail(res, { status: 401, message: "Not authenticated", code: "AUTH_REQUIRED" });
     }
 
-    req.user = await User.findById(sessionUser.id).select("-password");
-    if (!req.user) {
-      return fail(res, { status: 401, message: "Usuario no encontrado", code: "USER_NOT_FOUND" });
-    }
+    req.user = {
+      ...sessionUser,
+      _id: sessionUser.id ?? sessionUser._id,
+    };
+    req.session = payload?.session ?? payload?.data?.session ?? payload;
 
     next();
   } catch (err) {

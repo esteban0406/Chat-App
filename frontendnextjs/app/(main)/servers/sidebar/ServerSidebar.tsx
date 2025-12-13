@@ -11,9 +11,14 @@ export default function ServerSidebar({ onClose }: { onClose?: () => void }) {
 
   useEffect(() => {
     async function loadServers() {
-      const res = await fetch("/api/servers"); // we will create this route
-      const data = await res.json();
-      setServers(data);
+      try {
+        const res = await fetch("/api/servers", { credentials: "include" });
+        const data = await res.json();
+        setServers(Array.isArray(data) ? data : data?.servers || []);
+      } catch (err) {
+        console.error("Failed to load servers", err);
+        setServers([]);
+      }
     }
     loadServers();
   }, []);

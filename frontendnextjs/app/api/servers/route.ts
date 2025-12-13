@@ -1,19 +1,36 @@
-import { cookies } from "next/headers";
+import { backendFetch } from "../_utils/backendFetch";
 
 export async function GET() {
-  const cookieStore = cookies();
-  const token = cookieStore.get("accessToken")?.value;
+  const res = await backendFetch("/api/servers");
 
-  if (!token) {
-    return new Response("Unauthorized", { status: 401 });
+  if (!res.ok) {
+    return Response.json(
+      { error: "Failed to fetch servers" },
+      { status: res.status }
+    );
   }
 
-  const res = await fetch(`${process.env.BACKEND_URL}/servers`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+  const body = await res.json();
+  const servers = body?.data?.servers ?? body?.servers ?? body;
+
+  return Response.json(Array.isArray(servers) ? servers : []);
+}
+
+export async function POST(req: Request) {
+  const payload = await req.json();
+
+  const res = await backendFetch("/api/servers", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
   });
 
-  const data = await res.json();
-  return Response.json(data);
+  if (!res.ok) {
+    return Response.json(
+      { error: "Failed to create server" },
+      { status: res.status }
+    );
+  }
+
+  return Response.json(await res.json());
 }

@@ -10,7 +10,6 @@ export async function getBetterAuth() {
   if (cached) return cached;
 
   const client = mongoose.connection.getClient();
-  console.log(client)
   const db = client.db();
 
   const plugins = [bearer()];

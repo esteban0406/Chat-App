@@ -1,11 +1,15 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import ServerSidebar from "./servers/sidebar/ServerSidebar";
 import UserProfileBar from "@/app/ui/user/UserProfileBar";
 import MobileDrawer from "@/app/ui/MobileDrawer";
 
-export default function MainLayout({ children }: { children: React.ReactNode }) {
+export default function MainLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [serverDrawerOpen, setServerDrawerOpen] = useState(false);
   const [sectionSidebarOpen, setSectionSidebarOpen] = useState(false);
   const [profileDrawerOpen, setProfileDrawerOpen] = useState(false);
@@ -46,10 +50,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       style={{
         gridTemplateColumns: "72px 240px minmax(0, 1fr)",
         gridTemplateRows: "minmax(0, 1fr) auto",
-        gridTemplateAreas: "'servers sectionSidebar chat' 'profile profile chat'",
+        gridTemplateAreas:
+          "'servers sectionSidebar chat' 'profile profile chat'",
       }}
     >
-      {/* Desktop Server Sidebar */}
       <aside
         style={{ gridArea: "servers" }}
         className="hidden h-full border-r border-gray-700 bg-gray-800 md:block"
@@ -57,12 +61,13 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <ServerSidebar />
       </aside>
 
-      {/* Children layouts (SectionShell and pages) */}
-      <div style={{ gridArea: "chat" }} className="flex flex-col overflow-hidden">
+      <div
+        style={{ gridArea: "chat" }}
+        className="flex flex-col overflow-hidden"
+      >
         <LayoutContextProvider value={ctx}>{children}</LayoutContextProvider>
       </div>
 
-      {/* Desktop Profile Bar */}
       <div
         style={{ gridArea: "profile" }}
         className="hidden border-t border-r border-gray-700 bg-gray-800 md:block"
@@ -70,24 +75,32 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <UserProfileBar />
       </div>
 
-      {/* Drawers: server / profile */}
-      <MobileDrawer open={serverDrawerOpen} side="left" onClose={ctx.closeServerDrawer}>
+      <MobileDrawer
+        open={serverDrawerOpen}
+        side="left"
+        onClose={ctx.closeServerDrawer}
+      >
         <ServerSidebar onClose={ctx.closeServerDrawer} />
       </MobileDrawer>
 
-      <MobileDrawer open={profileDrawerOpen} side="bottom" onClose={ctx.closeProfileDrawer}>
+      <MobileDrawer
+        open={profileDrawerOpen}
+        side="bottom"
+        onClose={ctx.closeProfileDrawer}
+      >
         <UserProfileBar />
       </MobileDrawer>
     </div>
   );
 }
 
-/* Provide Outlet-like context */
 import { createContext, useContext } from "react";
 
 const LayoutContext = createContext<any>(null);
 function LayoutContextProvider({ value, children }) {
-  return <LayoutContext.Provider value={value}>{children}</LayoutContext.Provider>;
+  return (
+    <LayoutContext.Provider value={value}>{children}</LayoutContext.Provider>
+  );
 }
 
 export function useLayoutContext() {

@@ -10,7 +10,6 @@ export default function SectionShell({ children, sidebar }) {
 
   return (
     <>
-      {/* Desktop left section sidebar */}
       <aside
         style={{ gridArea: "sectionSidebar" }}
         className="hidden md:block h-full min-h-0 overflow-y-auto border-r border-gray-700 bg-gray-800"
@@ -18,7 +17,6 @@ export default function SectionShell({ children, sidebar }) {
         <SidebarComponent sidebarControls={{ closeSidebar: closeSectionSidebar }} />
       </aside>
 
-      {/* Mobile Drawer */}
       {isSectionSidebarOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
           <button
@@ -31,7 +29,6 @@ export default function SectionShell({ children, sidebar }) {
         </div>
       )}
 
-      {/* Main content */}
       <div className="flex h-full min-h-0 flex-col overflow-hidden bg-gray-900">
         {children}
       </div>

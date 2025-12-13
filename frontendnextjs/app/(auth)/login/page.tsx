@@ -1,4 +1,3 @@
-// app/(auth)/login/page.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -35,7 +34,7 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/servers");
+    router.push("/friends");
     router.refresh();
   };
 

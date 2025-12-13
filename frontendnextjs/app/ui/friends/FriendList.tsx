@@ -9,7 +9,7 @@ export default function FriendList() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch("/api/friends");
+        const res = await fetch("/api/friends", { credentials: "include" });
         const data = await res.json();
         setFriends(data);
       } finally {

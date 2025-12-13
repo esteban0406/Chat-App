@@ -2,6 +2,12 @@ import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema(
   {
+    authId: {
+      type: String,
+      index: true,
+      unique: true,
+      sparse: true,
+    },
     username: {
       type: String,
       required: true,
@@ -27,7 +33,7 @@ const UserSchema = new mongoose.Schema(
     },
     provider: {
       type: String,
-      enum: ["local", "google", "microsoft"],
+      enum: ["local", "google", "microsoft", "better-auth"],
       default: "local",
     },
     status: {
