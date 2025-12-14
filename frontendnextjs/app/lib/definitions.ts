@@ -1,4 +1,4 @@
-export interface User {
+export type User = {
   id: string;
   username: string;
   email: string;
@@ -7,9 +7,9 @@ export interface User {
   status: "online" | "offline" | "idle";
   createdAt: string;
   updatedAt: string;
-}
+};
 
-export interface Message {
+export type Message = {
   id: string;
   text: string;
   sender: string | User;
@@ -17,9 +17,9 @@ export interface Message {
   timestamp: string;
   createdAt: string;
   updatedAt: string;
-}
+};
 
-export interface Channel {
+export type Channel = {
   id: string;
   name: string;
   type: "text" | "voice";
@@ -27,9 +27,9 @@ export interface Channel {
   messages?: string[] | Message[];
   createdAt: string;
   updatedAt: string;
-}
+};
 
-export interface Server {
+export type Server = {
   id: string;
   name: string;
   description?: string;
@@ -38,18 +38,18 @@ export interface Server {
   channels: string[] | Channel[];
   createdAt: string;
   updatedAt: string;
-}
+};
 
-export interface FriendRequest {
+export type FriendRequest = {
   id: string;
   from: string | User;
   to: string | User;
   status: "pending" | "accepted" | "rejected";
   createdAt: string;
   updatedAt: string;
-}
+};
 
-export interface ServerInvite {
+export type ServerInvite = {
   id: string;
   from: string | User;
   to: string | User;
@@ -57,4 +57,4 @@ export interface ServerInvite {
   status: "pending" | "accepted" | "rejected";
   createdAt: string;
   updatedAt: string;
-}
+};

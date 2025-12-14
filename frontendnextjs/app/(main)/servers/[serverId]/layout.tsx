@@ -1,26 +1,26 @@
-// app/(main)/servers/[serverId]/layout.tsx
-//import ChannelSidebar from "@/components/channels/ChannelSidebar";
+"use client";
+
+import { useParams } from "next/navigation";
+import SectionShell from "@/app/ui/layout/SectionShell";
+import ChannelSidebar from "@/app/ui/channels/ChannelSidebar";
 
 export default function ServerLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params: { serverId: string };
 }) {
-  const { serverId } = params;
+  const params = useParams();
+  const serverIdRaw = params?.serverId;
+  const serverId =
+    typeof serverIdRaw === "string"
+      ? serverIdRaw
+      : Array.isArray(serverIdRaw)
+      ? serverIdRaw[0]
+      : undefined;
 
   return (
-    <div className="flex h-full">
-      {/* Channels sidebar */}
-      <div className="w-60 bg-gray-850 border-r border-gray-700">
-        {/* <ChannelSidebar serverId={serverId} /> */}
-      </div>
-
-      {/* Channel content */}
-      <div className="flex-1">
-        {children}
-      </div>
-    </div>
+    <SectionShell sidebar={<ChannelSidebar />}>
+      {children}
+    </SectionShell>
   );
 }

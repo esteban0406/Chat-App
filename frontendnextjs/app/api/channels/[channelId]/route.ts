@@ -6,8 +6,9 @@ type Params = {
 
 export async function DELETE(
   _: Request,
-  { params }: Params
+  context: Params
 ) {
+  const params = await context.params;
   const res = await backendFetch(
     `/api/channels/${params.channelId}`,
     { method: "DELETE" }
@@ -25,9 +26,10 @@ export async function DELETE(
 
 export async function PATCH(
   req: Request,
-  { params }: Params
+  context: Params
 ) {
   const payload = await req.json();
+  const params = await context.params;
 
   const res = await backendFetch(
     `/api/channels/${params.channelId}`,

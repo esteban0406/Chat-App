@@ -6,11 +6,12 @@ import EditNameModal from "./modals/EditNameModal";
 import EditAvatarModal from "./modals/EditAvatarModal";
 import { authClient } from "@/app/lib/auth-client";
 import { useRouter } from "next/navigation";
+import {User} from "@/app/lib/definitions"
 
 export default function UserProfileBar() {
   const router = useRouter();
 
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [openNameModal, setOpenNameModal] = useState(false);
   const [openAvatarModal, setOpenAvatarModal] = useState(false);
 
@@ -33,8 +34,8 @@ export default function UserProfileBar() {
   if (!user) return null;
 
   const avatarSrc =
-    user?.id
-      ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${user.id}/avatar?${user.updatedAt}`
+    user?._id
+      ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${user._id}/avatar?${user.updatedAt}`
       : fallbackAvatar;
 
   return (

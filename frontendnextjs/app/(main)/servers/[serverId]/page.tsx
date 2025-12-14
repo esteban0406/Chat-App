@@ -1,7 +1,11 @@
-export default function ServerPage({ params }: { params: { serverId: string } }) {
+export default function ServerHomePage({
+  params,
+}: {
+  params: { serverId: string };
+}) {
   return (
-    <div className="text-white p-4">
-      Welcome to server {params.serverId}
+    <div className="flex h-full items-center justify-center text-gray-400">
+      Selecciona un canal del servidor
     </div>
   );
 }

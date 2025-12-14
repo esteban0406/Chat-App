@@ -21,7 +21,7 @@ export async function GET(req: Request) {
   }
 
   const body = await res.json();
-  const channels = body?.channels ?? body;
+  const channels =   body?.data?.channels ?? body?.channels ?? body;
 
   return Response.json(Array.isArray(channels) ? channels : []);
 }
