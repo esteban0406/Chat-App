@@ -58,3 +58,28 @@ export type ServerInvite = {
   createdAt: string;
   updatedAt: string;
 };
+
+type AuthClient = typeof import("@/app/lib/auth-client")["authClient"];
+
+export type EmailSignInResult = Awaited<
+  ReturnType<AuthClient["signIn"]["email"]>
+>;
+
+export type EmailSignUpResult = Awaited<
+  ReturnType<AuthClient["signUp"]["email"]>
+>;
+
+export type SocialSignInResult = Awaited<
+  ReturnType<AuthClient["signIn"]["social"]>
+>;
+
+export type AuthResult =
+  | EmailSignInResult
+  | EmailSignUpResult
+  | SocialSignInResult
+  | null
+  | undefined;
+
+type InferData<T> = T extends { data: infer D } ? NonNullable<D> : never;
+
+export type SocialSignInData = InferData<SocialSignInResult>;

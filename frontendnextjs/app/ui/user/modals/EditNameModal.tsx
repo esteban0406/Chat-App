@@ -1,23 +1,33 @@
 "use client";
 
-import { Dialog } from "@headlessui/react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { authClient } from "@/app/lib/auth-client";
+import { User } from "@/app/lib/definitions";
 
-export default function EditNameModal({ open, setOpen, user }) {
-  const [name, setName] = useState(user?.username || "");
+type Props = {
+  user: User;
+  onClose: () => void;
+  onUpdated?: () => void;
+};
+
+export default function EditNameModal({ user, onClose, onUpdated }: Props) {
+  const [name, setName] = useState(user.username ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Reset form when opening modal
   useEffect(() => {
-    if (open) {
-      setName(user?.username || "");
-      setError("");
-    }
-  }, [open, user?.username]);
+    setName(user.username ?? "");
+  }, [user]);
 
-  async function handleSave() {
+  const closeModal = () => {
+    if (loading) return;
+    setName(user.username ?? "");
+    setError("");
+    onClose();
+  };
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
     const trimmed = name.trim();
 
     if (!trimmed) {
@@ -34,25 +44,21 @@ export default function EditNameModal({ open, setOpen, user }) {
     setError("");
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${user.id}/name`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${authClient.getToken()}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ username: trimmed }),
-        }
-      );
+      const res = await fetch("/api/users/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: trimmed }),
+      });
 
       if (!res.ok) {
-        throw new Error("No se pudo actualizar el nombre");
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.message || "No se pudo actualizar el nombre");
       }
 
       await authClient.refresh();
-
-      setOpen(false);
+      onUpdated?.();
+      setError("");
+      onClose();
     } catch (err: any) {
       setError(err?.message || "Error al actualizar nombre");
     } finally {
@@ -61,43 +67,41 @@ export default function EditNameModal({ open, setOpen, user }) {
   }
 
   return (
-    <Dialog open={open} onClose={() => (loading ? null : setOpen(false))} className="relative z-50">
-      <div className="fixed inset-0 bg-black/30" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+      <div className="w-96 rounded-lg bg-gray-800 p-6 text-white shadow-lg">
+        <h2 className="mb-4 text-lg font-bold">Editar nombre</h2>
 
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="w-full max-w-sm rounded bg-gray-800 p-6 text-white">
-          <Dialog.Title className="text-lg font-bold mb-3">Edit Profile Name</Dialog.Title>
-
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
             value={name}
             disabled={loading}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded bg-gray-700 p-2 mb-2"
-            placeholder="New username"
+            className="w-full rounded bg-gray-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Nuevo nombre de usuario"
           />
 
-          {error && <p className="text-sm text-red-400 mb-2">{error}</p>}
+          {error && <p className="text-sm text-red-400">{error}</p>}
 
           <div className="flex justify-end gap-2">
             <button
-              onClick={() => setOpen(false)}
+              type="button"
+              onClick={closeModal}
               disabled={loading}
-              className="px-3 py-1 rounded bg-gray-600 disabled:opacity-50"
+              className="rounded bg-gray-600 px-4 py-2 hover:bg-gray-500 disabled:opacity-60"
             >
-              Cancel
+              Cancelar
             </button>
 
             <button
-              onClick={handleSave}
+              type="submit"
               disabled={loading}
-              className="px-3 py-1 rounded bg-blue-600 disabled:opacity-50"
+              className="rounded bg-indigo-600 px-4 py-2 hover:bg-indigo-500 disabled:opacity-60"
             >
-              {loading ? "Saving..." : "Save"}
+              {loading ? "Guardando..." : "Guardar"}
             </button>
           </div>
-
-        </Dialog.Panel>
+        </form>
       </div>
-    </Dialog>
+    </div>
   );
 }

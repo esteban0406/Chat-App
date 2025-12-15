@@ -1,12 +1,51 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Menu } from "@headlessui/react";
 import EditNameModal from "./modals/EditNameModal";
 import EditAvatarModal from "./modals/EditAvatarModal";
 import { authClient } from "@/app/lib/auth-client";
 import { useRouter } from "next/navigation";
-import {User} from "@/app/lib/definitions"
+import { User } from "@/app/lib/definitions";
+
+function resolveSessionUser(session: unknown): User | null {
+  if (!session || typeof session !== "object") {
+    return null;
+  }
+
+  const payload =
+    "data" in session
+      ? (session as Record<string, unknown>).data
+      : session;
+
+  const source =
+    (payload as any)?.user ??
+    (payload as any)?.session?.user ??
+    (payload as any)?.data?.user ??
+    (payload as any)?.session?.data?.user;
+
+  if (!source) {
+    return null;
+  }
+
+  const now = new Date().toISOString();
+  const usernameCandidate =
+    source.username ??
+    source.name ??
+    source.email ??
+    "Usuario";
+
+  return {
+    id: source.id ?? source._id ?? source.userId ?? "",
+    username: usernameCandidate,
+    email: source.email ?? "",
+    avatar: source.avatar ?? undefined,
+    provider: (source.provider as User["provider"]) ?? "local",
+    status: (source.status as User["status"]) ?? "online",
+    createdAt: source.createdAt ?? now,
+    updatedAt: source.updatedAt ?? now,
+  };
+}
 
 export default function UserProfileBar() {
   const router = useRouter();
@@ -15,16 +54,45 @@ export default function UserProfileBar() {
   const [openNameModal, setOpenNameModal] = useState(false);
   const [openAvatarModal, setOpenAvatarModal] = useState(false);
 
-  const fallbackAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+  const fallbackAvatar =
+    "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-  // 🔥 Load authenticated user from BetterAuth
-  useEffect(() => {
-    async function load() {
-      const session = await authClient.getSession();
-      setUser(session?.data?.user || null);
-    }
-    load();
+  const fetchCurrentUser = useCallback(async () => {
+    const session = await authClient.getSession();
+    return resolveSessionUser(session);
   }, []);
+
+  const refreshUser = useCallback(async () => {
+    try {
+      const resolved = await fetchCurrentUser();
+      setUser(resolved);
+    } catch (error) {
+      console.error("❌ Error loading user profile:", error);
+      setUser(null);
+    }
+  }, [fetchCurrentUser]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const resolved = await fetchCurrentUser();
+        if (!cancelled) {
+          setUser(resolved);
+        }
+      } catch (error) {
+        console.error("❌ Error loading user profile:", error);
+        if (!cancelled) {
+          setUser(null);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchCurrentUser]);
 
   async function handleLogout() {
     await authClient.signOut();
@@ -33,14 +101,12 @@ export default function UserProfileBar() {
 
   if (!user) return null;
 
-  const avatarSrc =
-    user?._id
-      ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${user._id}/avatar?${user.updatedAt}`
-      : fallbackAvatar;
+  const avatarSrc = user?.id
+    ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${user.id}/avatar?${user.updatedAt}`
+    : fallbackAvatar;
 
   return (
     <div className="flex h-20 items-center gap-3 border-t border-gray-700 bg-gray-800 px-3">
-      
       {/* Avatar */}
       <img
         key={avatarSrc}
@@ -66,7 +132,6 @@ export default function UserProfileBar() {
 
         <Menu.Items className="absolute right-0 bottom-10 w-40 bg-gray-700 rounded-md shadow-lg ring-1 ring-black/20 focus:outline-none">
           <div className="p-1 text-sm">
-            
             {/* Edit Name */}
             <Menu.Item>
               {({ active }) => (
@@ -108,15 +173,25 @@ export default function UserProfileBar() {
                 </button>
               )}
             </Menu.Item>
-
           </div>
         </Menu.Items>
       </Menu>
 
       {/* Modals */}
-      <EditNameModal open={openNameModal} setOpen={setOpenNameModal} user={user} />
-      <EditAvatarModal open={openAvatarModal} setOpen={setOpenAvatarModal} user={user} />
-
+      {openNameModal && (
+        <EditNameModal
+          user={user}
+          onClose={() => setOpenNameModal(false)}
+          onUpdated={refreshUser}
+        />
+      )}
+      {openAvatarModal && (
+        <EditAvatarModal
+          user={user}
+          onClose={() => setOpenAvatarModal(false)}
+          onUpdated={refreshUser}
+        />
+      )}
     </div>
   );
 }

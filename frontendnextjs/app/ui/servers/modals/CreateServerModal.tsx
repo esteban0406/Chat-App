@@ -7,30 +7,19 @@ type Props = {
   onClose: () => void;
 };
 
-type CreateServerResponse = {
-  server?: {
-    id?: string;
-    _id?: string;
-    channels?: Array<{ id?: string; _id?: string } | string>;
-  };
-  defaultChannel?: { id?: string; _id?: string } | string;
+type ServerPayload = {
+  id?: string;
+  channels?: Array<{ id?: string } | string>;
 };
 
-function toId(
-  entity: any,
-  fallbackIds: Array<string | null> = []
-): string | null {
-  if (!entity) return fallbackIds.find(Boolean) ?? null;
-  if (typeof entity === "string") return entity;
-
-  return (
-    entity.id ??
-    entity._id ??
-    (typeof entity.toString === "function" ? entity.toString() : null) ??
-    fallbackIds.find(Boolean) ??
-    null
-  );
-}
+type CreateServerResponse = {
+  success?: boolean;
+  message?: string;
+  data?: {
+    server?: ServerPayload | string;
+    defaultChannel?: { id?: string } | string;
+  };
+};
 
 export default function CreateServerModal({ onClose }: Props) {
   const router = useRouter();
@@ -55,25 +44,38 @@ export default function CreateServerModal({ onClose }: Props) {
       if (!res.ok) {
         throw new Error("No se pudo crear el servidor");
       }
+      console.log(res)
+      const raw: CreateServerResponse = await res.json();
+      console.log(raw)
+      const payload = raw.data ?? {};
+      const serverPayload = payload.server ?? null;
+      const defaultChannelPayload = payload.defaultChannel ?? null;
 
-      const data: CreateServerResponse = await res.json();
+      const serverId =
+        typeof serverPayload === "string"
+          ? serverPayload
+          : serverPayload?.id ?? null;
 
-      const server = data.server ?? data;
-      const defaultChannel = data.defaultChannel ?? null;
+      const channelFromServer =
+        typeof serverPayload === "object" && serverPayload?.channels?.[0]
+          ? serverPayload.channels[0]
+          : null;
 
-      const serverId = toId(server);
-      const fallbackChannels = Array.isArray(server?.channels)
-        ? server.channels.map((ch) => toId(ch))
-        : [];
+      const defaultChannelId =
+        typeof defaultChannelPayload === "string"
+          ? defaultChannelPayload
+          : defaultChannelPayload?.id ??
+            (typeof channelFromServer === "string"
+              ? channelFromServer
+              : channelFromServer?.id) ??
+            null;
 
-      const channelId = toId(defaultChannel, fallbackChannels);
-
-      if (serverId && channelId) {
-        router.push(`/servers/${serverId}/channels/${channelId}`);
+      if (serverId && defaultChannelId) {
+        router.push(`/servers/${serverId}/channels/${defaultChannelId}`);
       } else if (serverId) {
         router.push(`/servers/${serverId}`);
       }
-
+      
       router.refresh();
       onClose();
     } catch (err) {
@@ -106,9 +108,7 @@ export default function CreateServerModal({ onClose }: Props) {
             className="w-full rounded bg-gray-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
 
-          {error && (
-            <p className="text-sm text-red-400">{error}</p>
-          )}
+          {error && <p className="text-sm text-red-400">{error}</p>}
 
           <div className="flex justify-end gap-2">
             <button

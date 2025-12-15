@@ -19,7 +19,7 @@ export default function ServerSidebar({ onClose }: { onClose?: () => void }) {
   return (
     <div className="flex flex-col items-center gap-4 py-4 bg-gray-800 h-full">
       <Link
-        href="/me"
+        href="/friends"
         onClick={onClose}
         className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center"
       >

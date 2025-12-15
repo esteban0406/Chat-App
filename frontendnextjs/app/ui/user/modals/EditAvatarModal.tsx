@@ -1,25 +1,33 @@
 "use client";
 
-import { Dialog } from "@headlessui/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { authClient } from "@/app/lib/auth-client";
+import { User } from "@/app/lib/definitions";
 
-export default function EditAvatarModal({ open, setOpen, user }) {
+type Props = {
+  user: User;
+  onClose: () => void;
+  onUpdated?: () => void;
+};
+
+export default function EditAvatarModal({ user, onClose, onUpdated }: Props) {
   const [preview, setPreview] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Reset modal when closed
-  useEffect(() => {
-    if (!open) {
-      setPreview("");
-      setFile(null);
-      setError("");
-    }
-  }, [open]);
+  const resetState = () => {
+    setPreview("");
+    setFile(null);
+    setError("");
+  };
 
-  /** Load image file and show preview */
+  const closeModal = () => {
+    if (loading) return;
+    resetState();
+    onClose();
+  };
+
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0];
     if (!selected) return;
@@ -43,9 +51,10 @@ export default function EditAvatarModal({ open, setOpen, user }) {
     reader.readAsDataURL(selected);
   }
 
-  /** Upload avatar to backend */
-  async function handleSave() {
-    if (!file) {
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (!file || !preview) {
       setError("Selecciona una imagen antes de guardar");
       return;
     }
@@ -53,29 +62,22 @@ export default function EditAvatarModal({ open, setOpen, user }) {
     setLoading(true);
     setError("");
 
-    const formData = new FormData();
-    formData.append("avatar", file);
-
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${user.id}/avatar`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${authClient.getToken()}`,
-          },
-          body: formData,
-        }
-      );
+      const res = await fetch("/api/users/me/avatar", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatar: preview }),
+      });
 
       if (!res.ok) {
-        throw new Error("No se pudo actualizar el avatar");
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.message || "No se pudo actualizar el avatar");
       }
 
-      // Refresh session so new avatar version loads
       await authClient.refresh();
-
-      setOpen(false);
+      onUpdated?.();
+      resetState();
+      onClose();
     } catch (err: any) {
       setError(err?.message || "Error al subir imagen");
     } finally {
@@ -84,54 +86,51 @@ export default function EditAvatarModal({ open, setOpen, user }) {
   }
 
   return (
-    <Dialog open={open} onClose={() => (loading ? null : setOpen(false))} className="relative z-50">
-      <div className="fixed inset-0 bg-black/30" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+      <div className="w-96 rounded-lg bg-gray-800 p-6 text-white shadow-lg">
+        <h2 className="mb-4 text-lg font-bold">Editar avatar</h2>
 
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="w-full max-w-sm rounded bg-gray-800 p-6 text-white">
-
-          <Dialog.Title className="text-lg font-bold mb-3">Edit Avatar</Dialog.Title>
-
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="file"
             accept="image/*"
             disabled={loading}
             onChange={handleFileChange}
-            className="w-full mb-3 text-gray-300"
+            className="w-full text-sm text-gray-300"
           />
 
           {preview && (
-            <div className="flex justify-center mb-3">
+            <div className="flex justify-center">
               <img
                 src={preview}
-                alt="Preview"
-                className="h-24 w-24 rounded-full object-cover ring-2 ring-blue-500"
+                alt="Vista previa del avatar"
+                className="h-24 w-24 rounded-full object-cover ring-2 ring-indigo-500"
               />
             </div>
           )}
 
-          {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+          {error && <p className="text-sm text-red-400">{error}</p>}
 
           <div className="flex justify-end gap-2">
             <button
-              onClick={() => setOpen(false)}
+              type="button"
+              onClick={closeModal}
               disabled={loading}
-              className="px-3 py-1 rounded bg-gray-600 disabled:opacity-50"
+              className="rounded bg-gray-600 px-4 py-2 hover:bg-gray-500 disabled:opacity-60"
             >
-              Cancel
+              Cancelar
             </button>
 
             <button
-              onClick={handleSave}
+              type="submit"
               disabled={loading || !file}
-              className="px-3 py-1 rounded bg-blue-600 disabled:opacity-50"
+              className="rounded bg-indigo-600 px-4 py-2 hover:bg-indigo-500 disabled:opacity-60"
             >
-              {loading ? "Saving..." : "Save"}
+              {loading ? "Guardando..." : "Guardar"}
             </button>
           </div>
-
-        </Dialog.Panel>
+        </form>
       </div>
-    </Dialog>
+    </div>
   );
 }

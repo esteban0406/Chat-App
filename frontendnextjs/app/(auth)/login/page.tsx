@@ -4,10 +4,16 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/app/lib/auth-client";
+import type {
+  AuthResult,
+  EmailSignInResult,
+  SocialSignInResult,
+  SocialSignInData,
+} from "@/app/lib/definitions";
 
 type OAuthProvider = "google" | "microsoft-entra-id";
 
-const getErrorMessage = (result: any) =>
+const getErrorMessage = (result: AuthResult) =>
   result?.error ? result.error?.message || String(result.error) : null;
 
 export default function LoginPage() {
@@ -22,10 +28,10 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const result = await authClient.signIn.email({
+    const result = (await authClient.signIn.email({
       email,
       password,
-    });
+    })) as EmailSignInResult;
 
     setLoading(false);
 
@@ -42,11 +48,11 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const result = await authClient.signIn.social({
+    const result = (await authClient.signIn.social({
       provider,
       callbackURL: `${window.location.origin}/servers`,
       errorCallbackURL: `${window.location.origin}/login`,
-    });
+    })) as SocialSignInResult;
 
     setLoading(false);
 
@@ -55,11 +61,11 @@ export default function LoginPage() {
       return;
     }
 
-    const redirectUrl = (result as any)?.data?.url;
-    const shouldRedirect = (result as any)?.data?.redirect !== false;
+    const { url, redirect } = (result.data ?? {}) as Partial<SocialSignInData>;
+    const shouldRedirect = redirect !== false;
 
-    if (redirectUrl && shouldRedirect) {
-      window.location.href = redirectUrl;
+    if (url && shouldRedirect) {
+      window.location.href = url;
     }
   };
 
@@ -130,4 +136,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
