@@ -1,13 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Message } from "@/app/lib/definitions";
-
 type Props = {
   channelId: string;
   senderId?: string;
   disabled?: boolean;
-  onSent?: (message: Message) => void;
   onError?: (error: string) => void;
 };
 
@@ -15,7 +12,6 @@ export default function ChatInput({
   channelId,
   senderId,
   disabled,
-  onSent,
   onError,
 }: Props) {
   const [text, setText] = useState("");
@@ -45,12 +41,7 @@ export default function ChatInput({
         throw new Error("No se pudo enviar el mensaje");
       }
 
-      const data = await res.json();
-      const message =
-        data?.data?.message ?? data?.message ?? data;
-
       setText("");
-      onSent?.(message);
     } catch (err) {
       console.error(err);
       const message = "No se pudo enviar el mensaje";

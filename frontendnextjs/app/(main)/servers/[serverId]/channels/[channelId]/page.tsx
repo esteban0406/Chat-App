@@ -11,7 +11,7 @@ import ChatMessages from "@/app/ui/messages/ChatMessages";
 import ChatInput from "@/app/ui/messages/ChatInput";
 import { useMessages } from "@/app/ui/messages/useMessages";
 import { authClient } from "@/app/lib/auth-client";
-import { Channel, User, Message } from "@/app/lib/definitions";
+import { Channel, User } from "@/app/lib/definitions";
 import { useLayoutContext } from "@/app/ui/layout/LayoutContext";
 
 export default function ChannelPage() {
@@ -31,7 +31,7 @@ export default function ChannelPage() {
   const [channel, setChannel] = useState<Channel | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  const { messages, loading, error, refresh, appendMessage } =
+  const { messages, loading, error, refresh } =
     useMessages(channelId);
 
   useEffect(() => {
@@ -94,10 +94,6 @@ export default function ChannelPage() {
     };
   }, [serverId, channelId]);
 
-  const handleMessageSent = (message: Message) => {
-    appendMessage(message);
-  };
-
   const title = channel?.name
     ? `${channel.type === "voice" ? "🔊" : "#"} ${channel.name}`
     : `Canal ${channelId ?? ""}`;
@@ -152,7 +148,6 @@ export default function ChannelPage() {
           <ChatInput
             channelId={channelId ?? ""}
             senderId={currentUser?.id}
-            onSent={handleMessageSent}
             onError={() => refresh()}
           />
         </div>

@@ -2,12 +2,28 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Message } from "@/app/lib/definitions";
+import { socket } from "@/app/lib/socket";
+import { getMessageKey } from "./messageKeys";
 
 export function useMessages(channelId?: string) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  const appendMessage = useCallback((message: Message) => {
+    const key = getMessageKey(message);
+    setMessages((prev) => {
+      const exists = prev.some(
+        (existing) => getMessageKey(existing) === key
+      );
+      return exists ? prev : [...prev, message];
+    });
+  }, []);
+
+  const refresh = useCallback(() => {
+    setRefreshKey((key) => key + 1);
+  }, []);
 
   useEffect(() => {
     if (!channelId) {
@@ -61,13 +77,30 @@ export function useMessages(channelId?: string) {
     };
   }, [channelId, refreshKey]);
 
-  const refresh = useCallback(() => {
-    setRefreshKey((key) => key + 1);
-  }, []);
+  useEffect(() => {
+    if (!channelId) {
+      return;
+    }
 
-  const appendMessage = useCallback((message: Message) => {
-    setMessages((prev) => [...prev, message]);
-  }, []);
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    socket.emit("joinChannel", channelId);
+
+    const handleMessage = (message: Message) => {
+      if (message.channel === channelId) {
+        appendMessage(message);
+      }
+    };
+
+    socket.on("message", handleMessage);
+
+    return () => {
+      socket.emit("leaveChannel", channelId);
+      socket.off("message", handleMessage);
+    };
+  }, [channelId, appendMessage]);
 
   return {
     messages,

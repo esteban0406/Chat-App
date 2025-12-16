@@ -1,6 +1,7 @@
 "use client";
 
 import { Message } from "@/app/lib/definitions";
+import { getMessageKey } from "./messageKeys";
 
 type Props = {
   messages: Message[];
@@ -41,7 +42,8 @@ export default function ChatMessages({
 
   return (
     <div className="flex flex-col space-y-3 p-4">
-      {messages.map((message) => {
+      {messages.map((message, index) => {
+        const baseId = getMessageKey(message, index);
         const senderId =
           typeof message.sender === "string"
             ? message.sender
@@ -50,7 +52,7 @@ export default function ChatMessages({
 
         return (
           <div
-            key={message.id}
+            key={baseId}
             className={`flex flex-col max-w-[85%] sm:max-w-[70%] ${
               isOwn ? "self-end items-end" : "self-start items-start"
             }`}
