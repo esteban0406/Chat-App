@@ -1,6 +1,6 @@
 export type User = {
   id: string;
-  username: string;
+  name: string | null;
   email: string;
   avatar?: string;
   provider: "local" | "google" | "microsoft";

@@ -1,0 +1,42 @@
+[data-lk-theme="chat-app"] {
+  color-scheme: dark;
+  --lk-bg: #111827;
+  --lk-bg2: #111827;
+  --lk-bg3: #1f2937;
+  --lk-bg4: #374151;
+  --lk-bg5: #4b5563;
+  --lk-fg: #f3f4f6;
+  --lk-fg2: #e5e7eb;
+  --lk-fg3: #d1d5db;
+  --lk-border-color: rgba(255, 255, 255, 0.08);
+  --lk-control-fg: #f3f4f6;
+  --lk-control-bg: #1f2937;
+  --lk-control-hover-bg: #374151;
+  --lk-control-active-bg: #4b5563;
+  --lk-control-active-hover-bg: #6b7280;
+  --lk-accent-fg: #f8fafc;
+  --lk-accent-bg: #2563eb;
+  --lk-accent2: #1d4ed8;
+  --lk-accent3: #1e40af;
+  --lk-accent4: #312e81;
+  --lk-danger: #ef4444;
+  --lk-danger2: #dc2626;
+  --lk-danger3: #b91c1c;
+  --lk-danger4: #7f1d1d;
+  --lk-control-bar-height: 72px;
+}
+
+[data-lk-theme="chat-app"] .lk-video-conference,
+[data-lk-theme="chat-app"] .lk-room-container {
+  background-color: var(--lk-bg);
+}
+
+[data-lk-theme="chat-app"] .lk-control-bar {
+  background-color: var(--lk-bg2);
+  border-top: 1px solid var(--lk-border-color);
+}
+
+[data-lk-theme="chat-app"] .lk-chat,
+[data-lk-theme="chat-app"] .lk-chat-toggle {
+  display: none !important;
+}

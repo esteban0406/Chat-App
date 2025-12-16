@@ -38,6 +38,11 @@ export default function ChannelSidebar({
     return Array.isArray(raw) ? raw[0] : raw;
   }, [params]);
 
+  const menuIdBase = useMemo(() => {
+    const suffix = effectiveServerId || "global";
+    return `server-controls-${suffix}`;
+  }, [effectiveServerId]);
+
   const [server, setServer] = useState<Server | null>(null);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loadingChannels, setLoadingChannels] = useState(false);
@@ -175,11 +180,17 @@ export default function ChannelSidebar({
             </h2>
           </div>
           <Menu as="div" className="relative">
-            <Menu.Button className="rounded bg-gray-700 p-2 text-gray-200 hover:bg-gray-600">
+            <Menu.Button
+              id={`${menuIdBase}-button`}
+              className="rounded bg-gray-700 p-2 text-gray-200 hover:bg-gray-600"
+            >
               <EllipsisVerticalIcon className="h-5 w-5" />
             </Menu.Button>
-            <Menu.Items className="absolute right-0 mt-2 w-44 rounded bg-gray-700 text-sm shadow-lg ring-1 ring-black/20 focus:outline-none">
-              <Menu.Item>
+            <Menu.Items
+              id={`${menuIdBase}-items`}
+              className="absolute right-0 mt-2 w-44 rounded bg-gray-700 text-sm shadow-lg ring-1 ring-black/20 focus:outline-none"
+            >
+              <Menu.Item id={`${menuIdBase}-invite`}>
                 {({ active }) => (
                   <button
                     type="button"
@@ -192,7 +203,7 @@ export default function ChannelSidebar({
                   </button>
                 )}
               </Menu.Item>
-              <Menu.Item>
+              <Menu.Item id={`${menuIdBase}-members`}>
                 {({ active }) => (
                   <button
                     type="button"
@@ -205,7 +216,7 @@ export default function ChannelSidebar({
                   </button>
                 )}
               </Menu.Item>
-              <Menu.Item>
+              <Menu.Item id={`${menuIdBase}-delete`}>
                 {({ active }) => (
                   <button
                     type="button"

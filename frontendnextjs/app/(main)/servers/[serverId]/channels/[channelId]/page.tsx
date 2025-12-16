@@ -13,6 +13,7 @@ import { useMessages } from "@/app/ui/messages/useMessages";
 import { authClient } from "@/app/lib/auth-client";
 import { Channel, User } from "@/app/lib/definitions";
 import { useLayoutContext } from "@/app/ui/layout/LayoutContext";
+import VoiceRoom from "@/app/ui/voice/VoiceRoom";
 
 export default function ChannelPage() {
   const params = useParams();
@@ -97,6 +98,21 @@ export default function ChannelPage() {
   const title = channel?.name
     ? `${channel.type === "voice" ? "🔊" : "#"} ${channel.name}`
     : `Canal ${channelId ?? ""}`;
+
+  if (channel?.type === "voice") {
+    return (
+      <div className="flex h-full flex-col bg-gray-900">
+        
+        <VoiceRoom
+          channelId={channelId ?? ""}
+          userId={currentUser?.id}
+          displayName={currentUser.name}
+          enableVideo={false}
+        />
+        {console.log("displayName:", currentUser.name)}
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col bg-gray-900">

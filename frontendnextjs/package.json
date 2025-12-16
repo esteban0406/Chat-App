@@ -11,6 +11,8 @@
   "dependencies": {
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
+    "@livekit/components-react": "^2.9.17",
+    "@livekit/components-styles": "^1.2.0",
     "axios": "^1.13.2",
     "better-auth": "^1.4.5",
     "jwt-decode": "^4.0.0",
