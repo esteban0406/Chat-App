@@ -1,6 +1,7 @@
 import Message from "./Message.model.js";
 import Channel from "../channel/Channel.model.js";
 import { createHttpError, validationError } from "../../utils/httpError.js";
+import { createBetterAuthUserRepository } from "../user/betterAuthUser.repository.js";
 
 const toStringId = (value) => value?.toString?.() ?? String(value);
 
@@ -44,7 +45,28 @@ const sanitizeMessageDocument = (message) => {
 export function createMessageService({
   MessageModel = Message,
   ChannelModel = Channel,
+  userRepository = createBetterAuthUserRepository(),
 } = {}) {
+  const mapSenderSummaries = async (senderIds = []) => {
+    if (!Array.isArray(senderIds) || !senderIds.length) {
+      return new Map();
+    }
+    const uniqueIds = Array.from(new Set(senderIds.map((id) => toStringId(id)))).filter(Boolean);
+    if (!uniqueIds.length) {
+      return new Map();
+    }
+
+    const users = await userRepository.findByIds(uniqueIds);
+    const map = new Map();
+    for (const user of users) {
+      if (!user?.id) continue;
+      map.set(toStringId(user.id), {
+        id: toStringId(user.id),
+        username: user.username,
+      });
+    }
+    return map;
+  };
   const ensureChannelExists = async (channelId) => {
     if (!channelId) {
       throw validationError("El canal es requerido", { field: "channelId" });
@@ -79,9 +101,16 @@ export function createMessageService({
     channel.messages.push(message._id);
     await channel.save();
 
-    await message.populate("sender", "username");
+    const sanitized = sanitizeMessageDocument(message);
+    const sender = await userRepository.findById(senderId);
+    if (sender) {
+      sanitized.sender = {
+        id: toStringId(sender.id),
+        username: sender.username,
+      };
+    }
 
-    return sanitizeMessageDocument(message);
+    return sanitized;
   };
 
   const listMessages = async ({ channelId }) => {
@@ -89,12 +118,21 @@ export function createMessageService({
       throw validationError("El canal es requerido", { field: "channelId" });
     }
 
-    const messages = await MessageModel.find({ channel: channelId }).populate(
-      "sender",
-      "username",
+    const messages = await MessageModel.find({ channel: channelId });
+    const sanitizedMessages = messages.map(sanitizeMessageDocument);
+
+    const senderMap = await mapSenderSummaries(
+      sanitizedMessages.map((message) => message.sender?.id ?? message.sender),
     );
 
-    return messages.map(sanitizeMessageDocument);
+    return sanitizedMessages.map((message) => {
+      const senderId = toStringId(message.sender?.id ?? message.sender);
+      const senderSummary = senderMap.get(senderId);
+      return {
+        ...message,
+        sender: senderSummary ?? message.sender,
+      };
+    });
   };
 
   return {

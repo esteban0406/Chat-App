@@ -8,6 +8,9 @@ const ChannelMock = {
   findById: jest.fn(),
 };
 
+const findByIdMock = jest.fn();
+const findByIdsMock = jest.fn();
+
 const ioMock = {
   to: jest.fn().mockReturnThis(),
   emit: jest.fn(),
@@ -21,6 +24,14 @@ jest.unstable_mockModule("../../../services/message/Message.model.js", () => ({
 jest.unstable_mockModule("../../../services/channel/Channel.model.js", () => ({
   __esModule: true,
   default: ChannelMock,
+}));
+
+jest.unstable_mockModule("../../../services/user/betterAuthUser.repository.js", () => ({
+  __esModule: true,
+  createBetterAuthUserRepository: () => ({
+    findById: findByIdMock,
+    findByIds: findByIdsMock,
+  }),
 }));
 
 const { createMessageController } = await import(
@@ -54,14 +65,6 @@ const createMessageDoc = (overrides = {}) => {
   return doc;
 };
 
-const createFindQuery = (result) => {
-  const query = {
-    populate: jest.fn(),
-  };
-  query.populate.mockImplementation(() => Promise.resolve(result));
-  return query;
-};
-
 describe("message.controller", () => {
   let controller;
   let req;
@@ -81,6 +84,13 @@ describe("message.controller", () => {
     MessageMock.mockReset();
     MessageMock.find.mockReset();
     ChannelMock.findById.mockReset();
+    findByIdMock.mockReset();
+    findByIdsMock.mockReset();
+    findByIdsMock.mockResolvedValue([]);
+    findByIdMock.mockResolvedValue({
+      id: "user123",
+      username: "test",
+    });
     ioMock.to.mockReturnThis();
     ioMock.to.mockClear();
     ioMock.emit.mockClear();
@@ -124,7 +134,7 @@ describe("message.controller", () => {
       expect(ChannelMock.findById).toHaveBeenCalledWith("channel123");
       expect(channel.messages).toContain("message123");
       expect(channel.save).toHaveBeenCalled();
-      expect(messageInstance.populate).toHaveBeenCalledWith("sender", "username");
+      expect(findByIdMock).toHaveBeenCalledWith("user123");
       expect(ioMock.to).toHaveBeenCalledWith("channel123");
       expect(ioMock.emit).toHaveBeenCalledWith("message", {
         _id: "message123",
@@ -190,7 +200,10 @@ describe("message.controller", () => {
           })),
         }),
       ];
-      MessageMock.find.mockReturnValue(createFindQuery(messageDocs));
+      MessageMock.find.mockResolvedValue(messageDocs);
+      findByIdsMock.mockResolvedValue([
+        { id: "user123", username: "test" },
+      ]);
 
       await controller.getMessages(req, res, next);
 

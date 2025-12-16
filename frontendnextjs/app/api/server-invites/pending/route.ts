@@ -1,7 +1,14 @@
 import { backendFetch } from "../../_utils/backendFetch";
 
-export async function GET() {
-  const res = await backendFetch("/api/ServerInvites/pending");
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const serverId = searchParams.get("serverId");
+
+  const path = serverId
+    ? `/api/ServerInvites/pending?serverId=${encodeURIComponent(serverId)}`
+    : "/api/ServerInvites/pending";
+
+  const res = await backendFetch(path);
 
   if (!res.ok) {
     return Response.json(

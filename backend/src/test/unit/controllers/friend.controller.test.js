@@ -6,20 +6,26 @@ FriendRequestMock.findOne = jest.fn();
 FriendRequestMock.findById = jest.fn();
 FriendRequestMock.find = jest.fn();
 
-const UserMock = {
-  findById: jest.fn(),
-  findByIdAndUpdate: jest.fn(),
-  find: jest.fn(),
+const findUserByIdMock = jest.fn();
+const betterAuthContext = {
+  internalAdapter: {
+    findUserById: findUserByIdMock,
+  },
 };
+const getBetterAuthMock = jest.fn().mockResolvedValue({
+  auth: {
+    $context: Promise.resolve(betterAuthContext),
+  },
+});
 
 jest.unstable_mockModule("../../../services/user/friendRequest/FriendRequest.model.js", () => ({
   __esModule: true,
   default: FriendRequestMock,
 }));
 
-jest.unstable_mockModule("../../../services/user/User.model.js", () => ({
+jest.unstable_mockModule("../../../auth/betterAuth.js", () => ({
   __esModule: true,
-  default: UserMock,
+  getBetterAuth: getBetterAuthMock,
 }));
 
 const {
@@ -32,16 +38,6 @@ const {
 const SELF_ID = "507f191e810c19729de860ea";
 const OTHER_ID = "507f191e810c19729de860eb";
 const THIRD_ID = "507f191e810c19729de860ec";
-
-const createPopulateQuery = (result) => {
-  const query = {
-    populate: jest.fn(),
-    exec: jest.fn().mockResolvedValue(result),
-  };
-  query.populate.mockImplementation(() => query);
-  query.then = (resolve, reject) => query.exec().then(resolve, reject);
-  return query;
-};
 
 const createRequestDoc = (overrides = {}) => {
   const doc = {
@@ -84,11 +80,12 @@ describe("friend.controller", () => {
     FriendRequestMock.findById.mockReset();
     FriendRequestMock.find.mockReset();
 
-    UserMock.findById.mockReset();
-    UserMock.findByIdAndUpdate.mockReset();
-    UserMock.find.mockReset();
-
-    UserMock.findById.mockResolvedValue({ _id: OTHER_ID });
+    findUserByIdMock.mockReset();
+    findUserByIdMock.mockImplementation((id) => ({
+      id,
+      username: `user-${id}`,
+      email: `${id}@mail.com`,
+    }));
   });
 
   describe("sendFriendRequest", () => {
@@ -215,12 +212,6 @@ describe("friend.controller", () => {
 
       expect(request.status).toBe("accepted");
       expect(request.save).toHaveBeenCalled();
-      expect(UserMock.findByIdAndUpdate).toHaveBeenNthCalledWith(1, SELF_ID, {
-        $addToSet: { friends: OTHER_ID },
-      });
-      expect(UserMock.findByIdAndUpdate).toHaveBeenNthCalledWith(2, OTHER_ID, {
-        $addToSet: { friends: SELF_ID },
-      });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -246,7 +237,6 @@ describe("friend.controller", () => {
       await respondFriendRequest(req, res, next);
 
       expect(request.status).toBe("rejected");
-      expect(UserMock.findByIdAndUpdate).not.toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -288,7 +278,17 @@ describe("friend.controller", () => {
           createdAt,
         },
       ];
-      FriendRequestMock.find.mockReturnValue(createPopulateQuery(requests));
+      FriendRequestMock.find.mockResolvedValue(requests);
+      findUserByIdMock.mockImplementation((id) => {
+        if (id === "user123") {
+          return {
+            id: "user123",
+            username: "User",
+            email: "user@example.com",
+          };
+        }
+        return null;
+      });
 
       await getPendingFriendRequests(req, res, next);
 
@@ -341,12 +341,15 @@ describe("friend.controller", () => {
         { from: THIRD_ID, to: SELF_ID },
       ];
       FriendRequestMock.find.mockResolvedValue(friendRequests);
-      const friends = [
-        { _id: OTHER_ID, username: "Friend1", email: "friend1@example.com" },
-        { _id: THIRD_ID, username: "Friend2", email: "friend2@example.com" },
-      ];
-      const selectMock = jest.fn().mockResolvedValue(friends);
-      UserMock.find.mockReturnValue({ select: selectMock });
+      findUserByIdMock.mockImplementation((id) => {
+        if (id === OTHER_ID) {
+          return { id: OTHER_ID, username: "Friend1", email: "friend1@example.com" };
+        }
+        if (id === THIRD_ID) {
+          return { id: THIRD_ID, username: "Friend2", email: "friend2@example.com" };
+        }
+        return null;
+      });
 
       await getFriends(req, res, next);
 
@@ -354,10 +357,8 @@ describe("friend.controller", () => {
         status: "accepted",
         $or: [{ from: SELF_ID }, { to: SELF_ID }],
       });
-      expect(UserMock.find).toHaveBeenCalledWith({
-        _id: { $in: [OTHER_ID, THIRD_ID] },
-      });
-      expect(selectMock).toHaveBeenCalledWith("username email");
+      expect(findUserByIdMock).toHaveBeenCalledWith(OTHER_ID);
+      expect(findUserByIdMock).toHaveBeenCalledWith(THIRD_ID);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,

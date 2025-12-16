@@ -1,6 +1,7 @@
 import ServerInvite from "./ServerInvite.model.js";
 import Server from "../Server.model.js";
 import { createHttpError, validationError } from "../../../utils/httpError.js";
+import { createBetterAuthUserRepository } from "../../user/betterAuthUser.repository.js";
 
 const toStringId = (value) => value?.toString?.() ?? String(value);
 
@@ -66,7 +67,52 @@ const sanitizeInviteWithDetails = (invite) => {
 export function createServerInviteService({
   ServerInviteModel = ServerInvite,
   ServerModel = Server,
+  userRepository = createBetterAuthUserRepository(),
 } = {}) {
+  const getUserSummariesMap = async (userIds = []) => {
+    if (!Array.isArray(userIds) || !userIds.length) {
+      return new Map();
+    }
+    const uniqueIds = Array.from(new Set(userIds.map((id) => toStringId(id)))).filter(Boolean);
+    if (!uniqueIds.length) {
+      return new Map();
+    }
+
+    const users = await userRepository.findByIds(uniqueIds);
+    const map = new Map();
+    for (const user of users) {
+      if (!user?.id) continue;
+      map.set(toStringId(user.id), {
+        id: toStringId(user.id),
+        username: user.username,
+        email: user.email,
+      });
+    }
+    return map;
+  };
+
+  const getServerSummariesMap = async (serverIds = []) => {
+    if (!Array.isArray(serverIds) || !serverIds.length) {
+      return new Map();
+    }
+    const uniqueIds = Array.from(new Set(serverIds.map((id) => toStringId(id)))).filter(Boolean);
+    if (!uniqueIds.length) {
+      return new Map();
+    }
+
+    const servers = await ServerModel.find({ _id: { $in: uniqueIds } }).select("name");
+    const map = new Map();
+    for (const server of servers) {
+      const plain = toPlainObject(server);
+      const id = toStringId(plain._id ?? plain.id ?? server);
+      if (!id) continue;
+      map.set(id, {
+        id,
+        name: plain.name,
+      });
+    }
+    return map;
+  };
   const sendInvite = async ({ fromUserId, toUserId, serverId }) => {
     if (!fromUserId || !toUserId || !serverId) {
       throw validationError("El remitente, destinatario y servidor son requeridos", {
@@ -150,13 +196,32 @@ export function createServerInviteService({
       throw createHttpError(401, "No autorizado", { code: "AUTH_REQUIRED" });
     }
 
-    const invites = await ServerInviteModel.find({ to: userId, status: "pending" })
-      .populate("from", "username email")
-      .populate("server", "name");
+    const invites = await ServerInviteModel.find({ to: userId, status: "pending" });
+
+    const [userMap, serverMap] = await Promise.all([
+      getUserSummariesMap(invites.map((invite) => invite.from)),
+      getServerSummariesMap(invites.map((invite) => invite.server)),
+    ]);
 
     return invites
-      .filter((invite) => Boolean(invite?.server))
-      .map((invite) => sanitizeInviteWithDetails(invite));
+      .map((invite) => {
+        const base = sanitizeInvite(invite);
+        if (!base) {
+          return null;
+        }
+        const fromId = toStringId(invite.from);
+        const serverId = toStringId(invite.server);
+        const serverSummary = serverMap.get(serverId);
+        if (!serverSummary) {
+          return null;
+        }
+        return {
+          ...base,
+          from: userMap.get(fromId) ?? base.from,
+          server: serverSummary,
+        };
+      })
+      .filter(Boolean);
   };
 
   return {

@@ -8,7 +8,10 @@ ServerInviteMock.find = jest.fn();
 
 const ServerMock = {
   findByIdAndUpdate: jest.fn(),
+  find: jest.fn(),
 };
+
+const findByIdsMock = jest.fn();
 
 jest.unstable_mockModule("../../../services/server/invite/ServerInvite.model.js", () => ({
   __esModule: true,
@@ -18,6 +21,13 @@ jest.unstable_mockModule("../../../services/server/invite/ServerInvite.model.js"
 jest.unstable_mockModule("../../../services/server/Server.model.js", () => ({
   __esModule: true,
   default: ServerMock,
+}));
+
+jest.unstable_mockModule("../../../services/user/betterAuthUser.repository.js", () => ({
+  __esModule: true,
+  createBetterAuthUserRepository: () => ({
+    findByIds: findByIdsMock,
+  }),
 }));
 
 const {
@@ -52,24 +62,6 @@ const createInviteDoc = (overrides = {}) => {
   return doc;
 };
 
-const createPopulateQuery = (result) => {
-  const query = {
-    populate: jest.fn(),
-  };
-  query.populate.mockImplementation(() => query);
-  query.populate.mockReturnValue(query);
-  query.populate.mockImplementationOnce(() => query);
-  query.populate.mockImplementation(() => query);
-  query.populate.mockImplementation((path) => {
-    if (path === "from" || path === "server") {
-      return query;
-    }
-    return Promise.resolve(result);
-  });
-  query.then = (resolve, reject) => Promise.resolve(result).then(resolve, reject);
-  return query;
-};
-
 describe("serverInvite.controller", () => {
   let req;
   let res;
@@ -89,6 +81,9 @@ describe("serverInvite.controller", () => {
     ServerInviteMock.findById.mockReset();
     ServerInviteMock.find.mockReset();
     ServerMock.findByIdAndUpdate.mockReset();
+    ServerMock.find.mockReset();
+    findByIdsMock.mockReset();
+    findByIdsMock.mockResolvedValue([]);
   });
 
   describe("sendServerInvite", () => {
@@ -303,45 +298,29 @@ describe("serverInvite.controller", () => {
       const invites = [
         createInviteDoc({
           _id: "invite1",
-          server: {
-            _id: "server123",
-            name: "Server",
-            toObject: () => ({ _id: "server123", name: "Server" }),
-          },
-          from: {
-            _id: "user123",
-            username: "Alice",
-            email: "alice@example.com",
-            toObject: () => ({ _id: "user123", username: "Alice", email: "alice@example.com" }),
-          },
-          toObject: jest.fn(() => ({
-            _id: "invite1",
-            from: {
-              _id: "user123",
-              username: "Alice",
-              email: "alice@example.com",
-            },
-            to: "user456",
-            server: {
-              _id: "server123",
-              name: "Server",
-            },
-            status: "pending",
-          })),
+          from: "user123",
+          to: "user456",
+          server: "server123",
         }),
         createInviteDoc({
           _id: "invite2",
-          server: null,
-          toObject: jest.fn(() => ({
-            _id: "invite2",
-            from: "user123",
-            to: "user456",
-            server: null,
-            status: "pending",
-          })),
+          from: "user789",
+          to: "user456",
+          server: "missing",
         }),
       ];
-      ServerInviteMock.find.mockReturnValue(createPopulateQuery(invites));
+      ServerInviteMock.find.mockResolvedValue(invites);
+      findByIdsMock.mockResolvedValue([
+        { id: "user123", username: "Alice", email: "alice@example.com" },
+      ]);
+      const selectMock = jest.fn().mockResolvedValue([
+        {
+          _id: "server123",
+          name: "Server",
+          toObject: () => ({ _id: "server123", name: "Server" }),
+        },
+      ]);
+      ServerMock.find.mockReturnValue({ select: selectMock });
 
       await getPendingServerInvites(req, res, next);
 
@@ -349,6 +328,9 @@ describe("serverInvite.controller", () => {
         to: "user123",
         status: "pending",
       });
+      expect(ServerMock.find).toHaveBeenCalledWith({ _id: { $in: ["server123", "missing"] } });
+      expect(selectMock).toHaveBeenCalledWith("name");
+      expect(findByIdsMock).toHaveBeenCalledWith(["user123", "user789"]);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,

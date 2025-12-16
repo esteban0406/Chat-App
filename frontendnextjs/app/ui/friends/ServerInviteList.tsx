@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ServerInvite, Server } from "@/app/lib/definitions";
 
 export default function ServerInviteList() {
+  const router = useRouter();
   const [invites, setInvites] = useState<ServerInvite[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,9 +44,10 @@ export default function ServerInviteList() {
   }, []);
 
   const handleAction = async (
-    inviteId: string,
+    invite: ServerInvite,
     action: "accept" | "reject"
   ) => {
+    const inviteId = invite.id;
     setProcessingId(inviteId);
     try {
       const res = await fetch(`/api/server-invites/${action}/${inviteId}`, {
@@ -53,7 +56,16 @@ export default function ServerInviteList() {
       if (!res.ok) {
         throw new Error("No se pudo actualizar la invitación");
       }
-      setInvites((prev) => prev.filter((invite) => invite.id !== inviteId));
+      setInvites((prev) => prev.filter((item) => item.id !== inviteId));
+      if (action === "accept") {
+        const serverId =
+          typeof invite.server === "string"
+            ? invite.server
+            : invite.server?.id;
+        if (serverId) {
+          router.push(`/servers/${serverId}`);
+        }
+      }
     } catch (err) {
       console.error(err);
       setError("No se pudo actualizar la invitación");
@@ -88,7 +100,7 @@ export default function ServerInviteList() {
           <div className="space-x-2">
             <button
               type="button"
-              onClick={() => handleAction(invite.id, "accept")}
+              onClick={() => handleAction(invite, "accept")}
               disabled={processingId === invite.id}
               className="rounded bg-green-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-green-500 disabled:opacity-60"
             >
@@ -96,7 +108,7 @@ export default function ServerInviteList() {
             </button>
             <button
               type="button"
-              onClick={() => handleAction(invite.id, "reject")}
+              onClick={() => handleAction(invite, "reject")}
               disabled={processingId === invite.id}
               className="rounded bg-red-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-red-500 disabled:opacity-60"
             >

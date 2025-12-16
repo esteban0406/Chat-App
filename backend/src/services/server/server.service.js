@@ -1,6 +1,7 @@
 import Channel from "../channel/Channel.model.js";
 import Server from "./Server.model.js";
 import { createHttpError, validationError } from "../../utils/httpError.js";
+import { createBetterAuthUserRepository } from "../user/betterAuthUser.repository.js";
 
 const toStringId = (value) => value?.toString?.() ?? String(value);
 
@@ -76,7 +77,66 @@ const sanitizeServerDocument = (server) => {
 export function createServerService({
   ServerModel = Server,
   ChannelModel = Channel,
+  userRepository = createBetterAuthUserRepository(),
 } = {}) {
+  const getUserSummariesMap = async (userIds = []) => {
+    if (!Array.isArray(userIds) || !userIds.length) {
+      return new Map();
+    }
+    const uniqueIds = Array.from(new Set(userIds.map((id) => toStringId(id)))).filter(Boolean);
+    if (!uniqueIds.length) {
+      return new Map();
+    }
+    const users = await userRepository.findByIds(uniqueIds);
+    const map = new Map();
+    for (const user of users) {
+      if (!user?.id) continue;
+      map.set(toStringId(user.id), {
+        id: toStringId(user.id),
+        _id: toStringId(user.id),
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar ?? user.image,
+      });
+    }
+    return map;
+  };
+
+  const hydrateServerMembers = async (servers) => {
+    if (!servers) return servers;
+    const list = Array.isArray(servers) ? servers : [servers];
+    if (list.length === 0) return Array.isArray(servers) ? [] : null;
+
+    const plainServers = list.map((server) =>
+      typeof server?.toObject === "function" ? server.toObject() : { ...server },
+    );
+
+    const memberIds = new Set();
+    for (const server of plainServers) {
+      const members = Array.isArray(server.members) ? server.members : [];
+      for (const member of members) {
+        const id = toStringId(member?._id ?? member?.id ?? member);
+        if (id) {
+          memberIds.add(id);
+        }
+      }
+    }
+
+    const memberMap = await getUserSummariesMap([...memberIds]);
+
+    const hydrated = plainServers.map((server) => ({
+      ...server,
+      members: Array.isArray(server.members)
+        ? server.members.map((member) => {
+            const id = toStringId(member?._id ?? member?.id ?? member);
+            return memberMap.get(id) ?? sanitizeMember(member);
+          })
+        : [],
+    }));
+
+    return Array.isArray(servers) ? hydrated : hydrated[0];
+  };
+
   const ensureServerExists = async (serverId) => {
     const server = await ServerModel.findById(serverId);
     if (!server) {
@@ -115,10 +175,10 @@ export function createServerService({
     server.channels.push(channel._id);
     await server.save();
 
-    await server.populate("members", "username email avatar");
+    const hydrated = await hydrateServerMembers(server);
 
     return {
-      server: sanitizeServerDocument(server),
+      server: sanitizeServerDocument(hydrated),
       defaultChannel: sanitizeChannel(channel),
     };
   };
@@ -142,10 +202,10 @@ export function createServerService({
       await server.save();
     }
 
-    await server.populate("members", "username email avatar");
     await server.populate("channels");
+    const hydrated = await hydrateServerMembers(server);
 
-    return sanitizeServerDocument(server);
+    return sanitizeServerDocument(hydrated);
   };
 
   const listServersForMember = async ({ userId }) => {
@@ -153,11 +213,11 @@ export function createServerService({
       throw createHttpError(401, "No autorizado", { code: "AUTH_REQUIRED" });
     }
 
-    const servers = await ServerModel.find({ members: userId })
-      .populate("channels")
-      .populate("members", "username email avatar");
+    const servers = await ServerModel.find({ members: userId }).populate("channels");
 
-    return servers.map(sanitizeServerDocument);
+    const hydrated = await hydrateServerMembers(servers);
+
+    return hydrated.map(sanitizeServerDocument);
   };
 
   const deleteServer = async ({ serverId }) => {
@@ -204,10 +264,10 @@ export function createServerService({
     );
     await server.save();
 
-    await server.populate("members", "username email avatar");
     await server.populate("channels");
+    const hydrated = await hydrateServerMembers(server);
 
-    return sanitizeServerDocument(server);
+    return sanitizeServerDocument(hydrated);
   };
 
   const leaveServer = async ({ serverId, userId }) => {

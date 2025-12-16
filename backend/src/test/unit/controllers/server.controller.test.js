@@ -9,6 +9,8 @@ ServerMock.findByIdAndDelete = jest.fn();
 const ChannelMock = jest.fn();
 ChannelMock.deleteMany = jest.fn();
 
+const findByIdsMock = jest.fn();
+
 jest.unstable_mockModule("../../../services/server/Server.model.js", () => ({
   __esModule: true,
   default: ServerMock,
@@ -17,6 +19,13 @@ jest.unstable_mockModule("../../../services/server/Server.model.js", () => ({
 jest.unstable_mockModule("../../../services/channel/Channel.model.js", () => ({
   __esModule: true,
   default: ChannelMock,
+}));
+
+jest.unstable_mockModule("../../../services/user/betterAuthUser.repository.js", () => ({
+  __esModule: true,
+  createBetterAuthUserRepository: () => ({
+    findByIds: findByIdsMock,
+  }),
 }));
 
 const {
@@ -110,6 +119,8 @@ describe("server.controller", () => {
     ServerMock.findByIdAndDelete.mockReset();
     ChannelMock.mockReset();
     ChannelMock.deleteMany.mockReset();
+    findByIdsMock.mockReset();
+    findByIdsMock.mockResolvedValue([]);
   });
 
   describe("createServer", () => {
@@ -149,7 +160,6 @@ describe("server.controller", () => {
       });
       expect(serverDoc.save).toHaveBeenCalledTimes(2);
       expect(channelDoc.save).toHaveBeenCalledTimes(1);
-      expect(serverDoc.populate).toHaveBeenCalledWith("members", "username email avatar");
       expect(serverDoc.channels).toContain("channel123");
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
@@ -221,7 +231,7 @@ describe("server.controller", () => {
 
       expect(serverDoc.members).toContain("user456");
       expect(serverDoc.save).toHaveBeenCalled();
-      expect(serverDoc.populate).toHaveBeenCalledWith("members", "username email avatar");
+      expect(serverDoc.populate).toHaveBeenCalledWith("channels");
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -248,6 +258,7 @@ describe("server.controller", () => {
       await joinServer(req, res, next);
 
       expect(serverDoc.members).toEqual(["user123"]);
+      expect(serverDoc.populate).toHaveBeenCalledWith("channels");
       expect(serverDoc.save).not.toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
@@ -444,7 +455,7 @@ describe("server.controller", () => {
 
       expect(serverDoc.members).toEqual(["user123"]);
       expect(serverDoc.save).toHaveBeenCalled();
-      expect(serverDoc.populate).toHaveBeenCalledWith("members", "username email avatar");
+      expect(serverDoc.populate).toHaveBeenCalledWith("channels");
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,

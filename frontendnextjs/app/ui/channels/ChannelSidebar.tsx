@@ -3,10 +3,22 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Channel, Server } from "@/app/lib/definitions";
+import { Menu } from "@headlessui/react";
+import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
+import { Channel, Server, User } from "@/app/lib/definitions";
 import CreateChannelModal from "./modals/CreateChannelModal";
 import EditChannelModal from "./modals/EditChannelModal";
 import DeleteChannelModal from "./modals/DeleteChannelModal";
+import InviteFriendsModal from "@/app/ui/servers/modals/InviteFriendsModal";
+import EditServerModal from "@/app/ui/servers/modals/EditServerModal";
+import DeleteServerModal from "@/app/ui/servers/modals/DeleteServerModal";
+
+const getMemberId = (member: User | string | undefined | null) =>
+  !member
+    ? ""
+    : typeof member === "string"
+    ? member
+    : member.id;
 
 export default function ChannelSidebar({
   sidebarControls,
@@ -34,6 +46,9 @@ export default function ChannelSidebar({
   const [createType, setCreateType] = useState<"text" | "voice" | null>(null);
   const [channelToEdit, setChannelToEdit] = useState<Channel | null>(null);
   const [channelToDelete, setChannelToDelete] = useState<Channel | null>(null);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showEditServerModal, setShowEditServerModal] = useState(false);
+  const [showDeleteServerModal, setShowDeleteServerModal] = useState(false);
 
   useEffect(() => {
     if (!effectiveServerId) {
@@ -116,7 +131,7 @@ export default function ChannelSidebar({
     return () => {
       cancelled = true;
     };
-  }, [effectiveServerId, channelToEdit, createType]);
+  }, [effectiveServerId]);
 
   const textChannels = channels.filter((channel) => channel.type === "text");
   const voiceChannels = channels.filter((channel) => channel.type === "voice");
@@ -159,6 +174,52 @@ export default function ChannelSidebar({
               {server?.name ?? "Servidor"}
             </h2>
           </div>
+          <Menu as="div" className="relative">
+            <Menu.Button className="rounded bg-gray-700 p-2 text-gray-200 hover:bg-gray-600">
+              <EllipsisVerticalIcon className="h-5 w-5" />
+            </Menu.Button>
+            <Menu.Items className="absolute right-0 mt-2 w-44 rounded bg-gray-700 text-sm shadow-lg ring-1 ring-black/20 focus:outline-none">
+              <Menu.Item>
+                {({ active }) => (
+                  <button
+                    type="button"
+                    onClick={() => setShowInviteModal(true)}
+                    className={`block w-full px-3 py-2 text-left ${
+                      active ? "bg-gray-600 text-white" : "text-gray-200"
+                    }`}
+                  >
+                    Invitar amigos
+                  </button>
+                )}
+              </Menu.Item>
+              <Menu.Item>
+                {({ active }) => (
+                  <button
+                    type="button"
+                    onClick={() => setShowEditServerModal(true)}
+                    className={`block w-full px-3 py-2 text-left ${
+                      active ? "bg-gray-600 text-white" : "text-gray-200"
+                    }`}
+                  >
+                    Gestionar miembros
+                  </button>
+                )}
+              </Menu.Item>
+              <Menu.Item>
+                {({ active }) => (
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteServerModal(true)}
+                    className={`block w-full px-3 py-2 text-left ${
+                      active ? "bg-red-600 text-white" : "text-red-300"
+                    }`}
+                  >
+                    Eliminar servidor
+                  </button>
+                )}
+              </Menu.Item>
+            </Menu.Items>
+          </Menu>
           {closeSidebar && (
             <button
               type="button"
@@ -225,6 +286,44 @@ export default function ChannelSidebar({
           channel={channelToDelete}
           onClose={() => setChannelToDelete(null)}
           onDeleted={handleChannelDeleted}
+        />
+      )}
+
+      {showInviteModal && (
+        <InviteFriendsModal
+          server={server}
+          onClose={() => setShowInviteModal(false)}
+        />
+      )}
+
+      {showEditServerModal && (
+        <EditServerModal
+          server={server}
+          onClose={() => setShowEditServerModal(false)}
+          onMemberRemoved={(memberId) => {
+            setServer((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    members: Array.isArray(prev.members)
+                      ? prev.members.filter((member) =>
+                          getMemberId(
+                            member as User | string | undefined
+                          ) !== memberId
+                        )
+                      : prev.members,
+                  }
+                : prev
+            );
+          }}
+        />
+      )}
+
+      {showDeleteServerModal && (
+        <DeleteServerModal
+          server={server}
+          onClose={() => setShowDeleteServerModal(false)}
+          onDeleted={() => setServer(null)}
         />
       )}
     </>

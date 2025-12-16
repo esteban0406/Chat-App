@@ -4,9 +4,10 @@ type Params = {
   params: { serverId: string };
 };
 
-export async function DELETE(_: Request, { params }: Params) {
+export async function DELETE(_: Request, context: Params) {
+  const { serverId } = await context.params;
   const res = await backendFetch(
-    `/api/servers/${params.serverId}`,
+    `/api/servers/${serverId}`,
     { method: "DELETE" }
   );
 

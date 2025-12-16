@@ -1,6 +1,9 @@
 import axios from "axios";
-import User from "./User.model.js";
 import { createHttpError, validationError } from "../../utils/httpError.js";
+import {
+  betterAuthUserRepository as defaultUserRepository,
+  createBetterAuthUserRepository,
+} from "./betterAuthUser.repository.js";
 
 const DATA_URL_REGEX = /^data:(.+);base64$/i;
 const REMOTE_URL_REGEX = /^https?:\/\//i;
@@ -8,14 +11,24 @@ const REMOTE_URL_REGEX = /^https?:\/\//i;
 const sanitizeUserDocument = (user) => {
   if (!user) return null;
   const plain = typeof user.toObject === "function" ? user.toObject() : { ...user };
-  plain.id = plain._id?.toString();
+  plain.id = plain.id ?? plain._id?.toString();
   delete plain._id;
   delete plain.password;
   delete plain.__v;
+  plain.username =
+    plain.username ??
+    plain.name ??
+    plain.email ??
+    plain.email?.split?.("@")?.[0] ??
+    plain.id;
+  plain.provider = plain.provider ?? "better-auth";
+  if (!plain.avatar && plain.image) {
+    plain.avatar = plain.image;
+  } else if (!plain.image && plain.avatar) {
+    plain.image = plain.avatar;
+  }
   return plain;
 };
-
-const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const parseDataUrl = (dataUrl) => {
   const [metadata, base64Data] = dataUrl.split(",");
@@ -39,16 +52,19 @@ const parseDataUrl = (dataUrl) => {
   return { buffer, mimeType };
 };
 
-export function createUserService({ UserModel = User, httpClient = axios } = {}) {
+export function createUserService({
+  userRepository = defaultUserRepository ?? createBetterAuthUserRepository(),
+  httpClient = axios,
+} = {}) {
   const sanitizeUser = (user) => sanitizeUserDocument(user);
 
   const listUsers = async () => {
-    const users = await UserModel.find().select("-password");
-    return users.map(sanitizeUser);
+    const users = await userRepository.listUsers({ limit: 100 });
+    return users.map(sanitizeUser).filter(Boolean);
   };
 
   const getUserById = async (id) => {
-    const user = await UserModel.findById(id).select("-password");
+    const user = await userRepository.findById(id);
     if (!user) {
       throw createHttpError(404, "Usuario no encontrado", { code: "USER_NOT_FOUND" });
     }
@@ -60,8 +76,7 @@ export function createUserService({ UserModel = User, httpClient = axios } = {})
       throw validationError("Debes proporcionar un username");
     }
 
-    const regex = new RegExp(username.trim(), "i");
-    const users = await UserModel.find({ username: regex }).select("-password").limit(10);
+    const users = await userRepository.searchByUsername(username, { limit: 10 });
 
     if (!users.length) {
       throw createHttpError(404, "Usuario no encontrado", { code: "USER_NOT_FOUND" });
@@ -84,24 +99,23 @@ export function createUserService({ UserModel = User, httpClient = axios } = {})
       throw validationError("El username debe tener entre 3 y 30 caracteres");
     }
 
-    if (trimmed === currentUser.username) {
+    const currentName = currentUser.username ?? currentUser.name ?? "";
+    if (trimmed === currentName) {
       return sanitizeUser(currentUser);
     }
 
-    const escapedUsername = escapeRegex(trimmed);
-    const existingUser = await UserModel.findOne({
-      username: { $regex: new RegExp(`^${escapedUsername}$`, "i") },
-      _id: { $ne: currentUser._id },
+    const currentId = currentUser._id ?? currentUser.id;
+
+    const usernameTaken = await userRepository.isUsernameTaken(trimmed, {
+      excludeId: currentId,
     });
 
-    if (existingUser) {
+    if (usernameTaken) {
       throw createHttpError(409, "Ese username ya está en uso", { code: "USERNAME_TAKEN" });
     }
 
-    currentUser.username = trimmed;
-    await currentUser.save();
-
-    const updatedUser = await UserModel.findById(currentUser._id).select("-password");
+    await userRepository.updateUser(currentId, { name: trimmed });
+    const updatedUser = await userRepository.findById(currentId);
     return sanitizeUser(updatedUser);
   };
 
@@ -125,15 +139,14 @@ export function createUserService({ UserModel = User, httpClient = axios } = {})
       parseDataUrl(avatar);
     }
 
-    currentUser.avatar = avatar;
-    await currentUser.save();
-
-    const updatedUser = await UserModel.findById(currentUser._id).select("-password");
+    const currentId = currentUser._id ?? currentUser.id;
+    await userRepository.updateUser(currentId, { image: avatar, avatar });
+    const updatedUser = await userRepository.findById(currentId);
     return sanitizeUser(updatedUser);
   };
 
   const getAvatarResource = async (userId) => {
-    const user = await UserModel.findById(userId).select("avatar");
+    const user = await userRepository.findById(userId);
 
     if (!user || !user.avatar) {
       throw createHttpError(404, "Avatar no disponible", { code: "AVATAR_NOT_FOUND" });

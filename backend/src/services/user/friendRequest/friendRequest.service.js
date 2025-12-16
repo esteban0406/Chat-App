@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import FriendRequest from "./FriendRequest.model.js";
-import User from "../User.model.js";
 import { createHttpError, validationError } from "../../../utils/httpError.js";
+import { createBetterAuthUserRepository } from "../betterAuthUser.repository.js";
 
 const toStringId = (value) => value?.toString?.() ?? String(value);
 
@@ -9,10 +9,10 @@ const sanitizeSummaryUser = (user) => {
   if (!user) return null;
 
   if (typeof user === "object" && typeof user.toObject === "function") {
-    const { _id, username, email } = user.toObject();
+    const { _id, username, name, email } = user.toObject();
     return {
       id: toStringId(_id),
-      username,
+      username: username ?? name ?? email ?? toStringId(_id),
       email,
     };
   }
@@ -20,7 +20,7 @@ const sanitizeSummaryUser = (user) => {
   if (typeof user === "object") {
     return {
       id: toStringId(user._id ?? user.id),
-      username: user.username,
+      username: user.username ?? user.name ?? user.email ?? toStringId(user._id ?? user.id),
       email: user.email,
     };
   }
@@ -46,9 +46,30 @@ const sanitizeFriendRequestDocument = (request) => {
 
 export function createFriendRequestService({
   FriendRequestModel = FriendRequest,
-  UserModel = User,
+  userRepository = createBetterAuthUserRepository(),
   mongooseLib = mongoose,
 } = {}) {
+  const getUserSummariesMap = async (userIds = []) => {
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return new Map();
+    }
+
+    const uniqueIds = Array.from(new Set(userIds.map((id) => toStringId(id)))).filter(Boolean);
+    if (!uniqueIds.length) {
+      return new Map();
+    }
+
+    const users = await userRepository.findByIds(uniqueIds);
+    const map = new Map();
+    for (const user of users) {
+      const summary = sanitizeSummaryUser(user);
+      if (summary?.id) {
+        map.set(summary.id, summary);
+      }
+    }
+    return map;
+  };
+
   const sendFriendRequest = async ({ fromUserId, toUserId }) => {
     if (!toUserId) {
       throw validationError("Falta el usuario destinatario (to)", { field: "to" });
@@ -68,7 +89,7 @@ export function createFriendRequestService({
       });
     }
 
-    const receiver = await UserModel.findById(toUserId);
+    const receiver = await userRepository.findById(toUserId);
     if (!receiver) {
       throw createHttpError(404, "El usuario destinatario no existe", {
         code: "USER_NOT_FOUND",
@@ -113,16 +134,6 @@ export function createFriendRequestService({
     request.status = status;
     await request.save();
 
-    if (status === "accepted") {
-      await UserModel.findByIdAndUpdate(request.from, {
-        $addToSet: { friends: request.to },
-      });
-
-      await UserModel.findByIdAndUpdate(request.to, {
-        $addToSet: { friends: request.from },
-      });
-    }
-
     return sanitizeFriendRequestDocument(request);
   };
 
@@ -134,14 +145,16 @@ export function createFriendRequestService({
     const requests = await FriendRequestModel.find({
       to: userId,
       status: "pending",
-    }).populate("from", "username email");
+    });
+
+    const sendersMap = await getUserSummariesMap(requests.map((request) => request.from));
 
     return requests.map((request) => {
       const sanitized = sanitizeFriendRequestDocument(request);
       return {
         ...sanitized,
         to: toStringId(userId),
-        from: sanitizeSummaryUser(request.from),
+        from: sendersMap.get(toStringId(request.from)) ?? sanitizeSummaryUser(request.from),
         type: "friend",
       };
     });
@@ -173,11 +186,10 @@ export function createFriendRequestService({
       return [];
     }
 
-    const friends = await UserModel.find({ _id: { $in: friendIds } }).select(
-      "username email",
-    );
-
-    return friends.map(sanitizeSummaryUser).filter(Boolean);
+    const userMap = await getUserSummariesMap(friendIds);
+    return friendIds
+      .map((id) => userMap.get(toStringId(id)))
+      .filter(Boolean);
   };
 
   return {
