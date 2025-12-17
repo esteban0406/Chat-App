@@ -106,7 +106,7 @@ export default function UserProfileBar() {
     : fallbackAvatar;
 
   return (
-    <div className="flex h-20 items-center gap-3 border-t border-gray-700 bg-gray-800 px-3">
+    <div className="flex h-[72px] items-center gap-3 border-t border-gray-700 bg-gray-800 px-3">
       {/* Avatar */}
       <img
         key={avatarSrc}

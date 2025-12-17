@@ -160,7 +160,7 @@ export default function ChannelPage() {
       </main>
 
       {channel?.type !== "voice" ? (
-        <div className="border-t border-gray-800 bg-gray-800 px-3 py-3">
+        <div className="flex h-[72px] items-center border-t border-gray-800 bg-gray-800 px-3">
           <ChatInput
             channelId={channelId ?? ""}
             senderId={currentUser?.id}

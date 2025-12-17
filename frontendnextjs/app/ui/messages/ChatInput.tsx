@@ -59,7 +59,7 @@ export default function ChatInput({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex w-full items-center space-x-2 rounded-md bg-gray-800 px-3 py-3"
+      className="flex h-full w-full items-center gap-2 rounded-md bg-gray-800 px-3"
     >
       <input
         type="text"

@@ -156,6 +156,7 @@ function LocalParticipantNameSync({ name }: { name?: string }) {
 
     const updateName = () => {
       const participant = room.localParticipant;
+      console.log("room context: ",room.localParticipant.isSpeaking)
       if (!participant || participant.name === trimmed) return;
       participant.setName(trimmed).catch((err) => {
         console.warn("No se pudo actualizar el nombre del participante:", err);
