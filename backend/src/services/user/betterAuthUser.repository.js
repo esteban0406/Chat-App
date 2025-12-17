@@ -1,3 +1,4 @@
+import { runWithEndpointContext } from "@better-auth/core/context";
 import { getBetterAuth } from "../../auth/betterAuth.js";
 
 const toStringId = (value) => value?.toString?.() ?? String(value);
@@ -28,21 +29,73 @@ const normalizeUser = (user) => {
 
 const ensureArray = (value) => (Array.isArray(value) ? value : value ? [value] : []);
 
-export function createBetterAuthUserRepository() {
-  let adapterPromise;
+const toHeaders = (headersLike) => {
+  if (typeof Headers === "undefined") return undefined;
+  if (!headersLike) return new Headers();
+  if (headersLike instanceof Headers) return headersLike;
+  const converted = new Headers();
+  for (const [key, value] of Object.entries(headersLike)) {
+    if (value == null) continue;
+    if (Array.isArray(value)) {
+      value.forEach((entry) => {
+        if (entry != null) converted.append(key, entry);
+      });
+      continue;
+    }
+    converted.append(key, value);
+  }
+  return converted;
+};
 
-  const getAdapter = async () => {
-    if (!adapterPromise) {
-      adapterPromise = (async () => {
+export function createBetterAuthUserRepository() {
+  let contextPromise;
+
+  const getContextWithAdapter = async () => {
+    if (!contextPromise) {
+      contextPromise = (async () => {
         const { auth } = await getBetterAuth();
         const context = await auth.$context;
         if (!context?.internalAdapter) {
           throw new Error("Better Auth internal adapter is not available");
         }
-        return context.internalAdapter;
+        return {
+          context,
+          adapter: context.internalAdapter,
+        };
       })();
     }
-    return adapterPromise;
+    return contextPromise;
+  };
+
+  const createInternalRunContext = (baseContext, requestContext = {}) => ({
+    method: requestContext.method ?? "INTERNAL",
+    path: requestContext.path ?? "internal:better-auth-user-repository",
+    headers:
+      toHeaders(requestContext.headers) ??
+      (typeof Headers !== "undefined" ? new Headers() : undefined),
+    request: requestContext.request,
+    context: {
+      ...baseContext,
+      returned: undefined,
+      responseHeaders: undefined,
+      session: requestContext.session ?? baseContext?.session ?? null,
+    },
+  });
+
+  const runWithAuthContext = async (operation, requestContext) => {
+    if (requestContext?.baseContext?.internalAdapter) {
+      const baseContext = requestContext.baseContext;
+      return runWithEndpointContext(
+        createInternalRunContext(baseContext, requestContext),
+        () => operation(baseContext.internalAdapter),
+      );
+    }
+
+    const { adapter, context } = await getContextWithAdapter();
+    return runWithEndpointContext(
+      createInternalRunContext(context, requestContext),
+      () => operation(adapter),
+    );
   };
 
   const filterByQuery = (users, query) => {
@@ -63,31 +116,34 @@ export function createBetterAuthUserRepository() {
     Array.from(new Set(ensureArray(ids).map((id) => toStringId(id)))).filter(Boolean);
 
   return {
-    async findById(id) {
+    async findById(id, requestContext) {
       if (!id) return null;
-      const adapter = await getAdapter();
-      const user = await adapter.findUserById(toStringId(id));
+      const user = await runWithAuthContext(
+        (adapter) => adapter.findUserById(toStringId(id)),
+        requestContext,
+      );
       return normalizeUser(user);
     },
 
-    async findByIds(ids = []) {
-      const adapter = await getAdapter();
+    async findByIds(ids = [], requestContext) {
       const deduped = uniqueIds(ids);
       if (!deduped.length) return [];
-      const results = await Promise.all(
-        deduped.map((userId) => adapter.findUserById(userId)),
+      const results = await runWithAuthContext(
+        (adapter) => Promise.all(deduped.map((userId) => adapter.findUserById(userId))),
+        requestContext,
       );
       return results.map(normalizeUser).filter(Boolean);
     },
 
-    async listUsers({ limit = 50, offset = 0 } = {}) {
-      const adapter = await getAdapter();
-      const users = await adapter.listUsers?.(limit, offset);
+    async listUsers({ limit = 50, offset = 0 } = {}, requestContext) {
+      const users = await runWithAuthContext(
+        (adapter) => adapter.listUsers?.(limit, offset),
+        requestContext,
+      );
       return ensureArray(users).map(normalizeUser).filter(Boolean);
     },
 
-    async searchByUsername(username, { limit = 10 } = {}) {
-      const adapter = await getAdapter();
+    async searchByUsername(username, { limit = 10 } = {}, requestContext) {
       const query = username?.trim();
       if (!query) {
         return [];
@@ -99,16 +155,34 @@ export function createBetterAuthUserRepository() {
       ];
 
       let rawResults = [];
-      if (typeof adapter.listUsers === "function") {
-        try {
-          rawResults = await adapter.listUsers(limit * 5, 0, undefined, where);
-        } catch {
-          rawResults = await adapter.listUsers(limit * 5, 0);
-        }
-      }
+      let supportsListUsers = false;
+      await runWithAuthContext(
+        async (adapter) => {
+          supportsListUsers = typeof adapter.listUsers === "function";
+          if (!supportsListUsers) {
+            rawResults = [];
+            return;
+          }
+          try {
+            rawResults = await adapter.listUsers(limit * 5, 0, undefined, where);
+          } catch {
+            rawResults = await adapter.listUsers(limit * 5, 0);
+          }
+        },
+        requestContext,
+      );
 
-      if (!rawResults?.length && typeof adapter.listUsers === "function") {
-        rawResults = await adapter.listUsers(limit * 5, 0);
+      if (!rawResults?.length && supportsListUsers) {
+        await runWithAuthContext(
+          async (adapter) => {
+            if (typeof adapter.listUsers !== "function") {
+              rawResults = [];
+              return;
+            }
+            rawResults = await adapter.listUsers(limit * 5, 0);
+          },
+          requestContext,
+        );
       }
 
       const normalized = ensureArray(rawResults).map(normalizeUser).filter(Boolean);
@@ -116,9 +190,9 @@ export function createBetterAuthUserRepository() {
       return filtered.slice(0, limit);
     },
 
-    async isUsernameTaken(username, { excludeId } = {}) {
+    async isUsernameTaken(username, { excludeId } = {}, requestContext) {
       if (!username) return false;
-      const matches = await this.searchByUsername(username, { limit: 20 });
+      const matches = await this.searchByUsername(username, { limit: 20 }, requestContext);
       const normalized = username.trim().toLowerCase();
       return matches.some(
         (user) =>
@@ -127,12 +201,14 @@ export function createBetterAuthUserRepository() {
       );
     },
 
-    async updateUser(userId, data) {
+    async updateUser(userId, data, requestContext) {
       if (!userId) {
         throw new Error("userId is required to update a Better Auth user");
       }
-      const adapter = await getAdapter();
-      const updated = await adapter.updateUser(toStringId(userId), data);
+      const updated = await runWithAuthContext(
+        (adapter) => adapter.updateUser(toStringId(userId), data),
+        requestContext,
+      );
       return normalizeUser(updated);
     },
   };

@@ -1,9 +1,12 @@
 import { ok } from "../../utils/response.js";
 import { defaultUserService } from "./user.service.js";
-
-export function createUserController({ userService = defaultUserService } = {}) {
+export function createUserController({
+  userService = defaultUserService,
+} = {}) {
   if (!userService) {
-    throw new Error("userService es requerido para crear el controlador de usuarios");
+    throw new Error(
+      "userService es requerido para crear el controlador de usuarios"
+    );
   }
 
   const getUsers = async (req, res, next) => {
@@ -65,6 +68,7 @@ export function createUserController({ userService = defaultUserService } = {}) 
       const updated = await userService.updateUsername({
         currentUser: req.user,
         username: req.body?.username,
+        authContext: req.authContext,
       });
 
       return ok(res, {
@@ -81,6 +85,7 @@ export function createUserController({ userService = defaultUserService } = {}) 
       const updated = await userService.updateAvatar({
         currentUser: req.user,
         avatar: req.body?.avatar,
+        authContext: req.authContext,
       });
 
       return ok(res, {

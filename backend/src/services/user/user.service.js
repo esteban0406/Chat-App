@@ -85,7 +85,7 @@ export function createUserService({
     return users.map(sanitizeUser);
   };
 
-  const updateUsername = async ({ currentUser, username }) => {
+  const updateUsername = async ({ currentUser, username, authContext } = {}) => {
     if (!currentUser) {
       throw createHttpError(401, "No autorizado", { code: "AUTH_REQUIRED" });
     }
@@ -106,20 +106,24 @@ export function createUserService({
 
     const currentId = currentUser._id ?? currentUser.id;
 
-    const usernameTaken = await userRepository.isUsernameTaken(trimmed, {
-      excludeId: currentId,
-    });
+    const usernameTaken = await userRepository.isUsernameTaken(
+      trimmed,
+      {
+        excludeId: currentId,
+      },
+      authContext,
+    );
 
     if (usernameTaken) {
       throw createHttpError(409, "Ese username ya está en uso", { code: "USERNAME_TAKEN" });
     }
 
-    await userRepository.updateUser(currentId, { name: trimmed });
-    const updatedUser = await userRepository.findById(currentId);
+    await userRepository.updateUser(currentId, { name: trimmed }, authContext);
+    const updatedUser = await userRepository.findById(currentId, authContext);
     return sanitizeUser(updatedUser);
   };
 
-  const updateAvatar = async ({ currentUser, avatar }) => {
+  const updateAvatar = async ({ currentUser, avatar, authContext } = {}) => {
     if (!currentUser) {
       throw createHttpError(401, "No autorizado", { code: "AUTH_REQUIRED" });
     }
@@ -140,8 +144,8 @@ export function createUserService({
     }
 
     const currentId = currentUser._id ?? currentUser.id;
-    await userRepository.updateUser(currentId, { image: avatar, avatar });
-    const updatedUser = await userRepository.findById(currentId);
+    await userRepository.updateUser(currentId, { image: avatar, avatar }, authContext);
+    const updatedUser = await userRepository.findById(currentId, authContext);
     return sanitizeUser(updatedUser);
   };
 

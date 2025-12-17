@@ -33,6 +33,7 @@ export const errorHandler = (error, request, response, next) => {
 export const authMiddleware = async (req, res, next) => {
   try {
     const { auth } = await getBetterAuth();
+    const baseContext = await auth.$context;
     const sessionResult = await auth.api.getSession({
       headers: fromNodeHeaders(req.headers),
     });
@@ -53,6 +54,14 @@ export const authMiddleware = async (req, res, next) => {
       _id: sessionUser.id ?? sessionUser._id,
     };
     req.session = payload?.session ?? payload?.data?.session ?? payload;
+    req.authContext = {
+      baseContext,
+      headers: req.headers,
+      method: req.method,
+      path: req.originalUrl ?? req.path ?? req.url ?? "/",
+      request: req,
+      session: req.session,
+    };
 
     next();
   } catch (err) {
