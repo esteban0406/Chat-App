@@ -2,7 +2,6 @@ import { io as Client } from "socket.io-client";
 import mongoose from "mongoose";
 
 // Importa modelos reales
-import User from "../../services/user/User.model.js";
 import Channel from "../../services/channel/Channel.model.js";
 import Server from "../../services/server/Server.model.js";
 import {
@@ -41,19 +40,15 @@ afterAll(async () => {
 
 describe("Sockets E2E con DB real", () => {
   test("cliente A envía mensaje guardado en Mongo y cliente B lo recibe", async () => {
-    // Crear User
-    const user = await User.create({
-      username: "testuser",
-      email: "test@mail.com",
-      password: "hashed",
-    });
+    // Crear un usuario ficticio representado por un ObjectId
+    const userId = new mongoose.Types.ObjectId();
 
     // Crear Server
     const serverDoc = await Server.create({
       name: "server-prueba",
       description: "Servidor para test",
-      owner: user._id,
-      members: [user._id],
+      owner: userId,
+      members: [userId],
       channels: [],
     });
 
@@ -74,7 +69,7 @@ describe("Sockets E2E con DB real", () => {
         try {
           expect(msg.text).toBe("Hola DB");
           expect(msg.channel.toString()).toBe(channel._id.toString());
-          expect(msg.sender.toString()).toBe(user._id.toString());
+          expect(msg.sender.toString()).toBe(userId.toString());
 
           // Verificar que realmente se guardó en DB
           const stored = await mongoose.connection
@@ -93,7 +88,7 @@ describe("Sockets E2E con DB real", () => {
     clientA.emit("message", {
       text: "Hola DB",
       channelId: channel._id.toString(),
-      senderId: user._id.toString(),
+      senderId: userId.toString(),
     });
 
     return msgPromise;
