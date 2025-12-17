@@ -5,6 +5,7 @@ import {
   startE2EServer,
   stopE2EServer,
 } from "../../../test/helpers/e2eServer.js";
+import { createBetterAuthTestUser } from "../helpers/betterAuthTestUtils.js";
 
 let app;
 
@@ -35,15 +36,13 @@ const expectFail = (res, status, message, code) => {
   });
 };
 
-const registerUser = async ({ username, email }) => {
-  const res = await request(app).post("/api/auth/register").send({
-    username,
-    email,
-    password: "123456",
-  });
-  const data = expectOk(res, 201);
-  return { token: data.token, user: data.user };
+const AUTH_ERROR = {
+  message: "Token invalido o expirado",
+  code: "INVALID_TOKEN",
 };
+
+const registerUser = ({ username, email }) =>
+  createBetterAuthTestUser({ username, email });
 
 const authHeader = (token) => ({
   Authorization: `Bearer ${token}`,
@@ -250,39 +249,39 @@ describe("/api/ServerInvites E2E", () => {
     };
 
     const resNoToken = await request(app).post("/api/ServerInvites/send").send(payload);
-    expectFail(resNoToken, 401, "No token provided", "AUTH_REQUIRED");
+    expectFail(resNoToken, 401, AUTH_ERROR.message, AUTH_ERROR.code);
 
     const resInvalid = await request(app)
       .post("/api/ServerInvites/send")
       .set(invalidAuthHeader())
       .send(payload);
-    expectFail(resInvalid, 401, "Token inválido o expirado", "INVALID_TOKEN");
+    expectFail(resInvalid, 401, AUTH_ERROR.message, AUTH_ERROR.code);
   });
 
   test("requiere autenticación para aceptar o rechazar invitaciones", async () => {
     const inviteId = new Types.ObjectId().toString();
 
     const acceptNoToken = await request(app).post(`/api/ServerInvites/accept/${inviteId}`);
-    expectFail(acceptNoToken, 401, "No token provided", "AUTH_REQUIRED");
+    expectFail(acceptNoToken, 401, AUTH_ERROR.message, AUTH_ERROR.code);
 
     const acceptInvalid = await request(app)
       .post(`/api/ServerInvites/accept/${inviteId}`)
       .set(invalidAuthHeader());
-    expectFail(acceptInvalid, 401, "Token inválido o expirado", "INVALID_TOKEN");
+    expectFail(acceptInvalid, 401, AUTH_ERROR.message, AUTH_ERROR.code);
 
     const rejectInvalid = await request(app)
       .post(`/api/ServerInvites/reject/${inviteId}`)
       .set(invalidAuthHeader());
-    expectFail(rejectInvalid, 401, "Token inválido o expirado", "INVALID_TOKEN");
+    expectFail(rejectInvalid, 401, AUTH_ERROR.message, AUTH_ERROR.code);
   });
 
   test("requiere autenticación para listar invitaciones pendientes", async () => {
     const resNoToken = await request(app).get("/api/ServerInvites/pending");
-    expectFail(resNoToken, 401, "No token provided", "AUTH_REQUIRED");
+    expectFail(resNoToken, 401, AUTH_ERROR.message, AUTH_ERROR.code);
 
     const resInvalid = await request(app)
       .get("/api/ServerInvites/pending")
       .set(invalidAuthHeader());
-    expectFail(resInvalid, 401, "Token inválido o expirado", "INVALID_TOKEN");
+    expectFail(resInvalid, 401, AUTH_ERROR.message, AUTH_ERROR.code);
   });
 });

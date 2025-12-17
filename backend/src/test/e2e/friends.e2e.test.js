@@ -5,6 +5,7 @@ import {
   startE2EServer,
   stopE2EServer,
 } from "../../../test/helpers/e2eServer.js";
+import { createBetterAuthTestUser } from "../helpers/betterAuthTestUtils.js";
 
 let app;
 
@@ -35,15 +36,13 @@ const expectFail = (res, status, message, code) => {
   });
 };
 
-const registerUser = async ({ username, email }) => {
-  const res = await request(app).post("/api/auth/register").send({
-    username,
-    email,
-    password: "123456",
-  });
-  const data = expectOk(res, 201);
-  return { token: data.token, user: data.user };
+const AUTH_ERROR = {
+  message: "Token invalido o expirado",
+  code: "INVALID_TOKEN",
 };
+
+const registerUser = ({ username, email }) =>
+  createBetterAuthTestUser({ username, email });
 
 const authHeader = (token) => ({
   Authorization: `Bearer ${token}`,
@@ -199,30 +198,30 @@ describe("/api/friends E2E", () => {
     const receiverId = new Types.ObjectId().toString();
 
     const noTokenRes = await request(app).post("/api/friends/send").send({ to: receiverId });
-    expectFail(noTokenRes, 401, "No token provided", "AUTH_REQUIRED");
+    expectFail(noTokenRes, 401, AUTH_ERROR.message, AUTH_ERROR.code);
 
     const invalidRes = await request(app)
       .post("/api/friends/send")
       .set(invalidAuthHeader())
       .send({ to: receiverId });
-    expectFail(invalidRes, 401, "Token inválido o expirado", "INVALID_TOKEN");
+    expectFail(invalidRes, 401, AUTH_ERROR.message, AUTH_ERROR.code);
   });
 
   test("requiere autenticación para listar pendientes y amigos", async () => {
     const pendingRes = await request(app).get("/api/friends/pending");
-    expectFail(pendingRes, 401, "No token provided", "AUTH_REQUIRED");
+    expectFail(pendingRes, 401, AUTH_ERROR.message, AUTH_ERROR.code);
 
     const pendingInvalid = await request(app)
       .get("/api/friends/pending")
       .set(invalidAuthHeader());
-    expectFail(pendingInvalid, 401, "Token inválido o expirado", "INVALID_TOKEN");
+    expectFail(pendingInvalid, 401, AUTH_ERROR.message, AUTH_ERROR.code);
 
     const listRes = await request(app).get("/api/friends/list");
-    expectFail(listRes, 401, "No token provided", "AUTH_REQUIRED");
+    expectFail(listRes, 401, AUTH_ERROR.message, AUTH_ERROR.code);
 
     const listInvalid = await request(app)
       .get("/api/friends/list")
       .set(invalidAuthHeader());
-    expectFail(listInvalid, 401, "Token inválido o expirado", "INVALID_TOKEN");
+    expectFail(listInvalid, 401, AUTH_ERROR.message, AUTH_ERROR.code);
   });
 });

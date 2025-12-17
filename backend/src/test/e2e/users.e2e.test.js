@@ -5,6 +5,7 @@ import {
   startE2EServer,
   stopE2EServer,
 } from "../../../test/helpers/e2eServer.js";
+import { createBetterAuthTestUser } from "../helpers/betterAuthTestUtils.js";
 
 let app;
 
@@ -20,20 +21,18 @@ afterAll(async () => {
   await stopE2EServer();
 });
 
-const registerUser = (payload) =>
-  request(app).post("/api/auth/register").send(payload);
+const registerUser = ({ username, email }) =>
+  createBetterAuthTestUser({ username, email });
 
 describe("/api/users E2E", () => {
   test("GET /api/users retorna la lista de usuarios sin contraseñas", async () => {
     await registerUser({
       username: "user1",
       email: "user1@mail.com",
-      password: "123456",
     });
     await registerUser({
       username: "user2",
       email: "user2@mail.com",
-      password: "123456",
     });
 
     const res = await request(app).get("/api/users");
@@ -52,14 +51,10 @@ describe("/api/users E2E", () => {
   });
 
   test("GET /api/users/:id retorna un usuario existente", async () => {
-    const createRes = await registerUser({
+    const { user: createdUser } = await registerUser({
       username: "singleuser",
       email: "single@mail.com",
-      password: "123456",
     });
-
-    expect(createRes.status).toBe(201);
-    const { user: createdUser } = createRes.body.data;
     const userId = createdUser.id;
     const res = await request(app).get(`/api/users/${userId}`);
 
@@ -87,7 +82,6 @@ describe("/api/users E2E", () => {
     await registerUser({
       username: "SearchUser",
       email: "search@mail.com",
-      password: "123456",
     });
 
     const res = await request(app).get("/api/users/search").query({

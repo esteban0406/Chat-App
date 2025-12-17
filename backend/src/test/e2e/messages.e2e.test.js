@@ -4,6 +4,7 @@ import {
   startE2EServer,
   stopE2EServer,
 } from "../../../test/helpers/e2eServer.js";
+import { createBetterAuthTestUser } from "../helpers/betterAuthTestUtils.js";
 
 let app;
 
@@ -34,15 +35,8 @@ afterAll(async () => {
   await stopE2EServer();
 });
 
-const registerUser = async ({ username, email }) => {
-  const res = await request(app).post("/api/auth/register").send({
-    username,
-    email,
-    password: "123456",
-  });
-  const data = expectOk(res, 201);
-  return { token: data.token, user: data.user };
-};
+const registerUser = ({ username, email }) =>
+  createBetterAuthTestUser({ username, email });
 
 const authHeader = (token) => ({
   Authorization: `Bearer ${token}`,

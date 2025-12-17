@@ -4,6 +4,7 @@ import {
   startE2EServer,
   stopE2EServer,
 } from "../../../test/helpers/e2eServer.js";
+import { createBetterAuthTestUser } from "../helpers/betterAuthTestUtils.js";
 
 let app;
 
@@ -34,16 +35,13 @@ const expectFail = (response, status, message, code) => {
   });
 };
 
-const registerUser = async ({ username, email }) => {
-  const res = await request(app).post("/api/auth/register").send({
-    username,
-    email,
-    password: "123456",
-  });
-
-  const data = expectOk(res, 201);
-  return { token: data.token, user: data.user };
+const AUTH_ERROR = {
+  message: "Token invalido o expirado",
+  code: "INVALID_TOKEN",
 };
+
+const registerUser = ({ username, email }) =>
+  createBetterAuthTestUser({ username, email });
 
 const authHeader = (token) => ({
   Authorization: `Bearer ${token}`,
@@ -203,13 +201,13 @@ describe("/api/channels E2E", () => {
     const payload = { name: "seguro", serverId: serverDoc.id };
 
     const noTokenRes = await request(app).post("/api/channels").send(payload);
-    expectFail(noTokenRes, 401, "No token provided", "AUTH_REQUIRED");
+    expectFail(noTokenRes, 401, AUTH_ERROR.message, AUTH_ERROR.code);
 
     const invalidTokenRes = await request(app)
       .post("/api/channels")
       .set(invalidAuthHeader())
       .send(payload);
-    expectFail(invalidTokenRes, 401, "Token inválido o expirado", "INVALID_TOKEN");
+    expectFail(invalidTokenRes, 401, AUTH_ERROR.message, AUTH_ERROR.code);
   });
 
   test("GET /api/channels/:serverId requiere autenticación", async () => {
@@ -220,12 +218,12 @@ describe("/api/channels E2E", () => {
     const serverDoc = await createServerForUser(token);
 
     const noTokenRes = await request(app).get(`/api/channels/${serverDoc.id}`);
-    expectFail(noTokenRes, 401, "No token provided", "AUTH_REQUIRED");
+    expectFail(noTokenRes, 401, AUTH_ERROR.message, AUTH_ERROR.code);
 
     const invalidRes = await request(app)
       .get(`/api/channels/${serverDoc.id}`)
       .set(invalidAuthHeader());
-    expectFail(invalidRes, 401, "Token inválido o expirado", "INVALID_TOKEN");
+    expectFail(invalidRes, 401, AUTH_ERROR.message, AUTH_ERROR.code);
   });
 
   test("DELETE /api/channels/:channelId requiere autenticación", async () => {
@@ -241,11 +239,11 @@ describe("/api/channels E2E", () => {
     const { channel } = expectOk(channelRes, 201);
 
     const noTokenRes = await request(app).delete(`/api/channels/${channel.id}`);
-    expectFail(noTokenRes, 401, "No token provided", "AUTH_REQUIRED");
+    expectFail(noTokenRes, 401, AUTH_ERROR.message, AUTH_ERROR.code);
 
     const invalidTokenRes = await request(app)
       .delete(`/api/channels/${channel.id}`)
       .set(invalidAuthHeader());
-    expectFail(invalidTokenRes, 401, "Token inválido o expirado", "INVALID_TOKEN");
+    expectFail(invalidTokenRes, 401, AUTH_ERROR.message, AUTH_ERROR.code);
   });
 });
