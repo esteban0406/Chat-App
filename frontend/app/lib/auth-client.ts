@@ -12,3 +12,5 @@ export const authClient = createAuthClient({
   baseURL: resolveBaseURL(),
 });
 
+export type Session = typeof authClient.$Infer.Session
+

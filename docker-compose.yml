@@ -9,8 +9,6 @@ services:
       - BACKEND_URL=${BACKEND_URL}
 
     command: npm run dev
-    volumes:
-      - ./frontend:/app
 
   backend:
     build: ./backend
