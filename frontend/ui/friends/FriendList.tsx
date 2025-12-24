@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User } from "@/app/lib/definitions";
+import { User } from "@/lib/definitions";
 
 export default function FriendList() {
   const [friends, setFriends] = useState<User[]>([]);

@@ -1,16 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { authClient } from "@/app/lib/auth-client";
-import { User } from "@/app/lib/definitions";
+import { authClient } from "@/lib/auth-client";
 
 type Props = {
-  user: User;
   onClose: () => void;
   onUpdated?: () => void;
 };
 
-export default function EditAvatarModal({ user, onClose, onUpdated }: Props) {
+export default function EditAvatarModal({ onClose, onUpdated }: Props) {
   const [preview, setPreview] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);

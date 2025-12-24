@@ -1,13 +1,6 @@
-export type User = {
-  id: string;
-  name: string | null;
-  email: string;
-  avatar?: string;
-  provider: "local" | "google" | "microsoft";
-  status: "online" | "offline" | "idle";
-  createdAt: string;
-  updatedAt: string;
-};
+import { Session } from "./auth-client"
+
+export type User = Session["user"];
 
 export type Message = {
   id: string;
@@ -59,7 +52,7 @@ export type ServerInvite = {
   updatedAt: string;
 };
 
-type AuthClient = typeof import("@/app/lib/auth-client")["authClient"];
+type AuthClient = typeof import("@/lib/auth-client")["authClient"];
 
 export type EmailSignInResult = Awaited<
   ReturnType<AuthClient["signIn"]["email"]>

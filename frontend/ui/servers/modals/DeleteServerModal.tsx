@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Server } from "@/app/lib/definitions";
+import { Server } from "@/lib/definitions";
 
 type Props = {
   server: Server | null;

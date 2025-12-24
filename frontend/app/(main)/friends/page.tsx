@@ -1,4 +1,4 @@
-import FriendList from "@/app/ui/friends/FriendList";
+import FriendList from "@/ui/friends/FriendList";
 
 export default function FriendsPage() {
   return (

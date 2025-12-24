@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FriendRequest, User } from "@/app/lib/definitions";
+import { FriendRequest, User } from "@/lib/definitions";
 
 export default function FriendRequestsList() {
   const [requests, setRequests] = useState<FriendRequest[]>([]);

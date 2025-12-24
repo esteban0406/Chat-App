@@ -7,13 +7,14 @@ import {
   HashtagIcon,
   UserCircleIcon,
 } from "@heroicons/react/24/outline";
-import ChatMessages from "@/app/ui/messages/ChatMessages";
-import ChatInput from "@/app/ui/messages/ChatInput";
-import { useMessages } from "@/app/ui/messages/useMessages";
-import { authClient } from "@/app/lib/auth-client";
-import { Channel, User } from "@/app/lib/definitions";
-import { useLayoutContext } from "@/app/ui/layout/LayoutContext";
-import VoiceRoom from "@/app/ui/voice/VoiceRoom";
+import ChatMessages from "@/ui/messages/ChatMessages";
+import ChatInput from "@/ui/messages/ChatInput";
+import { useMessages } from "@/ui/messages/useMessages";
+import { authClient } from "@/lib/auth-client";
+import { Channel, User } from "@/lib/definitions";
+import { Session } from "@/lib/auth-client";
+import { useLayoutContext } from "@/ui/layout/LayoutContext";
+import VoiceRoom from "@/ui/voice/VoiceRoom";
 
 export default function ChannelPage() {
   const params = useParams();
@@ -39,9 +40,9 @@ export default function ChannelPage() {
     let cancelled = false;
     authClient
       .getSession()
-      .then((session) => {
+      .then((session : Session) => {
         if (!cancelled) {
-          setCurrentUser((session?.data?.user as unknown as User) ?? null);
+          setCurrentUser((session?.data?.user) ?? null);
         }
       })
       .catch(() => {
@@ -109,7 +110,6 @@ export default function ChannelPage() {
           displayName={currentUser.name}
           enableVideo={false}
         />
-        {console.log("displayName:", currentUser.name)}
       </div>
     );
   }

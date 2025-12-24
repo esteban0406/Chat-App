@@ -5,13 +5,13 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Menu } from "@headlessui/react";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
-import { Channel, Server, User } from "@/app/lib/definitions";
+import { Channel, Server, User } from "@/lib/definitions";
 import CreateChannelModal from "./modals/CreateChannelModal";
 import EditChannelModal from "./modals/EditChannelModal";
 import DeleteChannelModal from "./modals/DeleteChannelModal";
-import InviteFriendsModal from "@/app/ui/servers/modals/InviteFriendsModal";
-import EditServerModal from "@/app/ui/servers/modals/EditServerModal";
-import DeleteServerModal from "@/app/ui/servers/modals/DeleteServerModal";
+import InviteFriendsModal from "@/ui/servers/modals/InviteFriendsModal";
+import EditServerModal from "@/ui/servers/modals/EditServerModal";
+import DeleteServerModal from "@/ui/servers/modals/DeleteServerModal";
 
 const getMemberId = (member: User | string | undefined | null) =>
   !member

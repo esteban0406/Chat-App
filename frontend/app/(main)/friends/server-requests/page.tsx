@@ -1,4 +1,4 @@
-import ServerInviteList from "@/app/ui/friends/ServerInviteList";
+import ServerInviteList from "@/ui/friends/ServerInviteList";
 
 export default function ServerRequestsPage() {
   return (

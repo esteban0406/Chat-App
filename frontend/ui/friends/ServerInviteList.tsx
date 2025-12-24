@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ServerInvite, Server } from "@/app/lib/definitions";
+import { ServerInvite, Server } from "@/lib/definitions";
 
 export default function ServerInviteList() {
   const router = useRouter();

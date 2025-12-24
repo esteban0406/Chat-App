@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { authClient } from "@/app/lib/auth-client";
-import { User } from "@/app/lib/definitions";
+import { authClient } from "@/lib/auth-client";
+import { User } from "@/lib/definitions";
 
 type Props = {
   user: User;

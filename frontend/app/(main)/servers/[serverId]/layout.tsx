@@ -1,7 +1,7 @@
 "use client";
 
-import SectionShell from "@/app/ui/layout/SectionShell";
-import ChannelSidebar from "@/app/ui/channels/ChannelSidebar";
+import SectionShell from "@/ui/layout/SectionShell";
+import ChannelSidebar from "@/ui/channels/ChannelSidebar";
 
 export default function ServerLayout({
   children,

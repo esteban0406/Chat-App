@@ -4,13 +4,13 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { authClient } from "@/app/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import type {
   AuthResult,
   EmailSignUpResult,
   SocialSignInResult,
   SocialSignInData,
-} from "@/app/lib/definitions";
+} from "@/lib/definitions";
 
 type OAuthProvider = "google" | "microsoft-entra-id";
 

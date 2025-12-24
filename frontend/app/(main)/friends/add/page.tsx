@@ -1,4 +1,4 @@
-import InviteForm from "@/app/ui/friends/InviteForm";
+import InviteForm from "@/ui/friends/InviteForm";
 
 export default function AddFriendPage() {
   return (

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { User } from "@/app/lib/definitions";
-import { authClient } from "@/app/lib/auth-client";
+import { User } from "@/lib/definitions";
+import { authClient } from "@/lib/auth-client";
 
 export default function InviteForm() {
   const [query, setQuery] = useState("");
@@ -27,7 +27,7 @@ export default function InviteForm() {
             const list: User[] = await friendsRes.json();
             setFriends(Array.isArray(list) ? list : []);
           }
-          setCurrentUser(session?.data?.user as unknown as User ?? null);
+          setCurrentUser(session?.data?.user ?? null);
         }
       } catch (err) {
         console.error(err);

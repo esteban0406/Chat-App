@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Message } from "@/app/lib/definitions";
-import { socket } from "@/app/lib/socket";
+import { Message } from "@/lib/definitions";
+import { socket } from "@/lib/socket";
 import { getMessageKey } from "./messageKeys";
 
 export function useMessages(channelId?: string) {

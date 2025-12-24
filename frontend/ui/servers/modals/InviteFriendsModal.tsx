@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Server, User } from "@/app/lib/definitions";
+import { Server, User, ServerInvite } from "@/lib/definitions";
 
 type Props = {
   server: Server | null;
@@ -10,7 +10,7 @@ type Props = {
 
 export default function InviteFriendsModal({ server, onClose }: Props) {
   const [friends, setFriends] = useState<User[]>([]);
-  const [pendingInvites, setPendingInvites] = useState<any[]>([]);
+  const [pendingInvites, setPendingInvites] = useState<ServerInvite[]>([]);
   const [invitingId, setInvitingId] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
 

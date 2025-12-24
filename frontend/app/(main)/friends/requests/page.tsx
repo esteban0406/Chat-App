@@ -1,4 +1,4 @@
-import FriendRequestsList from "@/app/ui/friends/FriendRequestsList";
+import FriendRequestsList from "@/ui/friends/FriendRequestsList";
 
 export default function FriendRequestsPage() {
   return (

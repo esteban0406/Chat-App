@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Server, User } from "@/app/lib/definitions";
+import { Server, User } from "@/lib/definitions";
 
 type Props = {
   server: Server | null;

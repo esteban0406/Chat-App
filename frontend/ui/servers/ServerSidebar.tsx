@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Server } from "@/app/lib/definitions";
+import { Server } from "@/lib/definitions";
 import CreateServerModal from "./modals/CreateServerModal";
 
 export default function ServerSidebar({ onClose }: { onClose?: () => void }) {

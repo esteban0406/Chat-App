@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import SectionShell from "@/app/ui/layout/SectionShell";
-import FriendsSidebar from "@/app/ui/friends/FriendsSidebar";
-import { useLayoutContext } from "@/app/ui/layout/LayoutContext";
+import SectionShell from "@/ui/layout/SectionShell";
+import FriendsSidebar from "@/ui/friends/FriendsSidebar";
+import { useLayoutContext } from "@/ui/layout/LayoutContext";
 import {
   Bars3Icon,
   UsersIcon,

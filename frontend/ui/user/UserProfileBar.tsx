@@ -4,25 +4,22 @@ import { useState, useEffect, useCallback } from "react";
 import { Menu } from "@headlessui/react";
 import EditNameModal from "./modals/EditNameModal";
 import EditAvatarModal from "./modals/EditAvatarModal";
-import { authClient } from "@/app/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { User } from "@/app/lib/definitions";
+import { User } from "@/lib/definitions";
+import { Session } from "@/lib/auth-client";
 
-function resolveSessionUser(session: unknown): User | null {
+function resolveSessionUser(session: Session): User | null {
   if (!session || typeof session !== "object") {
     return null;
   }
 
   const payload =
     "data" in session
-      ? (session as Record<string, unknown>).data
+      ? (session as Session).data
       : session;
 
-  const source =
-    (payload as any)?.user ??
-    (payload as any)?.session?.user ??
-    (payload as any)?.data?.user ??
-    (payload as any)?.session?.data?.user;
+  const source = (payload as Session)?.session?.data?.user;
 
   if (!source) {
     return null;
@@ -50,7 +47,7 @@ function resolveSessionUser(session: unknown): User | null {
 export default function UserProfileBar() {
   const router = useRouter();
 
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User>(null);
   const [openNameModal, setOpenNameModal] = useState(false);
   const [openAvatarModal, setOpenAvatarModal] = useState(false);
 
@@ -187,7 +184,7 @@ export default function UserProfileBar() {
       )}
       {openAvatarModal && (
         <EditAvatarModal
-          user={user}
+          user ={user}
           onClose={() => setOpenAvatarModal(false)}
           onUpdated={refreshUser}
         />

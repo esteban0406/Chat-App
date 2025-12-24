@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Channel } from "@/app/lib/definitions";
+import { Channel } from "@/lib/definitions";
 
 type Props = {
   channel: Channel;

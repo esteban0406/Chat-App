@@ -1,6 +1,6 @@
 "use client";
 
-import { Message } from "@/app/lib/definitions";
+import { Message } from "@/lib/definitions";
 
 type MessageLike = Message & { _id?: string };
 

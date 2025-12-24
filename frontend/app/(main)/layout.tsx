@@ -1,12 +1,12 @@
 "use client";
 
-import ServerSidebar from "@/app/ui/servers/ServerSidebar";
-import UserProfileBar from "@/app/ui/user/UserProfileBar";
-import MobileDrawer from "@/app/ui/common/MobileDrawer";
+import ServerSidebar from "@/ui/servers/ServerSidebar";
+import UserProfileBar from "@/ui/user/UserProfileBar";
+import MobileDrawer from "@/ui/common/MobileDrawer";
 import {
   LayoutContextProvider,
   useLayoutContext,
-} from "@/app/ui/layout/LayoutContext";
+} from "@/ui/layout/LayoutContext";
 
 export default function AppLayout({
   children,
