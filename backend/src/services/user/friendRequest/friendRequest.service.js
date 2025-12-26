@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import FriendRequest from "./FriendRequest.model.js";
 import { createHttpError, validationError } from "../../../utils/httpError.js";
-import { createBetterAuthUserRepository } from "../betterAuthUser.repository.js";
+import { betterAuthUserApi as defaultUserApi } from "../betterAuthUser.api.js";
 
 const toStringId = (value) => value?.toString?.() ?? String(value);
 
@@ -46,10 +46,10 @@ const sanitizeFriendRequestDocument = (request) => {
 
 export function createFriendRequestService({
   FriendRequestModel = FriendRequest,
-  userRepository = createBetterAuthUserRepository(),
+  userApi = defaultUserApi,
   mongooseLib = mongoose,
 } = {}) {
-  const getUserSummariesMap = async (userIds = []) => {
+  const getUserSummariesMap = async (userIds = [], authContext) => {
     if (!Array.isArray(userIds) || userIds.length === 0) {
       return new Map();
     }
@@ -59,7 +59,7 @@ export function createFriendRequestService({
       return new Map();
     }
 
-    const users = await userRepository.findByIds(uniqueIds);
+    const users = await userApi.getUsersByIds(uniqueIds, authContext);
     const map = new Map();
     for (const user of users) {
       const summary = sanitizeSummaryUser(user);
@@ -70,7 +70,7 @@ export function createFriendRequestService({
     return map;
   };
 
-  const sendFriendRequest = async ({ fromUserId, toUserId }) => {
+  const sendFriendRequest = async ({ fromUserId, toUserId, authContext }) => {
     if (!toUserId) {
       throw validationError("Falta el usuario destinatario (to)", { field: "to" });
     }
@@ -89,7 +89,7 @@ export function createFriendRequestService({
       });
     }
 
-    const receiver = await userRepository.findById(toUserId);
+    const receiver = await userApi.getUserById(toUserId, authContext);
     if (!receiver) {
       throw createHttpError(404, "El usuario destinatario no existe", {
         code: "USER_NOT_FOUND",
@@ -137,7 +137,7 @@ export function createFriendRequestService({
     return sanitizeFriendRequestDocument(request);
   };
 
-  const listPendingFriendRequests = async ({ userId }) => {
+  const listPendingFriendRequests = async ({ userId, authContext }) => {
     if (!userId) {
       throw createHttpError(401, "No autorizado", { code: "AUTH_REQUIRED" });
     }
@@ -147,7 +147,10 @@ export function createFriendRequestService({
       status: "pending",
     });
 
-    const sendersMap = await getUserSummariesMap(requests.map((request) => request.from));
+    const sendersMap = await getUserSummariesMap(
+      requests.map((request) => request.from),
+      authContext,
+    );
 
     return requests.map((request) => {
       const sanitized = sanitizeFriendRequestDocument(request);
@@ -160,7 +163,7 @@ export function createFriendRequestService({
     });
   };
 
-  const listFriends = async ({ userId }) => {
+  const listFriends = async ({ userId, authContext }) => {
     if (!userId) {
       throw createHttpError(401, "No autorizado", { code: "AUTH_REQUIRED" });
     }
@@ -186,7 +189,7 @@ export function createFriendRequestService({
       return [];
     }
 
-    const userMap = await getUserSummariesMap(friendIds);
+    const userMap = await getUserSummariesMap(friendIds, authContext);
     return friendIds
       .map((id) => userMap.get(toStringId(id)))
       .filter(Boolean);

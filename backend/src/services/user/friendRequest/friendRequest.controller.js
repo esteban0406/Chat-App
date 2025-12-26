@@ -15,6 +15,7 @@ export function createFriendRequestController({
       const request = await friendRequestService.sendFriendRequest({
         fromUserId: req.user?._id,
         toUserId: req.body?.to,
+        authContext: req.authContext,
       });
 
       return ok(res, {
@@ -47,6 +48,7 @@ export function createFriendRequestController({
     try {
       const requests = await friendRequestService.listPendingFriendRequests({
         userId: req.user?._id,
+        authContext: req.authContext,
       });
 
       return ok(res, {
@@ -61,6 +63,7 @@ export function createFriendRequestController({
     try {
       const friends = await friendRequestService.listFriends({
         userId: req.user?._id,
+        authContext: req.authContext,
       });
 
       return ok(res, {

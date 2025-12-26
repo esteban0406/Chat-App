@@ -1,4 +1,5 @@
 import { createAuthClient } from "better-auth/react";
+import { usernameClient } from "better-auth/client/plugins";
 
 const resolveBaseURL = () => {
   const host = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
@@ -9,7 +10,7 @@ const resolveBaseURL = () => {
 
 export const authClient = createAuthClient({
   baseURL: resolveBaseURL(),
+  plugins: [usernameClient()],
 });
 
 export type Session = typeof authClient.$Infer.Session
-

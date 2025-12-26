@@ -24,9 +24,13 @@ afterAll(async () => {
 const registerUser = ({ username, email }) =>
   createBetterAuthTestUser({ username, email });
 
+const authHeader = (token) => ({
+  Authorization: `Bearer ${token}`,
+});
+
 describe("/api/users E2E", () => {
   test("GET /api/users retorna la lista de usuarios sin contraseñas", async () => {
-    await registerUser({
+    const { token } = await registerUser({
       username: "user1",
       email: "user1@mail.com",
     });
@@ -35,7 +39,9 @@ describe("/api/users E2E", () => {
       email: "user2@mail.com",
     });
 
-    const res = await request(app).get("/api/users");
+    const res = await request(app)
+      .get("/api/users")
+      .set(authHeader(token));
 
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({ success: true });
@@ -51,12 +57,14 @@ describe("/api/users E2E", () => {
   });
 
   test("GET /api/users/:id retorna un usuario existente", async () => {
-    const { user: createdUser } = await registerUser({
+    const { user: createdUser, token } = await registerUser({
       username: "singleuser",
       email: "single@mail.com",
     });
     const userId = createdUser.id;
-    const res = await request(app).get(`/api/users/${userId}`);
+    const res = await request(app)
+      .get(`/api/users/${userId}`)
+      .set(authHeader(token));
 
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({ success: true });
@@ -69,7 +77,13 @@ describe("/api/users E2E", () => {
   });
 
   test("GET /api/users/:id retorna 404 cuando el usuario no existe", async () => {
-    const res = await request(app).get(`/api/users/${new Types.ObjectId()}`);
+    const { token } = await registerUser({
+      username: "auth",
+      email: "auth@mail.com",
+    });
+    const res = await request(app)
+      .get(`/api/users/${new Types.ObjectId()}`)
+      .set(authHeader(token));
 
     expect(res.status).toBe(404);
     expect(res.body).toMatchObject({
@@ -79,14 +93,17 @@ describe("/api/users E2E", () => {
   });
 
   test("GET /api/users/search busca por username ignorando mayúsculas", async () => {
-    await registerUser({
+    const { token } = await registerUser({
       username: "SearchUser",
       email: "search@mail.com",
     });
 
-    const res = await request(app).get("/api/users/search").query({
-      username: "searchuser",
-    });
+    const res = await request(app)
+      .get("/api/users/search")
+      .set(authHeader(token))
+      .query({
+        username: "searchuser",
+      });
 
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({ success: true });
@@ -106,7 +123,13 @@ describe("/api/users E2E", () => {
   });
 
   test("GET /api/users/search retorna 400 cuando falta el username", async () => {
-    const res = await request(app).get("/api/users/search");
+    const { token } = await registerUser({
+      username: "auth",
+      email: "auth-user@mail.com",
+    });
+    const res = await request(app)
+      .get("/api/users/search")
+      .set(authHeader(token));
 
     expect(res.status).toBe(400);
     expect(res.body).toMatchObject({
@@ -116,8 +139,13 @@ describe("/api/users E2E", () => {
   });
 
   test("GET /api/users/search retorna 404 cuando no encuentra coincidencias", async () => {
+    const { token } = await registerUser({
+      username: "auth",
+      email: "auth-user@mail.com",
+    });
     const res = await request(app)
       .get("/api/users/search")
+      .set(authHeader(token))
       .query({ username: "unknown" });
 
     expect(res.status).toBe(404);

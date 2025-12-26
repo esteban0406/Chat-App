@@ -33,10 +33,12 @@ export async function createBetterAuthTestUser({
   username,
   email,
   rememberMe = true,
+  role = "admin",
 } = {}) {
   userCounter += 1;
   const fallbackName = username ?? `test-user-${userCounter}`;
   const fallbackEmail = email ?? `test-user-${userCounter}@mail.com`;
+  const normalizedRole = Array.isArray(role) ? role.join(",") : role;
 
   return runWithAuthContext(async (baseContext) => {
     const adapter = baseContext.internalAdapter;
@@ -46,6 +48,7 @@ export async function createBetterAuthTestUser({
       image: null,
       emailVerified: true,
       username: fallbackName,
+      role: normalizedRole,
     });
 
     if (!user) {
@@ -63,6 +66,7 @@ export async function createBetterAuthTestUser({
         id: user.id,
         email: user.email ?? fallbackEmail,
         username: user.name ?? fallbackName,
+        role: user.role ?? normalizedRole,
         ...user,
       },
     };

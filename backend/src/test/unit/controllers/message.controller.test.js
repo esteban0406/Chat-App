@@ -8,8 +8,8 @@ const ChannelMock = {
   findById: jest.fn(),
 };
 
-const findByIdMock = jest.fn();
-const findByIdsMock = jest.fn();
+const getUserByIdMock = jest.fn();
+const getUsersByIdsMock = jest.fn();
 
 const ioMock = {
   to: jest.fn().mockReturnThis(),
@@ -26,12 +26,12 @@ jest.unstable_mockModule("../../../services/channel/Channel.model.js", () => ({
   default: ChannelMock,
 }));
 
-jest.unstable_mockModule("../../../services/user/betterAuthUser.repository.js", () => ({
+jest.unstable_mockModule("../../../services/user/betterAuthUser.api.js", () => ({
   __esModule: true,
-  createBetterAuthUserRepository: () => ({
-    findById: findByIdMock,
-    findByIds: findByIdsMock,
-  }),
+  betterAuthUserApi: {
+    getUserById: getUserByIdMock,
+    getUsersByIds: getUsersByIdsMock,
+  },
 }));
 
 const { createMessageController } = await import(
@@ -84,10 +84,10 @@ describe("message.controller", () => {
     MessageMock.mockReset();
     MessageMock.find.mockReset();
     ChannelMock.findById.mockReset();
-    findByIdMock.mockReset();
-    findByIdsMock.mockReset();
-    findByIdsMock.mockResolvedValue([]);
-    findByIdMock.mockResolvedValue({
+    getUserByIdMock.mockReset();
+    getUsersByIdsMock.mockReset();
+    getUsersByIdsMock.mockResolvedValue([]);
+    getUserByIdMock.mockResolvedValue({
       id: "user123",
       username: "test",
     });
@@ -134,7 +134,7 @@ describe("message.controller", () => {
       expect(ChannelMock.findById).toHaveBeenCalledWith("channel123");
       expect(channel.messages).toContain("message123");
       expect(channel.save).toHaveBeenCalled();
-      expect(findByIdMock).toHaveBeenCalledWith("user123");
+      expect(getUserByIdMock).toHaveBeenCalledWith("user123", undefined);
       expect(ioMock.to).toHaveBeenCalledWith("channel123");
       expect(ioMock.emit).toHaveBeenCalledWith("message", {
         _id: "message123",
@@ -201,7 +201,7 @@ describe("message.controller", () => {
         }),
       ];
       MessageMock.find.mockResolvedValue(messageDocs);
-      findByIdsMock.mockResolvedValue([
+      getUsersByIdsMock.mockResolvedValue([
         { id: "user123", username: "test" },
       ]);
 

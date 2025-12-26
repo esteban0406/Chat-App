@@ -62,6 +62,7 @@ export function createServerInviteController({
     try {
       const invites = await serverInviteService.listPendingInvites({
         userId: req.user?._id,
+        authContext: req.authContext,
       });
 
       return ok(res, {

@@ -40,7 +40,9 @@ describe("user.controller", () => {
 
       await controller.getUsers(req, res, next);
 
-      expect(userService.listUsers).toHaveBeenCalledTimes(1);
+      expect(userService.listUsers).toHaveBeenCalledWith({
+        authContext: undefined,
+      });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -67,7 +69,9 @@ describe("user.controller", () => {
 
       await controller.getUser(req, res, next);
 
-      expect(userService.getUserById).toHaveBeenCalledWith("user123");
+      expect(userService.getUserById).toHaveBeenCalledWith("user123", {
+        authContext: undefined,
+      });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -94,7 +98,9 @@ describe("user.controller", () => {
 
       await controller.searchUser(req, res, next);
 
-      expect(userService.searchUsersByUsername).toHaveBeenCalledWith("search");
+      expect(userService.searchUsersByUsername).toHaveBeenCalledWith("search", {
+        authContext: undefined,
+      });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -125,7 +131,9 @@ describe("user.controller", () => {
 
       await controller.proxyAvatar(req, res, next);
 
-      expect(userService.getAvatarResource).toHaveBeenCalledWith("user123");
+      expect(userService.getAvatarResource).toHaveBeenCalledWith("user123", {
+        authContext: undefined,
+      });
       expect(res.setHeader).toHaveBeenCalledWith("Content-Type", "image/png");
       expect(res.send).toHaveBeenCalledWith(resource.body);
     });

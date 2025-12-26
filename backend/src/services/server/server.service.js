@@ -1,7 +1,7 @@
 import Channel from "../channel/Channel.model.js";
 import Server from "./Server.model.js";
 import { createHttpError, validationError } from "../../utils/httpError.js";
-import { createBetterAuthUserRepository } from "../user/betterAuthUser.repository.js";
+import { betterAuthUserApi as defaultUserApi } from "../user/betterAuthUser.api.js";
 
 const toStringId = (value) => value?.toString?.() ?? String(value);
 
@@ -77,9 +77,9 @@ const sanitizeServerDocument = (server) => {
 export function createServerService({
   ServerModel = Server,
   ChannelModel = Channel,
-  userRepository = createBetterAuthUserRepository(),
+  userApi = defaultUserApi,
 } = {}) {
-  const getUserSummariesMap = async (userIds = []) => {
+  const getUserSummariesMap = async (userIds = [], authContext) => {
     if (!Array.isArray(userIds) || !userIds.length) {
       return new Map();
     }
@@ -87,7 +87,7 @@ export function createServerService({
     if (!uniqueIds.length) {
       return new Map();
     }
-    const users = await userRepository.findByIds(uniqueIds);
+    const users = await userApi.getUsersByIds(uniqueIds, authContext);
     const map = new Map();
     for (const user of users) {
       if (!user?.id) continue;
@@ -102,7 +102,7 @@ export function createServerService({
     return map;
   };
 
-  const hydrateServerMembers = async (servers) => {
+  const hydrateServerMembers = async (servers, authContext) => {
     if (!servers) return servers;
     const list = Array.isArray(servers) ? servers : [servers];
     if (list.length === 0) return Array.isArray(servers) ? [] : null;
@@ -122,7 +122,7 @@ export function createServerService({
       }
     }
 
-    const memberMap = await getUserSummariesMap([...memberIds]);
+    const memberMap = await getUserSummariesMap([...memberIds], authContext);
 
     const hydrated = plainServers.map((server) => ({
       ...server,
@@ -147,7 +147,7 @@ export function createServerService({
     return server;
   };
 
-  const createServer = async ({ name, description = "", ownerId }) => {
+  const createServer = async ({ name, description = "", ownerId, authContext }) => {
     if (!name || typeof name !== "string" || !name.trim()) {
       throw validationError("El nombre es requerido", { field: "name" });
     }
@@ -175,7 +175,7 @@ export function createServerService({
     server.channels.push(channel._id);
     await server.save();
 
-    const hydrated = await hydrateServerMembers(server);
+    const hydrated = await hydrateServerMembers(server, authContext);
 
     return {
       server: sanitizeServerDocument(hydrated),
@@ -183,7 +183,7 @@ export function createServerService({
     };
   };
 
-  const joinServer = async ({ serverId, userId }) => {
+  const joinServer = async ({ serverId, userId, authContext }) => {
     if (!serverId || !userId) {
       throw validationError("serverId y userId requeridos", {
         fields: ["serverId", "userId"],
@@ -203,19 +203,19 @@ export function createServerService({
     }
 
     await server.populate("channels");
-    const hydrated = await hydrateServerMembers(server);
+    const hydrated = await hydrateServerMembers(server, authContext);
 
     return sanitizeServerDocument(hydrated);
   };
 
-  const listServersForMember = async ({ userId }) => {
+  const listServersForMember = async ({ userId, authContext }) => {
     if (!userId) {
       throw createHttpError(401, "No autorizado", { code: "AUTH_REQUIRED" });
     }
 
     const servers = await ServerModel.find({ members: userId }).populate("channels");
 
-    const hydrated = await hydrateServerMembers(servers);
+    const hydrated = await hydrateServerMembers(servers, authContext);
 
     return hydrated.map(sanitizeServerDocument);
   };
@@ -229,7 +229,7 @@ export function createServerService({
     await ServerModel.findByIdAndDelete(serverId);
   };
 
-  const removeMember = async ({ serverId, memberId, requesterId }) => {
+  const removeMember = async ({ serverId, memberId, requesterId, authContext }) => {
     if (!serverId || !memberId) {
       throw validationError("serverId y memberId requeridos", {
         fields: ["serverId", "memberId"],
@@ -265,7 +265,7 @@ export function createServerService({
     await server.save();
 
     await server.populate("channels");
-    const hydrated = await hydrateServerMembers(server);
+    const hydrated = await hydrateServerMembers(server, authContext);
 
     return sanitizeServerDocument(hydrated);
   };

@@ -23,6 +23,7 @@ export function createMessageController({
         text,
         senderId,
         channelId,
+        authContext: req.authContext,
       });
 
       emitMessage(channelId, {
@@ -47,6 +48,7 @@ export function createMessageController({
     try {
       const messages = await messageService.listMessages({
         channelId: req.params?.channelId,
+        authContext: req.authContext,
       });
 
       return ok(res, {

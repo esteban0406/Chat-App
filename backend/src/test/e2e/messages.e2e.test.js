@@ -53,11 +53,12 @@ const createServerForUser = async (token, body = {}) => {
   return expectOk(res, 201);
 };
 
-const sendMessage = (payload) => request(app).post("/api/messages").send(payload);
+const sendMessage = (payload, token) =>
+  request(app).post("/api/messages").set(authHeader(token)).send(payload);
 
 describe("/api/messages E2E", () => {
   test("POST /api/messages crea un mensaje y lo asocia al canal", async () => {
-    const { user: owner } = await registerUser({
+    const { user: owner, token: ownerToken } = await registerUser({
       username: "owner",
       email: "owner@mail.com",
     });
@@ -70,17 +71,23 @@ describe("/api/messages E2E", () => {
     const serverId = serverData.server.id;
     const channel = serverData.defaultChannel;
 
-    const joinRes = await request(app).post("/api/servers/join").send({
-      serverId,
-      userId: owner.id,
-    });
+    const joinRes = await request(app)
+      .post("/api/servers/join")
+      .set(authHeader(ownerToken))
+      .send({
+        serverId,
+        userId: owner.id,
+      });
     expectOk(joinRes, 200);
 
-    const res = await sendMessage({
-      text: "Hola mundo",
-      senderId: owner.id,
-      channelId: channel.id,
-    });
+    const res = await sendMessage(
+      {
+        text: "Hola mundo",
+        senderId: owner.id,
+        channelId: channel.id,
+      },
+      ownerToken,
+    );
     const { message } = expectOk(res, 201);
     expect(message).toMatchObject({
       text: "Hola mundo",
@@ -88,7 +95,9 @@ describe("/api/messages E2E", () => {
       sender: expect.objectContaining({ id: owner.id }),
     });
 
-    const list = await request(app).get(`/api/messages/${channel.id}`);
+    const list = await request(app)
+      .get(`/api/messages/${channel.id}`)
+      .set(authHeader(ownerToken));
     const { messages } = expectOk(list, 200);
     expect(messages).toHaveLength(1);
     expect(messages[0]).toMatchObject({
@@ -99,11 +108,18 @@ describe("/api/messages E2E", () => {
   });
 
   test("POST /api/messages valida campos obligatorios", async () => {
-    const res = await sendMessage({
-      text: "",
-      senderId: "",
-      channelId: "",
+    const { token } = await registerUser({
+      username: "sender",
+      email: "sender@mail.com",
     });
+    const res = await sendMessage(
+      {
+        text: "",
+        senderId: "",
+        channelId: "",
+      },
+      token,
+    );
 
     expectFail(res, 400, "Faltan campos obligatorios", "VALIDATION_ERROR");
   });
@@ -116,7 +132,9 @@ describe("/api/messages E2E", () => {
     const serverData = await createServerForUser(token);
     const channelId = serverData.defaultChannel.id;
 
-    const res = await request(app).get(`/api/messages/${channelId}`);
+    const res = await request(app)
+      .get(`/api/messages/${channelId}`)
+      .set(authHeader(token));
     const { messages } = expectOk(res, 200);
     expect(messages).toEqual([]);
   });

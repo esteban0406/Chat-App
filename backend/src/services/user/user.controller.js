@@ -11,7 +11,9 @@ export function createUserController({
 
   const getUsers = async (req, res, next) => {
     try {
-      const users = await userService.listUsers();
+      const users = await userService.listUsers({
+        authContext: req.authContext,
+      });
       return ok(res, { data: { users } });
     } catch (error) {
       return next(error);
@@ -20,7 +22,9 @@ export function createUserController({
 
   const getUser = async (req, res, next) => {
     try {
-      const user = await userService.getUserById(req.params.id);
+      const user = await userService.getUserById(req.params.id, {
+        authContext: req.authContext,
+      });
       return ok(res, { data: { user } });
     } catch (error) {
       return next(error);
@@ -29,7 +33,9 @@ export function createUserController({
 
   const searchUser = async (req, res, next) => {
     try {
-      const users = await userService.searchUsersByUsername(req.query.username);
+      const users = await userService.searchUsersByUsername(req.query.username, {
+        authContext: req.authContext,
+      });
       return ok(res, { data: { users } });
     } catch (error) {
       return next(error);
@@ -38,7 +44,9 @@ export function createUserController({
 
   const proxyAvatar = async (req, res, next) => {
     try {
-      const resource = await userService.getAvatarResource(req.params.id);
+      const resource = await userService.getAvatarResource(req.params.id, {
+        authContext: req.authContext,
+      });
 
       if (resource.headers) {
         Object.entries(resource.headers).forEach(([header, value]) => {

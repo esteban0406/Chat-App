@@ -11,7 +11,7 @@ const ServerMock = {
   find: jest.fn(),
 };
 
-const findByIdsMock = jest.fn();
+const getUsersByIdsMock = jest.fn();
 
 jest.unstable_mockModule("../../../services/server/invite/ServerInvite.model.js", () => ({
   __esModule: true,
@@ -23,11 +23,11 @@ jest.unstable_mockModule("../../../services/server/Server.model.js", () => ({
   default: ServerMock,
 }));
 
-jest.unstable_mockModule("../../../services/user/betterAuthUser.repository.js", () => ({
+jest.unstable_mockModule("../../../services/user/betterAuthUser.api.js", () => ({
   __esModule: true,
-  createBetterAuthUserRepository: () => ({
-    findByIds: findByIdsMock,
-  }),
+  betterAuthUserApi: {
+    getUsersByIds: getUsersByIdsMock,
+  },
 }));
 
 const {
@@ -82,8 +82,8 @@ describe("serverInvite.controller", () => {
     ServerInviteMock.find.mockReset();
     ServerMock.findByIdAndUpdate.mockReset();
     ServerMock.find.mockReset();
-    findByIdsMock.mockReset();
-    findByIdsMock.mockResolvedValue([]);
+    getUsersByIdsMock.mockReset();
+    getUsersByIdsMock.mockResolvedValue([]);
   });
 
   describe("sendServerInvite", () => {
@@ -310,7 +310,7 @@ describe("serverInvite.controller", () => {
         }),
       ];
       ServerInviteMock.find.mockResolvedValue(invites);
-      findByIdsMock.mockResolvedValue([
+      getUsersByIdsMock.mockResolvedValue([
         { id: "user123", username: "Alice", email: "alice@example.com" },
       ]);
       const selectMock = jest.fn().mockResolvedValue([
@@ -330,7 +330,7 @@ describe("serverInvite.controller", () => {
       });
       expect(ServerMock.find).toHaveBeenCalledWith({ _id: { $in: ["server123", "missing"] } });
       expect(selectMock).toHaveBeenCalledWith("name");
-      expect(findByIdsMock).toHaveBeenCalledWith(["user123", "user789"]);
+      expect(getUsersByIdsMock).toHaveBeenCalledWith(["user123", "user789"], undefined);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,

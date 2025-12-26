@@ -1,7 +1,7 @@
 import ServerInvite from "./ServerInvite.model.js";
 import Server from "../Server.model.js";
 import { createHttpError, validationError } from "../../../utils/httpError.js";
-import { createBetterAuthUserRepository } from "../../user/betterAuthUser.repository.js";
+import { betterAuthUserApi as defaultUserApi } from "../../user/betterAuthUser.api.js";
 
 const toStringId = (value) => value?.toString?.() ?? String(value);
 
@@ -67,9 +67,9 @@ const sanitizeInviteWithDetails = (invite) => {
 export function createServerInviteService({
   ServerInviteModel = ServerInvite,
   ServerModel = Server,
-  userRepository = createBetterAuthUserRepository(),
+  userApi = defaultUserApi,
 } = {}) {
-  const getUserSummariesMap = async (userIds = []) => {
+  const getUserSummariesMap = async (userIds = [], authContext) => {
     if (!Array.isArray(userIds) || !userIds.length) {
       return new Map();
     }
@@ -78,7 +78,7 @@ export function createServerInviteService({
       return new Map();
     }
 
-    const users = await userRepository.findByIds(uniqueIds);
+    const users = await userApi.getUsersByIds(uniqueIds, authContext);
     const map = new Map();
     for (const user of users) {
       if (!user?.id) continue;
@@ -191,7 +191,7 @@ export function createServerInviteService({
     return sanitizeInvite(invite);
   };
 
-  const listPendingInvites = async ({ userId }) => {
+  const listPendingInvites = async ({ userId, authContext }) => {
     if (!userId) {
       throw createHttpError(401, "No autorizado", { code: "AUTH_REQUIRED" });
     }
@@ -199,7 +199,7 @@ export function createServerInviteService({
     const invites = await ServerInviteModel.find({ to: userId, status: "pending" });
 
     const [userMap, serverMap] = await Promise.all([
-      getUserSummariesMap(invites.map((invite) => invite.from)),
+      getUserSummariesMap(invites.map((invite) => invite.from), authContext),
       getServerSummariesMap(invites.map((invite) => invite.server)),
     ]);
 

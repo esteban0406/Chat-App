@@ -10,7 +10,7 @@ export function createServerRouter({
 
   router.post("/", authMiddleware, controller.createServer);
   router.get("/", authMiddleware, controller.getServers);
-  router.post("/join", controller.joinServer);
+  router.post("/join", authMiddleware, controller.joinServer);
   router.delete("/:serverId", authMiddleware, controller.deleteServer);
   router.delete("/:serverId/members/:memberId", authMiddleware, controller.removeMember);
   router.post("/:serverId/leave", authMiddleware, controller.leaveServer);

@@ -41,7 +41,9 @@ export default function UserProfileBar() {
   if (!user) return null;
 
   const avatarSrc = user?.id
-    ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${user.id}/avatar?${user.updatedAt}`
+    ? `/api/users/${user.id}/avatar?${encodeURIComponent(
+        user.updatedAt?.toString?.() ?? "",
+      )}`
     : fallbackAvatar;
 
   return (

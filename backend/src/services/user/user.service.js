@@ -1,10 +1,7 @@
 import axios from "axios";
 import { fromNodeHeaders } from "better-auth/node";
 import { createHttpError, validationError } from "../../utils/httpError.js";
-import {
-  betterAuthUserRepository as defaultUserRepository,
-  createBetterAuthUserRepository,
-} from "./betterAuthUser.repository.js";
+import { betterAuthUserApi as defaultUserApi } from "./betterAuthUser.api.js";
 import { getBetterAuth } from "../../auth/betterAuth.js";
 
 const DATA_URL_REGEX = /^data:(.+);base64$/i;
@@ -55,30 +52,35 @@ const parseDataUrl = (dataUrl) => {
 };
 
 export function createUserService({
-  userRepository = defaultUserRepository ?? createBetterAuthUserRepository(),
+  userApi = defaultUserApi,
   httpClient = axios,
 } = {}) {
-  const sanitizeUser = (user) => sanitizeUserDocument(user);
+  const sanitizeUser = (user) =>
+    userApi?.sanitizeUser ? userApi.sanitizeUser(user) : sanitizeUserDocument(user);
 
-  const listUsers = async () => {
-    const users = await userRepository.listUsers({ limit: 100 });
+  const listUsers = async ({ authContext } = {}) => {
+    const users = await userApi.listUsers({ limit: 100, authContext });
     return users.map(sanitizeUser).filter(Boolean);
   };
 
-  const getUserById = async (id) => {
-    const user = await userRepository.findById(id);
+  const getUserById = async (id, { authContext } = {}) => {
+    const user = await userApi.getUserById(id, authContext);
     if (!user) {
       throw createHttpError(404, "Usuario no encontrado", { code: "USER_NOT_FOUND" });
     }
     return sanitizeUser(user);
   };
 
-  const searchUsersByUsername = async (username) => {
+  const searchUsersByUsername = async (username, { authContext } = {}) => {
     if (!username || username.trim() === "") {
       throw validationError("Debes proporcionar un username");
     }
 
-    const users = await userRepository.searchByUsername(username, { limit: 10 });
+    const users = await userApi.searchUsers({
+      term: username,
+      limit: 10,
+      authContext,
+    });
 
     if (!users.length) {
       throw createHttpError(404, "Usuario no encontrado", { code: "USER_NOT_FOUND" });
@@ -128,7 +130,7 @@ export function createUserService({
 
     const currentId = currentUser._id ?? currentUser.id;
     if (currentId) {
-      const refreshedUser = await userRepository.findById(currentId, authContext);
+      const refreshedUser = await userApi.getUserById(currentId, authContext);
       if (refreshedUser) {
         return sanitizeUser(refreshedUser);
       }
@@ -157,14 +159,38 @@ export function createUserService({
       parseDataUrl(avatar);
     }
 
+    const { auth } = await getBetterAuth();
+    const headers = authContext?.headers ? fromNodeHeaders(authContext.headers) : undefined;
+    const result = await auth.api.updateUser({
+      headers,
+      body: { image: avatar, avatar },
+    });
+
+    const payload = result && typeof result === "object" && "data" in result ? result.data : result;
+    const updatedUser =
+      payload?.user ??
+      payload?.data?.user ??
+      payload?.session?.user ??
+      payload?.session?.data?.user ??
+      payload;
+
+    if (updatedUser) {
+      return sanitizeUser(updatedUser);
+    }
+
     const currentId = currentUser._id ?? currentUser.id;
-    await userRepository.updateUser(currentId, { image: avatar, avatar }, authContext);
-    const updatedUser = await userRepository.findById(currentId, authContext);
-    return sanitizeUser(updatedUser);
+    if (currentId) {
+      const refreshedUser = await userApi.getUserById(currentId, authContext);
+      if (refreshedUser) {
+        return sanitizeUser(refreshedUser);
+      }
+    }
+
+    return sanitizeUser(currentUser);
   };
 
-  const getAvatarResource = async (userId) => {
-    const user = await userRepository.findById(userId);
+  const getAvatarResource = async (userId, { authContext } = {}) => {
+    const user = await userApi.getUserById(userId, authContext);
 
     if (!user || !user.avatar) {
       throw createHttpError(404, "Avatar no disponible", { code: "AVATAR_NOT_FOUND" });

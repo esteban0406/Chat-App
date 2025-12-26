@@ -1,7 +1,7 @@
 import Message from "./Message.model.js";
 import Channel from "../channel/Channel.model.js";
 import { createHttpError, validationError } from "../../utils/httpError.js";
-import { createBetterAuthUserRepository } from "../user/betterAuthUser.repository.js";
+import { betterAuthUserApi as defaultUserApi } from "../user/betterAuthUser.api.js";
 
 const toStringId = (value) => value?.toString?.() ?? String(value);
 
@@ -45,9 +45,9 @@ const sanitizeMessageDocument = (message) => {
 export function createMessageService({
   MessageModel = Message,
   ChannelModel = Channel,
-  userRepository = createBetterAuthUserRepository(),
+  userApi = defaultUserApi,
 } = {}) {
-  const mapSenderSummaries = async (senderIds = []) => {
+  const mapSenderSummaries = async (senderIds = [], authContext) => {
     if (!Array.isArray(senderIds) || !senderIds.length) {
       return new Map();
     }
@@ -56,7 +56,7 @@ export function createMessageService({
       return new Map();
     }
 
-    const users = await userRepository.findByIds(uniqueIds);
+    const users = await userApi.getUsersByIds(uniqueIds, authContext);
     const map = new Map();
     for (const user of users) {
       if (!user?.id) continue;
@@ -82,7 +82,7 @@ export function createMessageService({
     return channel;
   };
 
-  const createMessage = async ({ text, senderId, channelId }) => {
+  const createMessage = async ({ text, senderId, channelId, authContext }) => {
     if (!text || !senderId || !channelId) {
       throw validationError("Faltan campos obligatorios", {
         fields: ["text", "senderId", "channelId"],
@@ -102,7 +102,7 @@ export function createMessageService({
     await channel.save();
 
     const sanitized = sanitizeMessageDocument(message);
-    const sender = await userRepository.findById(senderId);
+    const sender = await userApi.getUserById(senderId, authContext);
     if (sender) {
       sanitized.sender = {
         id: toStringId(sender.id),
@@ -113,7 +113,7 @@ export function createMessageService({
     return sanitized;
   };
 
-  const listMessages = async ({ channelId }) => {
+  const listMessages = async ({ channelId, authContext }) => {
     if (!channelId) {
       throw validationError("El canal es requerido", { field: "channelId" });
     }
@@ -123,6 +123,7 @@ export function createMessageService({
 
     const senderMap = await mapSenderSummaries(
       sanitizedMessages.map((message) => message.sender?.id ?? message.sender),
+      authContext,
     );
 
     return sanitizedMessages.map((message) => {

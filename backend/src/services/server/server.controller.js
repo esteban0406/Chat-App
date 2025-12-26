@@ -12,6 +12,7 @@ export function createServerController({ serverService = defaultServerService } 
         name: req.body?.name,
         description: req.body?.description,
         ownerId: req.user?._id,
+        authContext: req.authContext,
       });
 
       return ok(res, {
@@ -29,6 +30,7 @@ export function createServerController({ serverService = defaultServerService } 
       const server = await serverService.joinServer({
         serverId: req.body?.serverId,
         userId: req.body?.userId,
+        authContext: req.authContext,
       });
 
       return ok(res, {
@@ -44,6 +46,7 @@ export function createServerController({ serverService = defaultServerService } 
     try {
       const servers = await serverService.listServersForMember({
         userId: req.user?._id,
+        authContext: req.authContext,
       });
 
       return ok(res, {
@@ -72,6 +75,7 @@ export function createServerController({ serverService = defaultServerService } 
         serverId: req.params?.serverId,
         memberId: req.params?.memberId,
         requesterId: req.user?._id,
+        authContext: req.authContext,
       });
 
       return ok(res, {

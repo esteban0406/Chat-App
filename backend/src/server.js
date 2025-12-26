@@ -78,7 +78,7 @@ export async function createServer(options = {}) {
   // =======================
   // Root & Error Handlers
   // =======================
-  app.get("/", (req, res) => res.send("API funcionando"));
+  app.get("/", (req, res) => res.send("API funcionando 🚀"));
   app.use(unknownEndpoint);
   app.use(errorHandler);
 
@@ -92,10 +92,10 @@ export async function startServer(createServerFn = createServer) {
   });
 
   process.once("SIGINT", async () => {
-    console.log("Shutting down...");
+    console.log("🛑 Shutting down...");
     await mongoose.disconnect();
     server.close(() => {
-      console.log("Server closed gracefully");
+      console.log("👋 Server closed gracefully");
       process.exit(0);
     });
   });

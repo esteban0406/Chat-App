@@ -8,12 +8,12 @@ export function createUserRouter({
 } = {}) {
   const router = express.Router();
 
-  router.get("/search", controller.searchUser);
-  router.get("/", controller.getUsers);
+  router.get("/search", authMiddleware, controller.searchUser);
+  router.get("/", authMiddleware, controller.getUsers);
   router.patch("/me", authMiddleware, controller.updateUsername);
   router.patch("/me/avatar", authMiddleware, controller.updateAvatar);
-  router.get("/:id/avatar", controller.proxyAvatar);
-  router.get("/:id", controller.getUser);
+  router.get("/:id/avatar", authMiddleware, controller.proxyAvatar);
+  router.get("/:id", authMiddleware, controller.getUser);
 
   return router;
 }

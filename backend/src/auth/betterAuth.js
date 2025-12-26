@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
-import { bearer, genericOAuth, microsoftEntraId } from "better-auth/plugins";
+import { bearer, genericOAuth, microsoftEntraId, username, admin } from "better-auth/plugins";
 import { toNodeHandler } from "better-auth/node";
 import mongoose from "mongoose";
 
@@ -12,7 +12,13 @@ export async function getBetterAuth() {
   const client = mongoose.connection.getClient();
   const db = client.db();
 
-  const plugins = [bearer()];
+  const plugins = [
+    bearer(),
+    username(),
+    admin({
+      defaultRole: "admin",
+    }),
+  ];
 
   if (process.env.MS_CLIENT_ID && process.env.MS_CLIENT_SECRET && process.env.MS_TENANT_ID) {
     plugins.push(

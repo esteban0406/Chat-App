@@ -9,7 +9,7 @@ ServerMock.findByIdAndDelete = jest.fn();
 const ChannelMock = jest.fn();
 ChannelMock.deleteMany = jest.fn();
 
-const findByIdsMock = jest.fn();
+const getUsersByIdsMock = jest.fn();
 
 jest.unstable_mockModule("../../../services/server/Server.model.js", () => ({
   __esModule: true,
@@ -21,11 +21,11 @@ jest.unstable_mockModule("../../../services/channel/Channel.model.js", () => ({
   default: ChannelMock,
 }));
 
-jest.unstable_mockModule("../../../services/user/betterAuthUser.repository.js", () => ({
+jest.unstable_mockModule("../../../services/user/betterAuthUser.api.js", () => ({
   __esModule: true,
-  createBetterAuthUserRepository: () => ({
-    findByIds: findByIdsMock,
-  }),
+  betterAuthUserApi: {
+    getUsersByIds: getUsersByIdsMock,
+  },
 }));
 
 const {
@@ -119,8 +119,8 @@ describe("server.controller", () => {
     ServerMock.findByIdAndDelete.mockReset();
     ChannelMock.mockReset();
     ChannelMock.deleteMany.mockReset();
-    findByIdsMock.mockReset();
-    findByIdsMock.mockResolvedValue([]);
+    getUsersByIdsMock.mockReset();
+    getUsersByIdsMock.mockResolvedValue([]);
   });
 
   describe("createServer", () => {
