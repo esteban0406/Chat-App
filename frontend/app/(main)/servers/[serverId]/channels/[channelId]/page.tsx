@@ -33,16 +33,15 @@ export default function ChannelPage() {
   const [channel, setChannel] = useState<Channel | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  const { messages, loading, error, refresh } =
-    useMessages(channelId);
+  const { messages, loading, error, refresh } = useMessages(channelId);
 
   useEffect(() => {
     let cancelled = false;
     authClient
       .getSession()
-      .then((session : Session) => {
+      .then((session: Session) => {
         if (!cancelled) {
-          setCurrentUser((session?.data?.user) ?? null);
+          setCurrentUser(session?.data?.user ?? null);
         }
       })
       .catch(() => {
@@ -103,7 +102,6 @@ export default function ChannelPage() {
   if (channel?.type === "voice") {
     return (
       <div className="flex h-full flex-col bg-gray-900">
-        
         <VoiceRoom
           channelId={channelId ?? ""}
           userId={currentUser?.id}

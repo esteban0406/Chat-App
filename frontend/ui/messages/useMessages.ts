@@ -3,23 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { Message } from "@/lib/definitions";
 import { socket } from "@/lib/socket";
-import { getMessageKey } from "./messageKeys";
 
 export function useMessages(channelId?: string) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-
-  const appendMessage = useCallback((message: Message) => {
-    const key = getMessageKey(message);
-    setMessages((prev) => {
-      const exists = prev.some(
-        (existing) => getMessageKey(existing) === key
-      );
-      return exists ? prev : [...prev, message];
-    });
-  }, []);
 
   const refresh = useCallback(() => {
     setRefreshKey((key) => key + 1);
@@ -90,7 +79,7 @@ export function useMessages(channelId?: string) {
 
     const handleMessage = (message: Message) => {
       if (message.channel === channelId) {
-        appendMessage(message);
+        setMessages((msgs) => [...msgs, message]);
       }
     };
 
@@ -100,13 +89,12 @@ export function useMessages(channelId?: string) {
       socket.emit("leaveChannel", channelId);
       socket.off("message", handleMessage);
     };
-  }, [channelId, appendMessage]);
+  }, [channelId]);
 
   return {
     messages,
     loading,
     error,
-    refresh,
-    appendMessage,
+    refresh
   };
 }

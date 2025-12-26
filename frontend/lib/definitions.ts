@@ -5,7 +5,7 @@ export type User = Session["user"];
 export type Message = {
   id: string;
   text: string;
-  sender: string | User;
+  sender: User;
   channel: string;
   timestamp: string;
   createdAt: string;

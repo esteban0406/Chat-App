@@ -1,7 +1,6 @@
 "use client";
 
 import { Message } from "@/lib/definitions";
-import { getMessageKey } from "./messageKeys";
 
 type Props = {
   messages: Message[];
@@ -17,19 +16,11 @@ export default function ChatMessages({
   currentUserId,
 }: Props) {
   if (loading) {
-    return (
-      <p className="p-4 text-sm text-gray-400">
-        Cargando mensajes...
-      </p>
-    );
+    return <p className="p-4 text-sm text-gray-400">Cargando mensajes...</p>;
   }
 
   if (error) {
-    return (
-      <p className="p-4 text-sm text-red-400">
-        {error}
-      </p>
-    );
+    return <p className="p-4 text-sm text-red-400">{error}</p>;
   }
 
   if (!messages.length) {
@@ -42,26 +33,20 @@ export default function ChatMessages({
 
   return (
     <div className="flex flex-col space-y-3 p-4">
-      {messages.map((message, index) => {
-        const baseId = getMessageKey(message, index);
-        const senderId =
-          typeof message.sender === "string"
-            ? message.sender
-            : message.sender?.id;
+      {console.log("ChatMessages render:", messages)}
+      {messages.map((message) => {
+        const senderId = message.sender.id;
         const isOwn = currentUserId && senderId === currentUserId;
-
         return (
           <div
-            key={baseId}
+            key={message.id}
             className={`flex flex-col max-w-[85%] sm:max-w-[70%] ${
               isOwn ? "self-end items-end" : "self-start items-start"
             }`}
           >
             <div
               className={`inline-block rounded-lg px-3 py-2 shadow-sm text-sm ${
-                isOwn
-                  ? "bg-indigo-600 text-white"
-                  : "bg-gray-800 text-gray-100"
+                isOwn ? "bg-indigo-600 text-white" : "bg-gray-800 text-gray-100"
               }`}
             >
               {!isOwn && typeof message.sender === "object" && (

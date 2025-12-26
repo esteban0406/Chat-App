@@ -1,4 +1,7 @@
 import Message from "../services/message/Message.model.js";
+import { defaultMessageService } from "../services/message/message.service.js";
+
+const { sanitizeMessage } = defaultMessageService;
 
 export default function registerChatHandlers(io, socket) {
   socket.on("message", async (data) => {
@@ -38,14 +41,14 @@ export default function registerChatHandlers(io, socket) {
           ...baseMessage,
         };
 
-        io.emit("message", fakeMsg);
+        io.emit("message", sanitizeMessage(fakeMsg));
         return;
       }
 
       const msg = new Message(baseMessage);
       await msg.save();
 
-      io.emit("message", msg);
+      io.emit("message", sanitizeMessage(msg));
     } catch (err) {
       console.error("❌ Error saving message:", err);
     }

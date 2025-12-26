@@ -27,7 +27,7 @@ export function createMessageController({
       });
 
       emitMessage(channelId, {
-        _id: message.id,
+        id: message.id,
         text: message.text,
         sender: message.sender,
         channel: message.channel,
