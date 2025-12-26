@@ -1,9 +1,11 @@
 import axios from "axios";
+import { fromNodeHeaders } from "better-auth/node";
 import { createHttpError, validationError } from "../../utils/httpError.js";
 import {
   betterAuthUserRepository as defaultUserRepository,
   createBetterAuthUserRepository,
 } from "./betterAuthUser.repository.js";
+import { getBetterAuth } from "../../auth/betterAuth.js";
 
 const DATA_URL_REGEX = /^data:(.+);base64$/i;
 const REMOTE_URL_REGEX = /^https?:\/\//i;
@@ -95,8 +97,8 @@ export function createUserService({
     }
 
     const trimmed = username.trim();
-    if (trimmed.length < 3 || trimmed.length > 30) {
-      throw validationError("El username debe tener entre 3 y 30 caracteres");
+    if (!trimmed) {
+      throw validationError("Debes proporcionar un username válido");
     }
 
     const currentName = currentUser.username ?? currentUser.name ?? "";
@@ -104,23 +106,35 @@ export function createUserService({
       return sanitizeUser(currentUser);
     }
 
-    const currentId = currentUser._id ?? currentUser.id;
+    const { auth } = await getBetterAuth();
+    const headers = authContext?.headers ? fromNodeHeaders(authContext.headers) : undefined;
 
-    const usernameTaken = await userRepository.isUsernameTaken(
-      trimmed,
-      {
-        excludeId: currentId,
-      },
-      authContext,
-    );
+    const result = await auth.api.updateUser({
+      headers,
+      body: { username: trimmed },
+    });
 
-    if (usernameTaken) {
-      throw createHttpError(409, "Ese username ya está en uso", { code: "USERNAME_TAKEN" });
+    const payload = result && typeof result === "object" && "data" in result ? result.data : result;
+    const updatedUser =
+      payload?.user ??
+      payload?.data?.user ??
+      payload?.session?.user ??
+      payload?.session?.data?.user ??
+      payload;
+
+    if (updatedUser) {
+      return sanitizeUser(updatedUser);
     }
 
-    await userRepository.updateUser(currentId, { name: trimmed }, authContext);
-    const updatedUser = await userRepository.findById(currentId, authContext);
-    return sanitizeUser(updatedUser);
+    const currentId = currentUser._id ?? currentUser.id;
+    if (currentId) {
+      const refreshedUser = await userRepository.findById(currentId, authContext);
+      if (refreshedUser) {
+        return sanitizeUser(refreshedUser);
+      }
+    }
+
+    return sanitizeUser(currentUser);
   };
 
   const updateAvatar = async ({ currentUser, avatar, authContext } = {}) => {

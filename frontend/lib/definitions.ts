@@ -66,6 +66,8 @@ export type SocialSignInResult = Awaited<
   ReturnType<AuthClient["signIn"]["social"]>
 >;
 
+export type UpdateUserResult = Awaited<ReturnType<AuthClient["updateUser"]>>;
+
 export type AuthResult =
   | EmailSignInResult
   | EmailSignUpResult

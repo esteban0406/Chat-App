@@ -1,95 +1,37 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Menu } from "@headlessui/react";
 import EditNameModal from "./modals/EditNameModal";
 import EditAvatarModal from "./modals/EditAvatarModal";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { User } from "@/lib/definitions";
-import { Session } from "@/lib/auth-client";
-
-function resolveSessionUser(session: Session): User | null {
-  if (!session || typeof session !== "object") {
-    return null;
-  }
-
-  const payload =
-    "data" in session
-      ? (session as Session).data
-      : session;
-
-  const source = (payload as Session)?.session?.data?.user;
-
-  if (!source) {
-    return null;
-  }
-
-  const now = new Date().toISOString();
-  const usernameCandidate =
-    source.username ??
-    source.name ??
-    source.email ??
-    "Usuario";
-
-  return {
-    id: source.id ?? source._id ?? source.userId ?? "",
-    username: usernameCandidate,
-    email: source.email ?? "",
-    avatar: source.avatar ?? undefined,
-    provider: (source.provider as User["provider"]) ?? "local",
-    status: (source.status as User["status"]) ?? "online",
-    createdAt: source.createdAt ?? now,
-    updatedAt: source.updatedAt ?? now,
-  };
-}
 
 export default function UserProfileBar() {
   const router = useRouter();
 
-  const [user, setUser] = useState<User>(null);
+  const [user, setUser] = useState<User>();
   const [openNameModal, setOpenNameModal] = useState(false);
   const [openAvatarModal, setOpenAvatarModal] = useState(false);
 
   const fallbackAvatar =
     "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-  const fetchCurrentUser = useCallback(async () => {
+  const fetchUser = async () => {
     const session = await authClient.getSession();
-    return resolveSessionUser(session);
-  }, []);
-
-  const refreshUser = useCallback(async () => {
-    try {
-      const resolved = await fetchCurrentUser();
-      setUser(resolved);
-    } catch (error) {
-      console.error("❌ Error loading user profile:", error);
-      setUser(null);
-    }
-  }, [fetchCurrentUser]);
+    return session.data?.user;
+  };
 
   useEffect(() => {
-    let cancelled = false;
-
     (async () => {
       try {
-        const resolved = await fetchCurrentUser();
-        if (!cancelled) {
-          setUser(resolved);
-        }
+        setUser(await fetchUser());
       } catch (error) {
         console.error("❌ Error loading user profile:", error);
-        if (!cancelled) {
-          setUser(null);
-        }
       }
     })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [fetchCurrentUser]);
+  }, []);
 
   async function handleLogout() {
     await authClient.signOut();
@@ -108,7 +50,7 @@ export default function UserProfileBar() {
       <img
         key={avatarSrc}
         src={avatarSrc}
-        alt={user.username}
+        alt={user.name}
         className="w-10 h-10 rounded-full"
         onError={(e) => {
           e.currentTarget.src = fallbackAvatar;
@@ -117,7 +59,7 @@ export default function UserProfileBar() {
 
       {/* Username */}
       <div className="flex-1 truncate">
-        <p className="text-sm font-semibold truncate">{user.username}</p>
+        <p className="text-sm font-semibold truncate">{user.name}</p>
         <p className="text-xs text-gray-400">Online</p>
       </div>
 
@@ -179,14 +121,16 @@ export default function UserProfileBar() {
         <EditNameModal
           user={user}
           onClose={() => setOpenNameModal(false)}
-          onUpdated={refreshUser}
+          onUpdated={async () => {
+            const updatedUser = await fetchUser();
+            setUser(updatedUser);
+          }}
         />
       )}
       {openAvatarModal && (
         <EditAvatarModal
-          user ={user}
           onClose={() => setOpenAvatarModal(false)}
-          onUpdated={refreshUser}
+          //onUpdated={refreshUser}
         />
       )}
     </div>

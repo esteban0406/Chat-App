@@ -2,26 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
-import { User } from "@/lib/definitions";
+import { UpdateUserResult, User } from "@/lib/definitions";
 
 type Props = {
   user: User;
   onClose: () => void;
-  onUpdated?: () => void;
+  onUpdated: () => Promise<void> | void;
 };
 
 export default function EditNameModal({ user, onClose, onUpdated }: Props) {
-  const [name, setName] = useState(user.username ?? "");
+  const [name, setName] = useState(user.name ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setName(user.username ?? "");
+    setName(user.name ?? "");
   }, [user]);
 
   const closeModal = () => {
     if (loading) return;
-    setName(user.username ?? "");
+    setName(user.name ?? "");
     setError("");
     onClose();
   };
@@ -35,7 +35,7 @@ export default function EditNameModal({ user, onClose, onUpdated }: Props) {
       return;
     }
 
-    if (trimmed === user.username) {
+    if (trimmed === user.name) {
       setError("Debes ingresar un nombre diferente");
       return;
     }
@@ -44,23 +44,22 @@ export default function EditNameModal({ user, onClose, onUpdated }: Props) {
     setError("");
 
     try {
-      const res = await fetch("/api/users/me", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: trimmed }),
-      });
+      const result = (await authClient.updateUser({
+        name: trimmed,
+      })) as UpdateUserResult;
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body?.message || "No se pudo actualizar el nombre");
+      if (!result || result.error) {
+        throw new Error(
+          result?.error?.message || "No se pudo actualizar el nombre"
+        );
       }
 
-      await authClient.refresh();
-      onUpdated?.();
+      onUpdated();
       setError("");
       onClose();
-    } catch (err: any) {
-      setError(err?.message || "Error al actualizar nombre");
+    } catch (err: unknown) {
+      console.error(err);
+      setError("Error al actualizar nombre");
     } finally {
       setLoading(false);
     }

@@ -11,7 +11,7 @@ export default function InviteForm() {
   const [searching, setSearching] = useState(false);
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [friends, setFriends] = useState<User[]>([]);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User>();
 
   useEffect(() => {
     let cancelled = false;
@@ -27,7 +27,7 @@ export default function InviteForm() {
             const list: User[] = await friendsRes.json();
             setFriends(Array.isArray(list) ? list : []);
           }
-          setCurrentUser(session?.data?.user ?? null);
+          setCurrentUser(session?.data?.user);
         }
       } catch (err) {
         console.error(err);
@@ -104,7 +104,7 @@ export default function InviteForm() {
       if (!res.ok) {
         throw new Error("No se pudo enviar la invitación");
       }
-      setStatus(`Invitación enviada a ${user.username} ✅`);
+      setStatus(`Invitación enviada a ${user.name} ✅`);
       setResults((prev) => prev.filter((candidate) => candidate.id !== user.id));
     } catch (err) {
       console.error(err);
@@ -149,7 +149,7 @@ export default function InviteForm() {
               className="flex items-center justify-between rounded bg-gray-700 px-4 py-2 text-sm"
             >
               <span className="truncate">
-                {user.username}{" "}
+                {user.name}{" "}
                 <span className="text-gray-400">({user.email})</span>
               </span>
               <button

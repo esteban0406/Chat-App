@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { authClient } from "@/lib/auth-client";
 
 type Props = {
   onClose: () => void;
@@ -71,13 +70,13 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body?.message || "No se pudo actualizar el avatar");
       }
-
-      await authClient.refresh();
+      
       onUpdated?.();
       resetState();
       onClose();
-    } catch (err: any) {
-      setError(err?.message || "Error al subir imagen");
+    } catch (err: unknown) {
+      console.error(err);
+      setError( "Error al subir imagen");
     } finally {
       setLoading(false);
     }
