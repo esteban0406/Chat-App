@@ -21,20 +21,14 @@ type VoiceRoomProps = {
   enableVideo?: boolean;
 };
 
-type JoinResponse = {
-  token: string;
-  url: string;
-};
-
 export default function VoiceRoom({
   channelId,
   userId,
   displayName,
   enableVideo = false,
 }: VoiceRoomProps) {
-  const [token, setToken] = useState<string | null>(null);
-  const [serverUrl, setServerUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState<string>();
+  const [serverUrl, setServerUrl] = useState<string>();
   const [error, setError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
 
@@ -45,21 +39,7 @@ export default function VoiceRoom({
   );
 
   useEffect(() => {
-    if (!channelId || !userId || !resolvedDisplayName) {
-      setToken(null);
-      setServerUrl(null);
-      setError(null);
-      setLoading(false);
-      return;
-    }
-
-    let active = true;
     const controller = new AbortController();
-
-    setLoading(true);
-    setError(null);
-    setToken(null);
-    setServerUrl(null);
 
     fetch("/api/voice/join", {
       method: "POST",
@@ -75,44 +55,47 @@ export default function VoiceRoom({
         if (!res.ok) {
           throw new Error("Failed to fetch LiveKit token");
         }
-        return res.json() as Promise<JoinResponse>;
+        return res.json();
       })
       .then(({ token, url }) => {
-        if (!active) return;
         setToken(token);
         setServerUrl(url);
       })
       .catch((err) => {
-        if (!active || err.name === "AbortError") return;
         console.error("Error joining voice channel", err);
         setError("No se pudo conectar al canal de voz.");
-      })
-      .finally(() => {
-        if (!active) return;
-        setLoading(false);
       });
-
-    return () => {
-      active = false;
-      controller.abort();
-    };
   }, [channelId, userId, resolvedDisplayName, roomName, retryKey]);
 
-  if (!userId) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center gap-2 text-sm text-gray-300">
-        <p>Necesitas iniciar sesión para unirte al canal de voz.</p>
-      </div>
-    );
-  }
+  function LocalParticipantNameSync({ name }: { name?: string }) {
+    const room = useRoomContext();
 
-  if (loading || !token || !serverUrl) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center gap-2 text-sm text-gray-300">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-gray-600 border-t-white" />
-        <p>Conectando al canal de voz...</p>
-      </div>
-    );
+    useEffect(() => {
+      const trimmed = name?.trim();
+      if (!room || !trimmed) return;
+
+      const updateName = () => {
+        const participant = room.localParticipant;
+        if (!participant || participant.name === trimmed) return;
+        participant.setName(trimmed).catch((err) => {
+          console.warn(
+            "No se pudo actualizar el nombre del participante:",
+            err
+          );
+        });
+      };
+
+      if (room.state === "connected") {
+        updateName();
+      }
+
+      room.on(RoomEvent.Connected, updateName);
+      return () => {
+        room.off(RoomEvent.Connected, updateName);
+      };
+    }, [room, name]);
+
+    return null;
   }
 
   if (error) {
@@ -145,33 +128,4 @@ export default function VoiceRoom({
       <LocalParticipantNameSync name={resolvedDisplayName} />
     </LiveKitRoom>
   );
-}
-
-function LocalParticipantNameSync({ name }: { name?: string }) {
-  const room = useRoomContext();
-
-  useEffect(() => {
-    const trimmed = name?.trim();
-    if (!room || !trimmed) return;
-
-    const updateName = () => {
-      const participant = room.localParticipant;
-      console.log("room context: ",room.localParticipant.isSpeaking)
-      if (!participant || participant.name === trimmed) return;
-      participant.setName(trimmed).catch((err) => {
-        console.warn("No se pudo actualizar el nombre del participante:", err);
-      });
-    };
-
-    if (room.state === "connected") {
-      updateName();
-    }
-
-    room.on(RoomEvent.Connected, updateName);
-    return () => {
-      room.off(RoomEvent.Connected, updateName);
-    };
-  }, [room, name]);
-
-  return null;
 }

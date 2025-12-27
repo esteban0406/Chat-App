@@ -12,7 +12,6 @@ import ChatInput from "@/ui/messages/ChatInput";
 import { useMessages } from "@/ui/messages/useMessages";
 import { authClient } from "@/lib/auth-client";
 import { Channel, User } from "@/lib/definitions";
-import { Session } from "@/lib/auth-client";
 import { useLayoutContext } from "@/ui/layout/LayoutContext";
 import VoiceRoom from "@/ui/voice/VoiceRoom";
 
@@ -30,39 +29,18 @@ export default function ChannelPage() {
   const { openServerDrawer, openSectionSidebar, openProfileDrawer } =
     useLayoutContext();
 
-  const [channel, setChannel] = useState<Channel | null>(null);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [channel, setChannel] = useState<Channel>();
+  const [currentUser, setCurrentUser] = useState<User>();
 
   const { messages, loading, error, refresh } = useMessages(channelId);
 
   useEffect(() => {
-    let cancelled = false;
-    authClient
-      .getSession()
-      .then((session: Session) => {
-        if (!cancelled) {
-          setCurrentUser(session?.data?.user ?? null);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setCurrentUser(null);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
+    authClient.getSession().then((session) => {
+      setCurrentUser(session?.data?.user);
+    });
   }, []);
 
   useEffect(() => {
-    if (!serverId || !channelId) {
-      setChannel(null);
-      return;
-    }
-
-    let cancelled = false;
-
     async function loadChannel() {
       try {
         const res = await fetch(`/api/channels?serverId=${serverId}`, {
@@ -72,27 +50,14 @@ export default function ChannelPage() {
           throw new Error("No se pudo cargar la información del canal");
         }
         const body = await res.json();
-        const list = Array.isArray(body)
-          ? body
-          : Array.isArray(body?.channels)
-          ? body.channels
-          : [];
-        const found = list.find((item: Channel) => item.id === channelId);
-        if (!cancelled) {
-          setChannel(found ?? null);
-        }
+        const found = body.find((item: Channel) => item.id === channelId);
+        setChannel(found ?? null);
       } catch (err) {
         console.error(err);
-        if (!cancelled) {
-          setChannel(null);
-        }
       }
     }
 
     loadChannel();
-    return () => {
-      cancelled = true;
-    };
   }, [serverId, channelId]);
 
   const title = channel?.name
@@ -105,7 +70,7 @@ export default function ChannelPage() {
         <VoiceRoom
           channelId={channelId ?? ""}
           userId={currentUser?.id}
-          displayName={currentUser.name}
+          displayName={currentUser?.name}
           enableVideo={false}
         />
       </div>
@@ -157,19 +122,13 @@ export default function ChannelPage() {
         />
       </main>
 
-      {channel?.type !== "voice" ? (
-        <div className="flex h-[72px] items-center border-t border-gray-800 bg-gray-800 px-3">
-          <ChatInput
-            channelId={channelId ?? ""}
-            senderId={currentUser?.id}
-            onError={() => refresh()}
-          />
-        </div>
-      ) : (
-        <div className="border-t border-gray-800 bg-gray-800 px-4 py-3 text-sm text-gray-400">
-          Los canales de voz aún no están disponibles en esta vista.
-        </div>
-      )}
+      <div className="flex h-[72px] items-center border-t border-gray-800 bg-gray-800 px-3">
+        <ChatInput
+          channelId={channelId ?? ""}
+          senderId={currentUser?.id}
+          onError={() => refresh()}
+        />
+      </div>
     </div>
   );
 }
