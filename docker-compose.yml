@@ -7,6 +7,7 @@ services:
       - backend
     environment:
       - BACKEND_URL=${BACKEND_URL}
+      - NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
     volumes:
       - ./frontend:/app    
 
