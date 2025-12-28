@@ -12,7 +12,7 @@ export const corsConfig = {
   origin: [
     "http://localhost:5173",
     "http://localhost:3000",
-    "https://chatapp-frontend-020n.onrender.com",
+    "https://chat-app-koob.onrender.com",
   ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], 
