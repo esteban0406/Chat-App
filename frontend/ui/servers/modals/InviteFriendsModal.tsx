@@ -15,8 +15,6 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
   const [status, setStatus] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-
     async function loadFriends() {
       try {
         const res = await fetch("/api/friends", { cache: "no-store" });
@@ -24,21 +22,13 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
           throw new Error("Failed to load friends");
         }
         const list: User[] = await res.json();
-        if (!cancelled) {
-          setFriends(Array.isArray(list) ? list : []);
-        }
+        setFriends(list);
       } catch (err) {
         console.error(err);
-        if (!cancelled) {
-          setFriends([]);
-        }
+        setFriends([]);
       }
     }
-
     loadFriends();
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   useEffect(() => {
@@ -52,15 +42,7 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
           throw new Error("Failed to load pending invites");
         }
         const data = await res.json();
-
-        const invites = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.data?.invites)
-          ? data.data.invites
-          : Array.isArray(data?.invites)
-          ? data.invites
-          : [];
-        setPendingInvites(invites);
+        setPendingInvites(data);
       } catch (err) {
         console.error(err);
       }
