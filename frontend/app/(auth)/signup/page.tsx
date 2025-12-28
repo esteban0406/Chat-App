@@ -9,7 +9,6 @@ import type {
   AuthResult,
   EmailSignUpResult,
   SocialSignInResult,
-  SocialSignInData,
 } from "@/lib/definitions";
 
 type OAuthProvider = "google" | "microsoft-entra-id";
@@ -65,10 +64,12 @@ export default function SignUpPage() {
       return;
     }
 
-    const { url, redirect } = (result.data ?? {}) as Partial<SocialSignInData>;
-    const shouldRedirect = redirect !== false;
-    if (url && shouldRedirect) {
-      window.location.href = url;
+    const data = result?.data as
+      | { url?: string; redirect?: boolean }
+      | undefined;
+    const shouldRedirect = data?.redirect !== false;
+    if (data?.url && shouldRedirect) {
+      window.location.href = data.url;
     }
   };
 
