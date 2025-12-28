@@ -1,7 +1,7 @@
 import { backendFetch } from "../../_utils/backendFetch";
 
 type Params = {
-  params: { serverId: string };
+  params: Promise<{ serverId: string }> | { serverId: string };
 };
 
 export async function DELETE(_: Request, context: Params) {

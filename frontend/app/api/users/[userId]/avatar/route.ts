@@ -1,13 +1,12 @@
 import { backendFetch } from "../../../_utils/backendFetch";
 
 type RouteParams = {
-  params: {
-    userId: string;
-  };
+  params: Promise<{ userId: string }> | { userId: string };
 };
 
-export async function GET(_req: Request, { params }: RouteParams) {
-  const res = await backendFetch(`/api/users/${params.userId}/avatar`);
+export async function GET(_req: Request, context: RouteParams) {
+  const { userId } = await context.params;
+  const res = await backendFetch(`/api/users/${userId}/avatar`);
 
   const headers = new Headers();
   const contentType = res.headers.get("content-type");

@@ -1,7 +1,7 @@
 import { backendFetch } from "../../_utils/backendFetch";
 
 type Params = {
-  params: { channelId: string };
+  params: Promise<{ channelId: string }> | { channelId: string };
 };
 
 export async function DELETE(
