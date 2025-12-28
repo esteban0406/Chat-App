@@ -5,23 +5,10 @@ import { useRouter } from "next/navigation";
 
 type Props = {
   onClose: () => void;
+  created: () => void;
 };
 
-type ServerPayload = {
-  id?: string;
-  channels?: Array<{ id?: string } | string>;
-};
-
-type CreateServerResponse = {
-  success?: boolean;
-  message?: string;
-  data?: {
-    server?: ServerPayload | string;
-    defaultChannel?: { id?: string } | string;
-  };
-};
-
-export default function CreateServerModal({ onClose }: Props) {
+export default function CreateServerModal({ onClose, created }: Props) {
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -44,39 +31,9 @@ export default function CreateServerModal({ onClose }: Props) {
       if (!res.ok) {
         throw new Error("No se pudo crear el servidor");
       }
-      console.log(res)
-      const raw: CreateServerResponse = await res.json();
-      console.log(raw)
-      const payload = raw.data ?? {};
-      const serverPayload = payload.server ?? null;
-      const defaultChannelPayload = payload.defaultChannel ?? null;
-
-      const serverId =
-        typeof serverPayload === "string"
-          ? serverPayload
-          : serverPayload?.id ?? null;
-
-      const channelFromServer =
-        typeof serverPayload === "object" && serverPayload?.channels?.[0]
-          ? serverPayload.channels[0]
-          : null;
-
-      const defaultChannelId =
-        typeof defaultChannelPayload === "string"
-          ? defaultChannelPayload
-          : defaultChannelPayload?.id ??
-            (typeof channelFromServer === "string"
-              ? channelFromServer
-              : channelFromServer?.id) ??
-            null;
-
-      if (serverId && defaultChannelId) {
-        router.push(`/servers/${serverId}/channels/${defaultChannelId}`);
-      } else if (serverId) {
-        router.push(`/servers/${serverId}`);
-      }
-      
-      router.refresh();
+      const response = await res.json();
+      created();
+      router.push(`/servers/${response.data.server.id}`);     
       onClose();
     } catch (err) {
       console.error(err);

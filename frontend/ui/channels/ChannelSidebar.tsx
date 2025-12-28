@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Menu } from "@headlessui/react";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
-import { Channel, Server, User } from "@/lib/definitions";
+import { Channel, Server } from "@/lib/definitions";
 import CreateChannelModal from "./modals/CreateChannelModal";
 import EditChannelModal from "./modals/EditChannelModal";
 import DeleteChannelModal from "./modals/DeleteChannelModal";
@@ -13,56 +13,26 @@ import InviteFriendsModal from "@/ui/servers/modals/InviteFriendsModal";
 import EditServerModal from "@/ui/servers/modals/EditServerModal";
 import DeleteServerModal from "@/ui/servers/modals/DeleteServerModal";
 
-const getMemberId = (member: User | string | undefined | null) =>
-  !member
-    ? ""
-    : typeof member === "string"
-    ? member
-    : member.id;
-
 export default function ChannelSidebar({
   sidebarControls,
 }: {
   sidebarControls?: { closeSidebar?: () => void };
 }) {
   const params = useParams();
-  const effectiveServerId = useMemo(() => {
-    const raw = params?.serverId;
-    if (!raw) return "";
-    return Array.isArray(raw) ? raw[0] : raw;
-  }, [params]);
+  const effectiveServerId = params.serverId;
+  const activeChannelId = params.channelId;
 
-  const activeChannelId = useMemo(() => {
-    const raw = params?.channelId;
-    if (!raw) return "";
-    return Array.isArray(raw) ? raw[0] : raw;
-  }, [params]);
-
-  const menuIdBase = useMemo(() => {
-    const suffix = effectiveServerId || "global";
-    return `server-controls-${suffix}`;
-  }, [effectiveServerId]);
-
-  const [server, setServer] = useState<Server | null>(null);
+  const [server, setServer] = useState<Server>();
   const [channels, setChannels] = useState<Channel[]>([]);
-  const [loadingChannels, setLoadingChannels] = useState(false);
-  const [channelsError, setChannelsError] = useState<string | null>(null);
 
-  const [createType, setCreateType] = useState<"text" | "voice" | null>(null);
-  const [channelToEdit, setChannelToEdit] = useState<Channel | null>(null);
-  const [channelToDelete, setChannelToDelete] = useState<Channel | null>(null);
+  const [createType, setCreateType] = useState<"text" | "voice">();
+  const [channelToEdit, setChannelToEdit] = useState<Channel >();
+  const [channelToDelete, setChannelToDelete] = useState<Channel >();
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showEditServerModal, setShowEditServerModal] = useState(false);
   const [showDeleteServerModal, setShowDeleteServerModal] = useState(false);
 
   useEffect(() => {
-    if (!effectiveServerId) {
-      setServer(null);
-      return;
-    }
-
-    let cancelled = false;
-
     async function loadServer() {
       try {
         const res = await fetch("/api/servers", { cache: "no-store" });
@@ -70,27 +40,15 @@ export default function ChannelSidebar({
           throw new Error("No se pudieron cargar los servidores");
         }
         const list = await res.json();
-        if (cancelled) return;
-
-        const found = Array.isArray(list)
-          ? list.find(
-              (server) =>
-                (server as Server)?.id === effectiveServerId
-            )
-          : null;
-        setServer(found ?? null);
+        const found = list.find(
+          (server: Server) => server.id === effectiveServerId
+        );
+        setServer(found);
       } catch (error) {
         console.error(error);
-        if (!cancelled) {
-          setServer(null);
-        }
       }
     }
-
     loadServer();
-    return () => {
-      cancelled = true;
-    };
   }, [effectiveServerId]);
 
   useEffect(() => {
@@ -99,11 +57,7 @@ export default function ChannelSidebar({
       return;
     }
 
-    let cancelled = false;
-
     async function loadChannels() {
-      setLoadingChannels(true);
-      setChannelsError(null);
       try {
         const res = await fetch(`/api/channels?serverId=${effectiveServerId}`, {
           cache: "no-store",
@@ -112,30 +66,12 @@ export default function ChannelSidebar({
           throw new Error("No se pudieron cargar los canales");
         }
         const body = await res.json();
-        if (cancelled) return;
-        const parsed = Array.isArray(body)
-          ? body
-          : Array.isArray(body?.channels)
-          ? body.channels
-          : [];
-        setChannels(parsed as Channel[]);
+        setChannels(body);
       } catch (error) {
         console.error(error);
-        if (!cancelled) {
-          setChannels([]);
-          setChannelsError("No se pudieron cargar los canales");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoadingChannels(false);
-        }
       }
     }
-
     loadChannels();
-    return () => {
-      cancelled = true;
-    };
   }, [effectiveServerId]);
 
   const textChannels = channels.filter((channel) => channel.type === "text");
@@ -149,14 +85,22 @@ export default function ChannelSidebar({
 
   const handleChannelUpdated = (updated: Channel) => {
     setChannels((prev) =>
-      prev.map((channel) =>
-        channel.id === updated.id ? updated : channel
-      )
+      prev.map((channel) => (channel.id === updated.id ? updated : channel))
     );
   };
 
   const handleChannelDeleted = (channelId: string) => {
     setChannels((prev) => prev.filter((channel) => channel.id !== channelId));
+  };
+
+  const handleMemberRemoved = (memberId: string) => {
+    setServer((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        members: prev.members.filter((member) => member.id !== memberId),
+      };
+    });
   };
 
   if (!effectiveServerId) {
@@ -180,17 +124,11 @@ export default function ChannelSidebar({
             </h2>
           </div>
           <Menu as="div" className="relative">
-            <Menu.Button
-              id={`${menuIdBase}-button`}
-              className="rounded bg-gray-700 p-2 text-gray-200 hover:bg-gray-600"
-            >
+            <Menu.Button className="rounded bg-gray-700 p-2 text-gray-200 hover:bg-gray-600">
               <EllipsisVerticalIcon className="h-5 w-5" />
             </Menu.Button>
-            <Menu.Items
-              id={`${menuIdBase}-items`}
-              className="absolute right-0 mt-2 w-44 rounded bg-gray-700 text-sm shadow-lg ring-1 ring-black/20 focus:outline-none"
-            >
-              <Menu.Item id={`${menuIdBase}-invite`}>
+            <Menu.Items className="absolute right-0 mt-2 w-44 rounded bg-gray-700 text-sm shadow-lg ring-1 ring-black/20 focus:outline-none">
+              <Menu.Item>
                 {({ active }) => (
                   <button
                     type="button"
@@ -203,7 +141,7 @@ export default function ChannelSidebar({
                   </button>
                 )}
               </Menu.Item>
-              <Menu.Item id={`${menuIdBase}-members`}>
+              <Menu.Item>
                 {({ active }) => (
                   <button
                     type="button"
@@ -216,7 +154,7 @@ export default function ChannelSidebar({
                   </button>
                 )}
               </Menu.Item>
-              <Menu.Item id={`${menuIdBase}-delete`}>
+              <Menu.Item>
                 {({ active }) => (
                   <button
                     type="button"
@@ -242,20 +180,12 @@ export default function ChannelSidebar({
           )}
         </header>
 
-        {loadingChannels && (
-          <p className="mb-2 text-sm text-gray-400">Cargando canales...</p>
-        )}
-
-        {channelsError && (
-          <p className="mb-2 text-sm text-red-400">{channelsError}</p>
-        )}
-
         <ChannelSection
           title="Canales de texto"
           prefix="#"
           channels={textChannels}
-          serverId={effectiveServerId}
-          activeChannelId={activeChannelId}
+          serverId={effectiveServerId as string}
+          activeChannelId={activeChannelId as string}
           onCreate={() => setCreateType("text")}
           onEdit={setChannelToEdit}
           onDelete={setChannelToDelete}
@@ -266,8 +196,8 @@ export default function ChannelSidebar({
           title="Canales de voz"
           prefix="🔊"
           channels={voiceChannels}
-          serverId={effectiveServerId}
-          activeChannelId={activeChannelId}
+          serverId={effectiveServerId as string}
+          activeChannelId={activeChannelId as string}
           onCreate={() => setCreateType("voice")}
           onEdit={setChannelToEdit}
           onDelete={setChannelToDelete}
@@ -277,9 +207,9 @@ export default function ChannelSidebar({
 
       {createType && (
         <CreateChannelModal
-          serverId={effectiveServerId}
+          serverId={effectiveServerId as string}
           defaultType={createType}
-          onClose={() => setCreateType(null)}
+          onClose={() => setCreateType(undefined)}
           onCreated={handleChannelCreated}
         />
       )}
@@ -287,7 +217,7 @@ export default function ChannelSidebar({
       {channelToEdit && (
         <EditChannelModal
           channel={channelToEdit}
-          onClose={() => setChannelToEdit(null)}
+          onClose={() => setChannelToEdit(undefined)}
           onUpdated={handleChannelUpdated}
         />
       )}
@@ -295,46 +225,30 @@ export default function ChannelSidebar({
       {channelToDelete && (
         <DeleteChannelModal
           channel={channelToDelete}
-          onClose={() => setChannelToDelete(null)}
+          onClose={() => setChannelToDelete(undefined)}
           onDeleted={handleChannelDeleted}
         />
       )}
 
       {showInviteModal && (
         <InviteFriendsModal
-          server={server}
+          server={server as Server}
           onClose={() => setShowInviteModal(false)}
         />
       )}
 
       {showEditServerModal && (
         <EditServerModal
-          server={server}
+          server={server as Server}
           onClose={() => setShowEditServerModal(false)}
-          onMemberRemoved={(memberId) => {
-            setServer((prev) =>
-              prev
-                ? {
-                    ...prev,
-                    members: Array.isArray(prev.members)
-                      ? prev.members.filter((member) =>
-                          getMemberId(
-                            member as User | string | undefined
-                          ) !== memberId
-                        )
-                      : prev.members,
-                  }
-                : prev
-            );
-          }}
+          onMemberRemoved={handleMemberRemoved}
         />
       )}
 
       {showDeleteServerModal && (
         <DeleteServerModal
-          server={server}
+          server={server as Server}
           onClose={() => setShowDeleteServerModal(false)}
-          onDeleted={() => setServer(null)}
         />
       )}
     </>

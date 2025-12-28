@@ -16,8 +16,8 @@ export type Channel = {
   id: string;
   name: string;
   type: "text" | "voice";
-  server: string;
-  messages?: string[] | Message[];
+  server: Server;
+  messages?: Message[];
   createdAt: string;
   updatedAt: string;
 };
@@ -26,17 +26,17 @@ export type Server = {
   id: string;
   name: string;
   description?: string;
-  owner: string | User;
-  members: string[] | User[];
-  channels: string[] | Channel[];
+  owner: string;
+  members: User[];
+  channels: Channel[];
   createdAt: string;
   updatedAt: string;
 };
 
 export type FriendRequest = {
   id: string;
-  from: string | User;
-  to: string | User;
+  from:  User;
+  to: User;
   status: "pending" | "accepted" | "rejected";
   createdAt: string;
   updatedAt: string;

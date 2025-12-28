@@ -37,10 +37,9 @@ export default function EditChannelModal({
       if (!res.ok) {
         throw new Error("No se pudo actualizar el canal");
       }
-
-      const data = await res.json();
-      const updated = data?.channel ?? data;
-      onUpdated?.(updated);
+      
+      const response = await res.json();
+      onUpdated?.(response.data.channel);
       onClose();
       
     } catch (err) {

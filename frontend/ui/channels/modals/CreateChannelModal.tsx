@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Channel } from "@/lib/definitions";
+import { useRouter } from "next/navigation";
 
 type ChannelType = "text" | "voice";
 
@@ -18,6 +19,7 @@ export default function CreateChannelModal({
   onClose,
   onCreated,
 }: Props) {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [type, setType] = useState<ChannelType>(defaultType);
   const [loading, setLoading] = useState(false);
@@ -41,10 +43,10 @@ export default function CreateChannelModal({
         throw new Error("No se pudo crear el canal");
       }
 
-      const data = await res.json();
-      const created = data?.channel ?? data;
-      onCreated?.(created);
+      const response = await res.json();
+      onCreated?.(response.data.channel);
       onClose();
+      router.push(`/servers/${serverId}/channels/${response.data.channel.id}`);
     } catch (err) {
       console.error(err);
       setError("No se pudo crear el canal");

@@ -1,20 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Server } from "@/lib/definitions";
 import CreateServerModal from "./modals/CreateServerModal";
 
 export default function ServerSidebar({ onClose }: { onClose?: () => void }) {
   const [servers, setServers] = useState<Server[]>([]);
   const [showCreate, setShowCreate] = useState(false);
+  const pathname = usePathname();
 
-  useEffect(() => {
+  const loadServers = useCallback(() => {
     fetch("/api/servers")
       .then((res) => res.json())
       .then(setServers)
       .catch(() => setServers([]));
   }, []);
+
+  useEffect(() => {
+    loadServers();
+  }, [loadServers, pathname]);
 
   return (
     <div className="flex flex-col items-center gap-4 py-4 bg-gray-800 h-full">
@@ -48,7 +54,12 @@ export default function ServerSidebar({ onClose }: { onClose?: () => void }) {
         +
       </button>
 
-      {showCreate && <CreateServerModal onClose={() => setShowCreate(false)} />}
+      {showCreate && (
+        <CreateServerModal
+          onClose={() => setShowCreate(false)}
+          created={loadServers}
+        />
+      )}
     </div>
   );
 }

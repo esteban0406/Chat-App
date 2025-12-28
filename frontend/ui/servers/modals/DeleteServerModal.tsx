@@ -13,7 +13,6 @@ type Props = {
 export default function DeleteServerModal({
   server,
   onClose,
-  onDeleted,
 }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -31,7 +30,6 @@ export default function DeleteServerModal({
       if (!res.ok) {
         throw new Error("Failed to delete server");
       }
-      onDeleted?.();
       onClose();
       router.push("/friends");
     } catch (err) {
