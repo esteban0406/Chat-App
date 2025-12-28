@@ -13,7 +13,7 @@ type SidebarControls = {
 };
 
 type SidebarProp =
-  | ReactElement
+  | ReactElement<{ sidebarControls?: SidebarControls }>
   | ((args: { sidebarControls: SidebarControls }) => ReactNode)
   | null
   | undefined;

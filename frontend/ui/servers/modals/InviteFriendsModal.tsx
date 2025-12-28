@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Server, User, ServerInvite } from "@/lib/definitions";
 
 type Props = {
-  server: Server | null;
+  server: Server;
   onClose: () => void;
 };
 
@@ -42,10 +42,6 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
   }, []);
 
   useEffect(() => {
-    if (!server?.id) return;
-
-    let cancelled = false;
-
     async function loadPending() {
       try {
         const res = await fetch(
@@ -56,37 +52,28 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
           throw new Error("Failed to load pending invites");
         }
         const data = await res.json();
-        if (!cancelled) {
-          const invites = Array.isArray(data)
-            ? data
-            : Array.isArray(data?.data?.invites)
-            ? data.data.invites
-            : Array.isArray(data?.invites)
-            ? data.invites
-            : [];
-          setPendingInvites(invites);
-        }
+
+        const invites = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data?.invites)
+          ? data.data.invites
+          : Array.isArray(data?.invites)
+          ? data.invites
+          : [];
+        setPendingInvites(invites);
       } catch (err) {
         console.error(err);
-        if (!cancelled) {
-          setPendingInvites([]);
-        }
       }
     }
 
     loadPending();
-    return () => {
-      cancelled = true;
-    };
   }, [server?.id]);
 
   const memberIds = useMemo(() => {
     if (!server?.members) return new Set<string>();
     return new Set(
       server.members
-        .map((member) =>
-          typeof member === "string" ? member : member.id
-        )
+        .map((member) => (typeof member === "string" ? member : member.id))
         .filter(Boolean)
     );
   }, [server]);
@@ -102,9 +89,7 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
   );
 
   const eligibleFriends = friends.filter(
-    (friend) =>
-      !memberIds.has(friend.id) &&
-      !pendingIds.has(friend.id)
+    (friend) => !memberIds.has(friend.id) && !pendingIds.has(friend.id)
   );
 
   const handleInvite = async (friendId: string) => {
@@ -120,10 +105,8 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
       if (!res.ok) {
         throw new Error("Failed to send invite");
       }
-      setPendingInvites((prev) => [
-        ...prev,
-        { to: { id: friendId }, serverId: server.id },
-      ]);
+      const body = await res.json();
+      setPendingInvites((prev) => [...prev, body]);
       setStatus("Invitación enviada ✅");
     } catch (err) {
       console.error(err);
@@ -164,9 +147,7 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
               >
                 <span className="truncate">
                   {friend.username}{" "}
-                  <span className="text-gray-400">
-                    ({friend.email})
-                  </span>
+                  <span className="text-gray-400">({friend.email})</span>
                 </span>
                 <button
                   type="button"
@@ -181,9 +162,7 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
           </ul>
         )}
 
-        {status && (
-          <p className="mt-3 text-sm text-gray-300">{status}</p>
-        )}
+        {status && <p className="mt-3 text-sm text-gray-300">{status}</p>}
       </div>
     </div>
   );

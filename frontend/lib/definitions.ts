@@ -45,8 +45,8 @@ export type FriendRequest = {
 export type ServerInvite = {
   id: string;
   from: string | User;
-  to: string | User;
-  server: string | Server;
+  to: User;
+  server:  Server;
   status: "pending" | "accepted" | "rejected";
   createdAt: string;
   updatedAt: string;
