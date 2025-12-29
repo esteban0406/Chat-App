@@ -37,6 +37,9 @@ export async function getBetterAuth() {
   const auth = betterAuth({
     baseURL: process.env.BACKEND_URL || `http://localhost:3000`,
     basePath: "/api/auth",
+    trustedOrigins: process.env.FRONTEND_URL
+      ? [process.env.FRONTEND_URL]
+      : undefined,
     secret: process.env.BETTER_AUTH_SECRET,
     database: mongodbAdapter(db, { client }),
     emailAndPassword: { enabled: true },
