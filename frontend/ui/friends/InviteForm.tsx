@@ -20,7 +20,7 @@ export default function InviteForm() {
     async function load() {
       try {
         const [friendsRes, session] = await Promise.all([
-          backendFetch("/api/friends", { cache: "no-store" }),
+          backendFetch("/api/friends/list", { cache: "no-store" }),
           authClient.getSession(),
         ]);
         if (!cancelled) {

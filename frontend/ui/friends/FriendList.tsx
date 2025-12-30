@@ -16,7 +16,7 @@ export default function FriendList() {
       setLoading(true);
       setError(null);
       try {
-        const res = await backendFetch("/api/friends", {
+        const res = await backendFetch("/api/friends/list", {
           cache: "no-store",
         });
         if (!res.ok) {

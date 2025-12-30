@@ -40,6 +40,12 @@ export async function getBetterAuth() {
     trustedOrigins: process.env.FRONTEND_URL
       ? [process.env.FRONTEND_URL]
       : undefined,
+    advanced: {
+      defaultCookieAttributes: {
+        sameSite: "none",
+        secure: true,
+      },
+    },
     secret: process.env.BETTER_AUTH_SECRET,
     database: mongodbAdapter(db, { client }),
     emailAndPassword: { enabled: true },

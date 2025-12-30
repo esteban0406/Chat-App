@@ -18,7 +18,7 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
   useEffect(() => {
     async function loadFriends() {
       try {
-        const res = await backendFetch("/api/friends", {
+        const res = await backendFetch("/api/friends/list", {
           cache: "no-store",
         });
         if (!res.ok) {
