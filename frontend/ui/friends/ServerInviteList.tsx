@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ServerInvite, Server } from "@/lib/definitions";
+import { backendFetch } from "@/lib/backend-client";
 
 export default function ServerInviteList() {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function ServerInviteList() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/server-invites/pending", {
+      const res = await backendFetch("/api/server-invites/pending", {
         cache: "no-store",
       });
       if (!res.ok) {
@@ -50,9 +51,12 @@ export default function ServerInviteList() {
     const inviteId = invite.id;
     setProcessingId(inviteId);
     try {
-      const res = await fetch(`/api/server-invites/${action}/${inviteId}`, {
+      const res = await backendFetch(
+        `/api/server-invites/${action}/${inviteId}`,
+        {
         method: "POST",
-      });
+        }
+      );
       if (!res.ok) {
         throw new Error("No se pudo actualizar la invitación");
       }

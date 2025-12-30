@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Server } from "@/lib/definitions";
+import { backendFetch } from "@/lib/backend-client";
 
 type Props = {
   server: Server | null;
@@ -24,7 +25,7 @@ export default function DeleteServerModal({
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/servers/${server.id}`, {
+      const res = await backendFetch(`/api/servers/${server.id}`, {
         method: "DELETE",
       });
       if (!res.ok) {

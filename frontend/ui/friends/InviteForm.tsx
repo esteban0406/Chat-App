@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { User } from "@/lib/definitions";
 import { authClient } from "@/lib/auth-client";
+import { backendFetch } from "@/lib/backend-client";
 
 export default function InviteForm() {
   const [query, setQuery] = useState("");
@@ -19,7 +20,7 @@ export default function InviteForm() {
     async function load() {
       try {
         const [friendsRes, session] = await Promise.all([
-          fetch("/api/friends", { cache: "no-store" }),
+          backendFetch("/api/friends", { cache: "no-store" }),
           authClient.getSession(),
         ]);
         if (!cancelled) {
@@ -57,7 +58,9 @@ export default function InviteForm() {
     setSearching(true);
     setStatus(null);
     try {
-      const res = await fetch(`/api/users/search?username=${encodeURIComponent(term)}`);
+      const res = await backendFetch(
+        `/api/users/search?username=${encodeURIComponent(term)}`
+      );
       if (!res.ok) {
         throw new Error("No se pudo buscar usuarios");
       }
@@ -96,7 +99,7 @@ export default function InviteForm() {
     setSendingId(user.id);
     setStatus(null);
     try {
-      const res = await fetch("/api/friends/send", {
+      const res = await backendFetch("/api/friends/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ to: user.id }),

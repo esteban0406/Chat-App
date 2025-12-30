@@ -4,7 +4,7 @@ import { usernameClient } from "better-auth/client/plugins";
 const resolveBaseURL = () => {
   const host = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  if (!host) return undefined;
+  if (!host) return "/api/auth";
   return `${host.replace(/\/$/, "")}/api/auth`;
 };
 

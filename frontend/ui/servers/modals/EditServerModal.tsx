@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Server, User } from "@/lib/definitions";
+import { backendFetch } from "@/lib/backend-client";
 
 type Props = {
   server: Server;
@@ -25,7 +26,7 @@ export default function EditServerModal({
     setRemovingId(member.id);
     setError(null);
     try {
-      const res = await fetch(
+      const res = await backendFetch(
         `/api/servers/${server.id}/members/${member.id}`,
         { method: "DELETE" }
       );

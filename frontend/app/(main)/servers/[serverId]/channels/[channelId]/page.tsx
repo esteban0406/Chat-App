@@ -14,6 +14,7 @@ import { authClient } from "@/lib/auth-client";
 import { Channel, User } from "@/lib/definitions";
 import { useLayoutContext } from "@/ui/layout/LayoutContext";
 import VoiceRoom from "@/ui/voice/VoiceRoom";
+import { backendFetch } from "@/lib/backend-client";
 
 export default function ChannelPage() {
   const params = useParams();
@@ -43,7 +44,7 @@ export default function ChannelPage() {
   useEffect(() => {
     async function loadChannel() {
       try {
-        const res = await fetch(`/api/channels?serverId=${serverId}`, {
+        const res = await backendFetch(`/api/channels?serverId=${serverId}`, {
           cache: "no-store",
         });
         if (!res.ok) {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { FriendRequest, User } from "@/lib/definitions";
+import { backendFetch } from "@/lib/backend-client";
 
 export default function FriendRequestsList() {
   const [requests, setRequests] = useState<FriendRequest[]>([]);
@@ -13,7 +14,9 @@ export default function FriendRequestsList() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/friends/pending", { cache: "no-store" });
+      const res = await backendFetch("/api/friends/pending", {
+        cache: "no-store",
+      });
       if (!res.ok) {
         throw new Error("No se pudieron cargar las solicitudes");
       }
@@ -42,7 +45,7 @@ export default function FriendRequestsList() {
   const handleResponse = async (id: string, status: "accepted" | "rejected") => {
     setRespondingId(id);
     try {
-      const res = await fetch(`/api/friends/respond/${id}`, {
+      const res = await backendFetch(`/api/friends/respond/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),

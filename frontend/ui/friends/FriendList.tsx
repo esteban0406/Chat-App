@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { User } from "@/lib/definitions";
+import { backendFetch } from "@/lib/backend-client";
 
 export default function FriendList() {
   const [friends, setFriends] = useState<User[]>([]);
@@ -15,7 +16,9 @@ export default function FriendList() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch("/api/friends", { cache: "no-store" });
+        const res = await backendFetch("/api/friends", {
+          cache: "no-store",
+        });
         if (!res.ok) {
           throw new Error("No se pudieron cargar tus amigos");
         }

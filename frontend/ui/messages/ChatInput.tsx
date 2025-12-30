@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { backendFetch } from "@/lib/backend-client";
 type Props = {
   channelId: string;
   senderId?: string;
@@ -27,7 +28,7 @@ export default function ChatInput({
     setSending(true);
     setError(null);
     try {
-      const res = await fetch("/api/messages", {
+      const res = await backendFetch("/api/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

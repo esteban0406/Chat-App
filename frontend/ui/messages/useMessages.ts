@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Message } from "@/lib/definitions";
 import { socket } from "@/lib/socket";
+import { backendFetch } from "@/lib/backend-client";
 
 export function useMessages(channelId?: string) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -28,7 +29,7 @@ export function useMessages(channelId?: string) {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/messages/${channelId}`, {
+        const res = await backendFetch(`/api/messages/${channelId}`, {
           cache: "no-store",
         });
 

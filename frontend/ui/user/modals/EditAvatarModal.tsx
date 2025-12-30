@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { backendFetch } from "@/lib/backend-client";
 
 type Props = {
   onClose: () => void;
@@ -60,7 +61,7 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
     setError("");
 
     try {
-      const res = await fetch("/api/users/me/avatar", {
+      const res = await backendFetch("/api/users/me/avatar", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ avatar: preview }),

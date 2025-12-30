@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Channel } from "@/lib/definitions";
+import { backendFetch } from "@/lib/backend-client";
 
 type Props = {
   channel: Channel;
@@ -28,7 +29,7 @@ export default function EditChannelModal({
     const channelId = channel.id;
 
     try {
-      const res = await fetch(`/api/channels/${channelId}`, {
+      const res = await backendFetch(`/api/channels/${channelId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),

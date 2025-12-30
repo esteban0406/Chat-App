@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Channel } from "@/lib/definitions";
+import { backendFetch } from "@/lib/backend-client";
 
 type Props = {
   channel: Channel;
@@ -25,7 +26,7 @@ export default function DeleteChannelModal({
     setError(null);
 
     try {
-      const res = await fetch(`/api/channels/${channelId}`, {
+      const res = await backendFetch(`/api/channels/${channelId}`, {
         method: "DELETE",
       });
 

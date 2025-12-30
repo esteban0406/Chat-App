@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Channel } from "@/lib/definitions";
 import { useRouter } from "next/navigation";
+import { backendFetch } from "@/lib/backend-client";
 
 type ChannelType = "text" | "voice";
 
@@ -33,7 +34,7 @@ export default function CreateChannelModal({
     setError(null);
 
     try {
-      const res = await fetch("/api/channels", {
+      const res = await backendFetch("/api/channels", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, type, serverId }),

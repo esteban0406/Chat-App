@@ -7,6 +7,7 @@ import EditAvatarModal from "./modals/EditAvatarModal";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { User } from "@/lib/definitions";
+import { toBackendURL } from "@/lib/backend-client";
 
 export default function UserProfileBar() {
   const router = useRouter();
@@ -41,9 +42,11 @@ export default function UserProfileBar() {
   if (!user) return null;
 
   const avatarSrc = user?.id
-    ? `/api/users/${user.id}/avatar?${encodeURIComponent(
-        user.updatedAt?.toString?.() ?? "",
-      )}`
+    ? toBackendURL(
+        `/api/users/${user.id}/avatar?${encodeURIComponent(
+          user.updatedAt?.toString?.() ?? "",
+        )}`
+      )
     : fallbackAvatar;
 
   return (

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Server } from "@/lib/definitions";
 import CreateServerModal from "./modals/CreateServerModal";
+import { backendFetch } from "@/lib/backend-client";
 
 export default function ServerSidebar({ onClose }: { onClose?: () => void }) {
   const [servers, setServers] = useState<Server[]>([]);
@@ -12,7 +13,7 @@ export default function ServerSidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
 
   const loadServers = useCallback(() => {
-    fetch("/api/servers")
+    backendFetch("/api/servers")
       .then((res) => res.json())
       .then(setServers)
       .catch(() => setServers([]));

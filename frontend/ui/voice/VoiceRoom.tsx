@@ -7,6 +7,7 @@ import {
   useRoomContext,
 } from "@livekit/components-react";
 import { RoomEvent } from "livekit-client";
+import { backendFetch } from "@/lib/backend-client";
 
 import "@livekit/components-styles";
 import "./voice-theme.css";
@@ -41,7 +42,7 @@ export default function VoiceRoom({
   useEffect(() => {
     const controller = new AbortController();
 
-    fetch("/api/voice/join", {
+    backendFetch("/api/voice/join", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

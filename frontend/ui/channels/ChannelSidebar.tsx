@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { Menu } from "@headlessui/react";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
 import { Channel, Server } from "@/lib/definitions";
+import { backendFetch } from "@/lib/backend-client";
 import CreateChannelModal from "./modals/CreateChannelModal";
 import EditChannelModal from "./modals/EditChannelModal";
 import DeleteChannelModal from "./modals/DeleteChannelModal";
@@ -35,7 +36,9 @@ export default function ChannelSidebar({
   useEffect(() => {
     async function loadServer() {
       try {
-        const res = await fetch("/api/servers", { cache: "no-store" });
+        const res = await backendFetch("/api/servers", {
+          cache: "no-store",
+        });
         if (!res.ok) {
           throw new Error("No se pudieron cargar los servidores");
         }
@@ -59,9 +62,12 @@ export default function ChannelSidebar({
 
     async function loadChannels() {
       try {
-        const res = await fetch(`/api/channels?serverId=${effectiveServerId}`, {
+        const res = await backendFetch(
+          `/api/channels?serverId=${effectiveServerId}`,
+          {
           cache: "no-store",
-        });
+          }
+        );
         if (!res.ok) {
           throw new Error("No se pudieron cargar los canales");
         }

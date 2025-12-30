@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { backendFetch } from "@/lib/backend-client";
 
 type Props = {
   onClose: () => void;
@@ -22,7 +23,7 @@ export default function CreateServerModal({ onClose, created }: Props) {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/servers", {
+      const res = await backendFetch("/api/servers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, description }),
