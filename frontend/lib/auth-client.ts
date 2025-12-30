@@ -2,9 +2,10 @@ import { createAuthClient } from "better-auth/react";
 import { usernameClient } from "better-auth/client/plugins";
 
 const resolveBaseURL = () => {
-  const host = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-  if (!host) return "/api/auth";
+  const host =
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    process.env.BACKEND_URL ||
+    "http://localhost:4000";
   return `${host.replace(/\/$/, "")}/api/auth`;
 };
 

@@ -53,7 +53,7 @@ export default function ChannelPage() {
         const body = await res.json();
         const list = unwrapList<Channel>(body, "channels");
         const found = list.find((item: Channel) => item.id === channelId);
-        setChannel(found ?? null);
+        setChannel(found);
       } catch (err) {
         console.error(err);
       }
