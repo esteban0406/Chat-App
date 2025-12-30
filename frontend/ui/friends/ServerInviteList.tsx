@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ServerInvite, Server } from "@/lib/definitions";
-import { backendFetch } from "@/lib/backend-client";
+import { backendFetch, unwrapList } from "@/lib/backend-client";
 
 export default function ServerInviteList() {
   const router = useRouter();
@@ -23,13 +23,7 @@ export default function ServerInviteList() {
         throw new Error("No se pudieron cargar las invitaciones");
       }
       const body = await res.json();
-      const list = Array.isArray(body)
-        ? body
-        : Array.isArray(body?.data?.invites)
-        ? body.data.invites
-        : Array.isArray(body?.invites)
-        ? body.invites
-        : [];
+      const list = unwrapList<ServerInvite>(body, "invites");
       setInvites(list);
     } catch (err) {
       console.error(err);

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { FriendRequest, User } from "@/lib/definitions";
-import { backendFetch } from "@/lib/backend-client";
+import { backendFetch, unwrapList } from "@/lib/backend-client";
 
 export default function FriendRequestsList() {
   const [requests, setRequests] = useState<FriendRequest[]>([]);
@@ -21,13 +21,7 @@ export default function FriendRequestsList() {
         throw new Error("No se pudieron cargar las solicitudes");
       }
       const body = await res.json();
-      const list = Array.isArray(body)
-        ? body
-        : Array.isArray(body?.data?.requests)
-        ? body.data.requests
-        : Array.isArray(body?.requests)
-        ? body.requests
-        : [];
+      const list = unwrapList<FriendRequest>(body, "requests");
       setRequests(list);
     } catch (err) {
       console.error(err);

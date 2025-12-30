@@ -14,7 +14,7 @@ import { authClient } from "@/lib/auth-client";
 import { Channel, User } from "@/lib/definitions";
 import { useLayoutContext } from "@/ui/layout/LayoutContext";
 import VoiceRoom from "@/ui/voice/VoiceRoom";
-import { backendFetch } from "@/lib/backend-client";
+import { backendFetch, unwrapList } from "@/lib/backend-client";
 
 export default function ChannelPage() {
   const params = useParams();
@@ -44,14 +44,15 @@ export default function ChannelPage() {
   useEffect(() => {
     async function loadChannel() {
       try {
-        const res = await backendFetch(`/api/channels?serverId=${serverId}`, {
+        const res = await backendFetch(`/api/channels/${serverId}`, {
           cache: "no-store",
         });
         if (!res.ok) {
           throw new Error("No se pudo cargar la información del canal");
         }
         const body = await res.json();
-        const found = body.find((item: Channel) => item.id === channelId);
+        const list = unwrapList<Channel>(body, "channels");
+        const found = list.find((item: Channel) => item.id === channelId);
         setChannel(found ?? null);
       } catch (err) {
         console.error(err);

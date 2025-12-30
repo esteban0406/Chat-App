@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { User } from "@/lib/definitions";
-import { backendFetch } from "@/lib/backend-client";
+import { backendFetch, unwrapList } from "@/lib/backend-client";
 
 export default function FriendList() {
   const [friends, setFriends] = useState<User[]>([]);
@@ -23,9 +23,10 @@ export default function FriendList() {
           throw new Error("No se pudieron cargar tus amigos");
         }
 
-        const data: User[] = await res.json();
+        const body = await res.json();
+        const list = unwrapList<User>(body, "friends");
         if (!cancelled) {
-          setFriends(Array.isArray(data) ? data : []);
+          setFriends(list);
         }
       } catch (err) {
         console.error(err);

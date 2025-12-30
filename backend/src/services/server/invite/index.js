@@ -8,7 +8,7 @@ import { createServerInviteRouter } from "./serverInvite.routes.js";
 export function registerServerInviteService(
   app,
   {
-    mountPath = "/api/ServerInvites",
+    mountPath = "/api/server-invites",
     serverInviteService = defaultServerInviteService,
     controller,
     router,

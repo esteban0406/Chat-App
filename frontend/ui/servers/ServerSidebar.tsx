@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Server } from "@/lib/definitions";
 import CreateServerModal from "./modals/CreateServerModal";
-import { backendFetch } from "@/lib/backend-client";
+import { backendFetch, unwrapList } from "@/lib/backend-client";
 
 export default function ServerSidebar({ onClose }: { onClose?: () => void }) {
   const [servers, setServers] = useState<Server[]>([]);
@@ -13,10 +13,23 @@ export default function ServerSidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
 
   const loadServers = useCallback(() => {
-    backendFetch("/api/servers")
-      .then((res) => res.json())
-      .then(setServers)
-      .catch(() => setServers([]));
+    async function loadServer() {
+      try {
+        const res = await backendFetch("/api/servers", {
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          throw new Error("No se pudieron cargar los servidores");
+        }
+        const body = await res.json();
+        const list = unwrapList<Server>(body, "servers");
+        setServers(list);
+      } catch (error) {
+        console.error("Error loading servers:", error);
+        setServers([]);
+      }
+    }
+    loadServer();
   }, []);
 
   useEffect(() => {

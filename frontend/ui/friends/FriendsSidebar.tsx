@@ -25,15 +25,9 @@ export default function FriendsSidebar({ sidebarControls }: Props) {
         )}
       </div>
       <p className="text-sm text-gray-400">
-        Administra tus amigos, solicitudes y accesos a servidores.
+        Amigos activos próximamente.
       </p>
-      <div className="rounded-lg border border-gray-700 bg-gray-800 p-4 text-sm text-gray-300">
-        <p className="font-semibold text-gray-100">Consejo</p>
-        <p>
-          Desde aquí puedes aceptar invitaciones, agregar nuevos amigos o
-          revisar tus solicitudes pendientes.
-        </p>
-      </div>
+      
     </div>
   );
 }

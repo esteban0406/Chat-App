@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Message } from "@/lib/definitions";
 import { socket } from "@/lib/socket";
-import { backendFetch } from "@/lib/backend-client";
+import { backendFetch, unwrapList } from "@/lib/backend-client";
 
 export function useMessages(channelId?: string) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -39,13 +39,7 @@ export function useMessages(channelId?: string) {
 
         const body = await res.json();
         if (!cancelled) {
-          const list = Array.isArray(body)
-            ? body
-            : Array.isArray(body?.data?.messages)
-            ? body.data.messages
-            : Array.isArray(body?.messages)
-            ? body.messages
-            : [];
+          const list = unwrapList<Message>(body, "messages");
           setMessages(list);
         }
       } catch (err) {

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Server, User, ServerInvite } from "@/lib/definitions";
-import { backendFetch } from "@/lib/backend-client";
+import { backendFetch, unwrapList } from "@/lib/backend-client";
 
 type Props = {
   server: Server;
@@ -24,7 +24,8 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
         if (!res.ok) {
           throw new Error("Failed to load friends");
         }
-        const list: User[] = await res.json();
+        const body = await res.json();
+        const list = unwrapList<User>(body, "friends");
         setFriends(list);
       } catch (err) {
         console.error(err);
@@ -45,13 +46,7 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
           throw new Error("Failed to load pending invites");
         }
         const data = await res.json();
-        const invites = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.data?.invites)
-          ? data.data.invites
-          : Array.isArray(data?.invites)
-          ? data.invites
-          : [];
+        const invites = unwrapList<ServerInvite>(data, "invites");
         setPendingInvites(invites);
       } catch (err) {
         console.error(err);

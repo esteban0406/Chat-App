@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { User } from "@/lib/definitions";
 import { authClient } from "@/lib/auth-client";
-import { backendFetch } from "@/lib/backend-client";
+import { backendFetch, unwrapList } from "@/lib/backend-client";
 
 export default function InviteForm() {
   const [query, setQuery] = useState("");
@@ -25,8 +25,9 @@ export default function InviteForm() {
         ]);
         if (!cancelled) {
           if (friendsRes.ok) {
-            const list: User[] = await friendsRes.json();
-            setFriends(Array.isArray(list) ? list : []);
+            const body = await friendsRes.json();
+            const list = unwrapList<User>(body, "friends");
+            setFriends(list);
           }
           setCurrentUser(session?.data?.user);
         }
@@ -65,13 +66,7 @@ export default function InviteForm() {
         throw new Error("No se pudo buscar usuarios");
       }
       const body = await res.json();
-      const users = Array.isArray(body?.data?.users)
-        ? body.data.users
-        : Array.isArray(body?.users)
-        ? body.users
-        : Array.isArray(body)
-        ? body
-        : [];
+      const users = unwrapList<User>(body, "users");
 
       const filtered = users.filter((user: User) => {
         if (!user?.id) return false;
