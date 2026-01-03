@@ -10,11 +10,7 @@ import {
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export default function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <LayoutContextProvider>
       <AppLayoutInner>{children}</AppLayoutInner>
@@ -30,36 +26,6 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
     closeServerDrawer,
     closeProfileDrawer,
   } = useLayoutContext();
-
-  useEffect(() => {
-    let cancelled = false;
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-    if (!backendUrl) return;
-
-    const checkSession = async () => {
-      try {
-        const res = await fetch(
-          `${backendUrl.replace(/\/$/, "")}/api/auth/get-session`,
-          {
-            credentials: "include",
-            cache: "no-store",
-          }
-        );
-        if (!res.ok && !cancelled) {
-          router.push("/login");
-        }
-      } catch {
-        if (!cancelled) {
-          router.push("/login");
-        }
-      }
-    };
-
-    checkSession();
-    return () => {
-      cancelled = true;
-    };
-  }, [router]);
 
   return (
     <div

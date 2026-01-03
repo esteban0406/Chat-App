@@ -5,7 +5,11 @@ import mongoose from "mongoose";
 import cors from "cors";
 
 import { setupSocket, getIO } from "./sockets/index.js";
-import { requestLogger, unknownEndpoint, errorHandler } from "./utils/middleware.js";
+import {
+  requestLogger,
+  unknownEndpoint,
+  errorHandler,
+} from "./utils/middleware.js";
 import voiceRoutes from "./routes/voice.routes.js";
 import registerUserService, {
   registerFriendRequestService,
