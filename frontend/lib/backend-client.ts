@@ -22,10 +22,7 @@ export const unwrapList = <T>(body: unknown, key: string): T[] => {
   return Array.isArray(body) ? (body as T[]) : [];
 };
 
-export const backendFetch = (
-  path: string,
-  options: RequestInit = {}
-) =>
+export const backendFetch = (path: string, options: RequestInit = {}) =>
   fetch(toBackendURL(path), {
     ...options,
     credentials: "include",
