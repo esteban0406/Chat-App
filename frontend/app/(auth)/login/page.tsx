@@ -33,7 +33,6 @@ export default function LoginPage() {
     })) as EmailSignInResult;
 
     setLoading(false);
-
     if (!result || result.error) {
       setError(getErrorMessage(result) || "Invalid credentials");
       return;

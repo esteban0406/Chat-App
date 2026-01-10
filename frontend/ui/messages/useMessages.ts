@@ -90,6 +90,6 @@ export function useMessages(channelId?: string) {
     messages,
     loading,
     error,
-    refresh
+    refresh,
   };
 }

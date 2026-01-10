@@ -3,6 +3,7 @@ const os = require("os");
 const path = require("path");
 
 process.env.NODE_ENV = process.env.NODE_ENV || "test";
+process.env.BETTER_AUTH_SECRET = process.env.BETTER_AUTH_SECRET || "test-secret-for-jest-testing";
 
 const tempMongoDir =
   process.env.MONGOMS_DOWNLOAD_DIR ||

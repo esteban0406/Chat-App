@@ -9,13 +9,30 @@ export default {
   rootDir: __dirname,
   testEnvironment: "node",
   setupFiles: ["<rootDir>/jest.setup.cjs"],
-  transform: {},
+  transform: {
+    "^.+\\.tsx?$": [
+      "ts-jest",
+      {
+        useESM: true,
+        isolatedModules: true,
+        diagnostics: {
+          ignoreCodes: [151002],
+        },
+      },
+    ],
+  },
   verbose: true,
   collectCoverage: true,
   collectCoverageFrom: [
     "src/**/*.js",
+    "src/**/*.ts",
     "!src/test/**",
     "!src/**/index.js",
+    "!src/**/index.ts",
   ],
   testTimeout: 20000,
+  moduleNameMapper: {
+    "^(\\.{1,2}/.*)\\.js$": "$1",
+  },
+  extensionsToTreatAsEsm: [".ts"],
 };

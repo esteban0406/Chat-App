@@ -1,5 +1,5 @@
 # Etapa 1: usar Node como base
-FROM node:20-slim
+FROM node:24-slim
 
 # Crear directorio de trabajo dentro del contenedor
 WORKDIR /app

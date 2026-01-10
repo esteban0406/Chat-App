@@ -34,7 +34,7 @@ export default function ChatMessages({
   return (
     <div className="flex flex-col space-y-3 p-4">
       {messages.map((message) => {
-        const isOwn = currentUserId && message.sender.id === currentUserId;
+        const isOwn = message.sender.id === currentUserId;
         return (
           <div
             key={message.id}
