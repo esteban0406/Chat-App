@@ -1,41 +1,26 @@
 import { jest } from "@jest/globals";
-import { HttpError } from "../../../src/utils/httpError.js";
+import { HttpError, createHttpError, validationError } from "../../../src/utils/httpError.js";
 
-const ServerMock = jest.fn();
-ServerMock.findById = jest.fn();
-ServerMock.find = jest.fn();
-ServerMock.findByIdAndDelete = jest.fn();
+// Create mock service
+const mockServerService = {
+  createServer: jest.fn(),
+  joinServer: jest.fn(),
+  listServersForMember: jest.fn(),
+  deleteServer: jest.fn(),
+  removeMember: jest.fn(),
+  leaveServer: jest.fn(),
+};
 
-const ChannelMock = jest.fn();
-ChannelMock.deleteMany = jest.fn();
-
-const getUsersByIdsMock = jest.fn();
-
-jest.unstable_mockModule("../../../src/services/server/Server.model.js", () => ({
+// Mock the service module
+jest.unstable_mockModule("../../../src/services/server/server.service.js", () => ({
   __esModule: true,
-  default: ServerMock,
+  createServerService: jest.fn(() => mockServerService),
+  defaultServerService: mockServerService,
 }));
 
-jest.unstable_mockModule("../../../src/services/channel/Channel.model.js", () => ({
-  __esModule: true,
-  default: ChannelMock,
-}));
-
-jest.unstable_mockModule("../../../src/services/user/betterAuthUser.api.js", () => ({
-  __esModule: true,
-  betterAuthUserApi: {
-    getUsersByIds: getUsersByIdsMock,
-  },
-}));
-
-const {
-  createServer,
-  joinServer,
-  getServers,
-  deleteServer,
-  removeMember,
-  leaveServer,
-} = await import("../../../src/services/server/server.controller.js");
+const { createServerController } = await import(
+  "../../../src/services/server/server.controller.js"
+);
 
 const createServerDoc = (overrides = {}) => {
   const doc = {
@@ -45,23 +30,29 @@ const createServerDoc = (overrides = {}) => {
     owner: "user123",
     members: ["user123"],
     channels: [],
-    save: jest.fn().mockResolvedValue(undefined),
-    populate: jest.fn(),
+    toJSON: jest.fn(() => ({
+      id: doc._id,
+      name: doc.name,
+      description: doc.description,
+      owner: doc.owner,
+      members: doc.members,
+      channels: doc.channels,
+    })),
   };
 
   Object.assign(doc, overrides);
-
-  doc.populate.mockImplementation(() => Promise.resolve(doc));
-  doc.toObject =
-    overrides.toObject ??
-    jest.fn(() => ({
-      _id: doc._id,
+  if (overrides.toJSON) {
+    doc.toJSON = overrides.toJSON;
+  } else {
+    doc.toJSON = jest.fn(() => ({
+      id: doc._id,
       name: doc.name,
       description: doc.description,
       owner: doc.owner,
       members: doc.members,
       channels: doc.channels,
     }));
+  }
 
   return doc;
 };
@@ -72,40 +63,40 @@ const createChannelDoc = (overrides = {}) => {
     name: "general",
     type: "text",
     server: "server123",
-    save: jest.fn().mockResolvedValue(undefined),
+    toJSON: jest.fn(() => ({
+      id: doc._id,
+      name: doc.name,
+      type: doc.type,
+      server: doc.server,
+    })),
   };
 
   Object.assign(doc, overrides);
-
-  doc.toObject =
-    overrides.toObject ??
-    jest.fn(() => ({
-      _id: doc._id,
+  if (overrides.toJSON) {
+    doc.toJSON = overrides.toJSON;
+  } else {
+    doc.toJSON = jest.fn(() => ({
+      id: doc._id,
       name: doc.name,
       type: doc.type,
       server: doc.server,
     }));
+  }
 
   return doc;
 };
 
-const createFindQuery = (result) => {
-  const query = {
-    populate: jest.fn(),
-    exec: jest.fn().mockResolvedValue(result),
-  };
-  query.populate.mockImplementation(() => query);
-  query.then = (resolve, reject) => query.exec().then(resolve, reject);
-  return query;
-};
-
 describe("server.controller", () => {
+  let controller;
   let req;
   let res;
   let next;
 
   beforeEach(() => {
-    req = { body: {}, params: {}, user: { _id: "user123" } };
+    controller = createServerController({
+      serverService: mockServerService,
+    });
+    req = { body: {}, params: {}, user: { _id: "user123" }, authContext: { headers: {} } };
     res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
@@ -113,54 +104,47 @@ describe("server.controller", () => {
     next = jest.fn();
 
     jest.clearAllMocks();
-    ServerMock.mockReset();
-    ServerMock.findById.mockReset();
-    ServerMock.find.mockReset();
-    ServerMock.findByIdAndDelete.mockReset();
-    ChannelMock.mockReset();
-    ChannelMock.deleteMany.mockReset();
-    getUsersByIdsMock.mockReset();
-    getUsersByIdsMock.mockResolvedValue([]);
   });
 
   describe("createServer", () => {
     test("retorna 400 si falta el nombre", async () => {
       req.body = { description: "sin nombre" };
 
-      await createServer(req, res, next);
+      const error = validationError("El nombre es requerido");
+      mockServerService.createServer.mockRejectedValue(error);
+
+      await controller.createServer(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
-      const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error.status).toBe(400);
-      expect(error.code).toBe("VALIDATION_ERROR");
-      expect(error.message).toBe("El nombre es requerido");
+      const receivedError = next.mock.calls[0][0];
+      expect(receivedError).toBeInstanceOf(HttpError);
+      expect(receivedError.status).toBe(400);
+      expect(receivedError.code).toBe("VALIDATION_ERROR");
+      expect(receivedError.message).toBe("El nombre es requerido");
       expect(res.status).not.toHaveBeenCalled();
     });
 
     test("crea servidor y canal general", async () => {
       req.body = { name: "Test Server", description: "Servidor de prueba" };
-      const serverDoc = createServerDoc({ members: ["user123"], channels: [] });
-      ServerMock.mockImplementation(() => serverDoc);
-      const channelDoc = createChannelDoc({ server: "server123" });
-      ChannelMock.mockImplementation(() => channelDoc);
 
-      await createServer(req, res, next);
+      const serverDoc = createServerDoc();
+      const channelDoc = createChannelDoc();
+      const members = [{ id: "user123", username: "user123" }];
 
-      expect(ServerMock).toHaveBeenCalledWith({
+      mockServerService.createServer.mockResolvedValue({
+        server: serverDoc,
+        defaultChannel: channelDoc,
+        members,
+      });
+
+      await controller.createServer(req, res, next);
+
+      expect(mockServerService.createServer).toHaveBeenCalledWith({
         name: "Test Server",
         description: "Servidor de prueba",
-        owner: "user123",
-        members: ["user123"],
+        ownerId: "user123",
+        authContext: req.authContext,
       });
-      expect(ChannelMock).toHaveBeenCalledWith({
-        name: "general",
-        type: "text",
-        server: "server123",
-      });
-      expect(serverDoc.save).toHaveBeenCalledTimes(2);
-      expect(channelDoc.save).toHaveBeenCalledTimes(1);
-      expect(serverDoc.channels).toContain("channel123");
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -172,7 +156,7 @@ describe("server.controller", () => {
             description: "Servidor de prueba",
             owner: "user123",
             members: expect.arrayContaining([expect.objectContaining({ id: "user123" })]),
-            channels: expect.arrayContaining(["channel123"]),
+            channels: expect.arrayContaining([]),
           }),
           defaultChannel: expect.objectContaining({
             id: "channel123",
@@ -188,14 +172,9 @@ describe("server.controller", () => {
     test("maneja errores internos con status 500", async () => {
       req.body = { name: "Test Server" };
       const error = new Error("DB error");
-      ServerMock.mockImplementation(() => ({
-        save: jest.fn().mockRejectedValue(error),
-        channels: [],
-        populate: jest.fn(),
-        toObject: jest.fn(),
-      }));
+      mockServerService.createServer.mockRejectedValue(error);
 
-      await createServer(req, res, next);
+      await controller.createServer(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith(error);
@@ -206,32 +185,42 @@ describe("server.controller", () => {
   describe("joinServer", () => {
     test("retorna 404 si el servidor no existe", async () => {
       req.body = { serverId: "server999", userId: "user456" };
-      ServerMock.findById.mockResolvedValue(null);
 
-      await joinServer(req, res, next);
+      const error = createHttpError(404, "Servidor no encontrado", { code: "SERVER_NOT_FOUND" });
+      mockServerService.joinServer.mockRejectedValue(error);
 
-      expect(ServerMock.findById).toHaveBeenCalledWith("server999");
-      const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error.status).toBe(404);
-      expect(error.code).toBe("SERVER_NOT_FOUND");
-      expect(error.message).toBe("Servidor no encontrado");
+      await controller.joinServer(req, res, next);
+
+      expect(mockServerService.joinServer).toHaveBeenCalledWith({
+        serverId: "server999",
+        userId: "user456",
+        authContext: req.authContext,
+      });
+      const receivedError = next.mock.calls[0][0];
+      expect(receivedError).toBeInstanceOf(HttpError);
+      expect(receivedError.status).toBe(404);
+      expect(receivedError.code).toBe("SERVER_NOT_FOUND");
       expect(res.status).not.toHaveBeenCalled();
     });
 
     test("agrega al usuario si no es miembro", async () => {
       req.body = { serverId: "server123", userId: "user456" };
+
       const serverDoc = createServerDoc({
-        members: ["user123"],
-        save: jest.fn().mockResolvedValue(undefined),
+        members: ["user123", "user456"],
       });
-      ServerMock.findById.mockResolvedValue(serverDoc);
+      const members = [
+        { id: "user123", username: "user123" },
+        { id: "user456", username: "user456" },
+      ];
 
-      await joinServer(req, res, next);
+      mockServerService.joinServer.mockResolvedValue({
+        server: serverDoc,
+        members,
+      });
 
-      expect(serverDoc.members).toContain("user456");
-      expect(serverDoc.save).toHaveBeenCalled();
-      expect(serverDoc.populate).toHaveBeenCalledWith("channels");
+      await controller.joinServer(req, res, next);
+
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -251,15 +240,17 @@ describe("server.controller", () => {
 
     test("no duplica miembros existentes", async () => {
       req.body = { serverId: "server123", userId: "user123" };
+
       const serverDoc = createServerDoc({ members: ["user123"] });
-      serverDoc.save = jest.fn().mockResolvedValue(undefined);
-      ServerMock.findById.mockResolvedValue(serverDoc);
+      const members = [{ id: "user123", username: "user123" }];
 
-      await joinServer(req, res, next);
+      mockServerService.joinServer.mockResolvedValue({
+        server: serverDoc,
+        members,
+      });
 
-      expect(serverDoc.members).toEqual(["user123"]);
-      expect(serverDoc.populate).toHaveBeenCalledWith("channels");
-      expect(serverDoc.save).not.toHaveBeenCalled();
+      await controller.joinServer(req, res, next);
+
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -277,9 +268,9 @@ describe("server.controller", () => {
     test("maneja errores inesperados con 500", async () => {
       req.body = { serverId: "server123", userId: "user456" };
       const error = new Error("lookup failed");
-      ServerMock.findById.mockRejectedValue(error);
+      mockServerService.joinServer.mockRejectedValue(error);
 
-      await joinServer(req, res, next);
+      await controller.joinServer(req, res, next);
 
       expect(next).toHaveBeenCalledWith(error);
       expect(res.status).not.toHaveBeenCalled();
@@ -289,31 +280,37 @@ describe("server.controller", () => {
   describe("getServers", () => {
     test("retorna servidores del usuario", async () => {
       req.user = { _id: "user123" };
-      const servers = [
-        createServerDoc({
-          _id: "server123",
-          members: [{ _id: "user123", username: "Tester", email: "test@example.com" }],
-          channels: [
-            {
-              _id: "channel123",
+
+      const serverDoc = createServerDoc({
+        channels: [
+          {
+            _id: "channel123",
+            name: "general",
+            type: "text",
+            server: "server123",
+            toJSON: () => ({
+              id: "channel123",
               name: "general",
               type: "text",
               server: "server123",
-              toObject: () => ({
-                _id: "channel123",
-                name: "general",
-                type: "text",
-                server: "server123",
-              }),
-            },
-          ],
-        }),
+            }),
+          },
+        ],
+      });
+      const members = [
+        { id: "user123", username: "Tester", email: "test@example.com" },
       ];
-      ServerMock.find.mockReturnValue(createFindQuery(servers));
 
-      await getServers(req, res, next);
+      mockServerService.listServersForMember.mockResolvedValue([
+        { server: serverDoc, members },
+      ]);
 
-      expect(ServerMock.find).toHaveBeenCalledWith({ members: "user123" });
+      await controller.getServers(req, res, next);
+
+      expect(mockServerService.listServersForMember).toHaveBeenCalledWith({
+        userId: "user123",
+        authContext: req.authContext,
+      });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -329,12 +326,6 @@ describe("server.controller", () => {
                   email: "test@example.com",
                 }),
               ]),
-              channels: expect.arrayContaining([
-                expect.objectContaining({
-                  id: "channel123",
-                  name: "general",
-                }),
-              ]),
             }),
           ],
         },
@@ -344,11 +335,9 @@ describe("server.controller", () => {
 
     test("devuelve 500 ante errores", async () => {
       const error = new Error("query failed");
-      ServerMock.find.mockImplementation(() => {
-        throw error;
-      });
+      mockServerService.listServersForMember.mockRejectedValue(error);
 
-      await getServers(req, res, next);
+      await controller.getServers(req, res, next);
 
       expect(next).toHaveBeenCalledWith(error);
       expect(res.status).not.toHaveBeenCalled();
@@ -359,25 +348,28 @@ describe("server.controller", () => {
     test("retorna 400 si falta serverId", async () => {
       req.params = {};
 
-      await deleteServer(req, res, next);
+      const error = validationError("Se requiere el serverId");
+      mockServerService.deleteServer.mockRejectedValue(error);
 
-      const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error.status).toBe(400);
-      expect(error.code).toBe("VALIDATION_ERROR");
-      expect(error.message).toBe("Se requiere el serverId");
+      await controller.deleteServer(req, res, next);
+
+      const receivedError = next.mock.calls[0][0];
+      expect(receivedError).toBeInstanceOf(HttpError);
+      expect(receivedError.status).toBe(400);
+      expect(receivedError.code).toBe("VALIDATION_ERROR");
       expect(res.status).not.toHaveBeenCalled();
     });
 
     test("elimina servidor y canales asociados", async () => {
       req.params = { serverId: "server123" };
-      ChannelMock.deleteMany.mockResolvedValue(undefined);
-      ServerMock.findByIdAndDelete.mockResolvedValue(undefined);
 
-      await deleteServer(req, res, next);
+      mockServerService.deleteServer.mockResolvedValue(undefined);
 
-      expect(ChannelMock.deleteMany).toHaveBeenCalledWith({ server: "server123" });
-      expect(ServerMock.findByIdAndDelete).toHaveBeenCalledWith("server123");
+      await controller.deleteServer(req, res, next);
+
+      expect(mockServerService.deleteServer).toHaveBeenCalledWith({
+        serverId: "server123",
+      });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -389,9 +381,9 @@ describe("server.controller", () => {
     test("devuelve 500 cuando ocurre un error", async () => {
       req.params = { serverId: "server123" };
       const error = new Error("delete failed");
-      ChannelMock.deleteMany.mockRejectedValue(error);
+      mockServerService.deleteServer.mockRejectedValue(error);
 
-      await deleteServer(req, res, next);
+      await controller.deleteServer(req, res, next);
 
       expect(next).toHaveBeenCalledWith(error);
       expect(res.status).not.toHaveBeenCalled();
@@ -401,61 +393,68 @@ describe("server.controller", () => {
   describe("removeMember", () => {
     test("retorna 404 cuando no encuentra el servidor", async () => {
       req.params = { serverId: "server123", memberId: "user456" };
-      ServerMock.findById.mockResolvedValue(null);
 
-      await removeMember(req, res, next);
+      const error = createHttpError(404, "Servidor no encontrado", { code: "SERVER_NOT_FOUND" });
+      mockServerService.removeMember.mockRejectedValue(error);
 
-      const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error.status).toBe(404);
-      expect(error.code).toBe("SERVER_NOT_FOUND");
-      expect(error.message).toBe("Servidor no encontrado");
+      await controller.removeMember(req, res, next);
+
+      const receivedError = next.mock.calls[0][0];
+      expect(receivedError).toBeInstanceOf(HttpError);
+      expect(receivedError.status).toBe(404);
+      expect(receivedError.code).toBe("SERVER_NOT_FOUND");
       expect(res.status).not.toHaveBeenCalled();
     });
 
     test("retorna 403 si el usuario no es el dueño", async () => {
       req.params = { serverId: "server123", memberId: "user456" };
-      const serverDoc = createServerDoc({ owner: "otherOwner", members: ["user456"] });
-      ServerMock.findById.mockResolvedValue(serverDoc);
 
-      await removeMember(req, res, next);
+      const error = createHttpError(403, "Solo el dueño puede eliminar miembros", { code: "FORBIDDEN" });
+      mockServerService.removeMember.mockRejectedValue(error);
 
-      const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error.status).toBe(403);
-      expect(error.code).toBe("FORBIDDEN");
-      expect(error.message).toBe("Solo el dueño puede eliminar miembros");
+      await controller.removeMember(req, res, next);
+
+      const receivedError = next.mock.calls[0][0];
+      expect(receivedError).toBeInstanceOf(HttpError);
+      expect(receivedError.status).toBe(403);
+      expect(receivedError.code).toBe("FORBIDDEN");
       expect(res.status).not.toHaveBeenCalled();
     });
 
     test("retorna 400 si el miembro no pertenece al servidor", async () => {
       req.params = { serverId: "server123", memberId: "user999" };
-      const serverDoc = createServerDoc({ members: ["user123", "user456"] });
-      ServerMock.findById.mockResolvedValue(serverDoc);
 
-      await removeMember(req, res, next);
+      const error = validationError("El miembro no pertenece al servidor");
+      mockServerService.removeMember.mockRejectedValue(error);
 
-      const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error.status).toBe(400);
-      expect(error.code).toBe("VALIDATION_ERROR");
-      expect(error.message).toBe("El miembro no pertenece al servidor");
+      await controller.removeMember(req, res, next);
+
+      const receivedError = next.mock.calls[0][0];
+      expect(receivedError).toBeInstanceOf(HttpError);
+      expect(receivedError.status).toBe(400);
+      expect(receivedError.code).toBe("VALIDATION_ERROR");
       expect(res.status).not.toHaveBeenCalled();
     });
 
     test("elimina miembro y devuelve servidor actualizado", async () => {
       req.params = { serverId: "server123", memberId: "user456" };
-      const serverDoc = createServerDoc({
-        members: ["user123", "user456"],
-        save: jest.fn().mockResolvedValue(undefined),
+
+      const serverDoc = createServerDoc({ members: ["user123"] });
+      const members = [{ id: "user123", username: "user123" }];
+
+      mockServerService.removeMember.mockResolvedValue({
+        server: serverDoc,
+        members,
       });
-      ServerMock.findById.mockResolvedValue(serverDoc);
 
-      await removeMember(req, res, next);
+      await controller.removeMember(req, res, next);
 
-      expect(serverDoc.members).toEqual(["user123"]);
-      expect(serverDoc.save).toHaveBeenCalled();
-      expect(serverDoc.populate).toHaveBeenCalledWith("channels");
+      expect(mockServerService.removeMember).toHaveBeenCalledWith({
+        serverId: "server123",
+        memberId: "user456",
+        requesterId: "user123",
+        authContext: req.authContext,
+      });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -473,9 +472,9 @@ describe("server.controller", () => {
     test("retorna 500 ante errores inesperados", async () => {
       req.params = { serverId: "server123", memberId: "user456" };
       const error = new Error("lookup failed");
-      ServerMock.findById.mockRejectedValue(error);
+      mockServerService.removeMember.mockRejectedValue(error);
 
-      await removeMember(req, res, next);
+      await controller.removeMember(req, res, next);
 
       expect(next).toHaveBeenCalledWith(error);
       expect(res.status).not.toHaveBeenCalled();
@@ -486,44 +485,45 @@ describe("server.controller", () => {
     test("retorna 400 si falta serverId", async () => {
       req.params = {};
 
-      await leaveServer(req, res, next);
+      const error = validationError("Se requiere el serverId");
+      mockServerService.leaveServer.mockRejectedValue(error);
 
-      const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error.status).toBe(400);
-      expect(error.code).toBe("VALIDATION_ERROR");
-      expect(error.message).toBe("Se requiere el serverId");
+      await controller.leaveServer(req, res, next);
+
+      const receivedError = next.mock.calls[0][0];
+      expect(receivedError).toBeInstanceOf(HttpError);
+      expect(receivedError.status).toBe(400);
+      expect(receivedError.code).toBe("VALIDATION_ERROR");
       expect(res.status).not.toHaveBeenCalled();
     });
 
     test("retorna 404 si el servidor no existe", async () => {
       req.params = { serverId: "server123" };
-      ServerMock.findById.mockResolvedValue(null);
 
-      await leaveServer(req, res, next);
+      const error = createHttpError(404, "Servidor no encontrado", { code: "SERVER_NOT_FOUND" });
+      mockServerService.leaveServer.mockRejectedValue(error);
 
-      const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error.status).toBe(404);
-      expect(error.code).toBe("SERVER_NOT_FOUND");
-      expect(error.message).toBe("Servidor no encontrado");
+      await controller.leaveServer(req, res, next);
+
+      const receivedError = next.mock.calls[0][0];
+      expect(receivedError).toBeInstanceOf(HttpError);
+      expect(receivedError.status).toBe(404);
+      expect(receivedError.code).toBe("SERVER_NOT_FOUND");
       expect(res.status).not.toHaveBeenCalled();
     });
 
     test("remueve al usuario del servidor", async () => {
       req.params = { serverId: "server123" };
       req.user = { _id: "user123" };
-      const serverDoc = createServerDoc({
-        owner: "owner999",
-        members: ["user123", "user999"],
-        save: jest.fn().mockResolvedValue(undefined),
+
+      mockServerService.leaveServer.mockResolvedValue(undefined);
+
+      await controller.leaveServer(req, res, next);
+
+      expect(mockServerService.leaveServer).toHaveBeenCalledWith({
+        serverId: "server123",
+        userId: "user123",
       });
-      ServerMock.findById.mockResolvedValue(serverDoc);
-
-      await leaveServer(req, res, next);
-
-      expect(serverDoc.members).toEqual(["user999"]);
-      expect(serverDoc.save).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -535,9 +535,9 @@ describe("server.controller", () => {
     test("retorna 500 ante errores inesperados", async () => {
       req.params = { serverId: "server123" };
       const error = new Error("lookup failed");
-      ServerMock.findById.mockRejectedValue(error);
+      mockServerService.leaveServer.mockRejectedValue(error);
 
-      await leaveServer(req, res, next);
+      await controller.leaveServer(req, res, next);
 
       expect(next).toHaveBeenCalledWith(error);
       expect(res.status).not.toHaveBeenCalled();

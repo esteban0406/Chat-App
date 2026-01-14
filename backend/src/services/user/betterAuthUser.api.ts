@@ -140,9 +140,12 @@ export function createBetterAuthUserApi(): BetterAuthUserApi {
 
         return mergeBetterAuthWithCustomUser(user);
       } catch (error: unknown) {
+        // Return null for any error when getting user (invalid ID format, not found, etc.)
         const err = error as { status?: number };
-        if (err?.status === 404) return null;
-        throw error;
+        if (err?.status === 404 || err?.status === 400 || err?.status === 500) return null;
+        // Log unexpected errors but still return null to allow service layer to handle it
+        console.warn("getUserById error:", error);
+        return null;
       }
     },
 

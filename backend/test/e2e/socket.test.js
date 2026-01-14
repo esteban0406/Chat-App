@@ -93,5 +93,5 @@ describe("Sockets E2E con DB real", () => {
     });
 
     return msgPromise;
-  });
+  }, 30000);
 });

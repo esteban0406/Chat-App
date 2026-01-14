@@ -1,7 +1,22 @@
 import Message from "../services/message/Message.model.js";
-import { defaultMessageService } from "../services/message/message.service.js";
 
-const { sanitizeMessage } = defaultMessageService;
+// Sanitize message for socket emission
+const sanitizeMessage = (msg) => {
+  if (!msg) return msg;
+
+  const id = msg._id?.toString?.() ?? msg._id ?? msg.id;
+  const channel = msg.channel?.toString?.() ?? msg.channel;
+  const sender = msg.sender?.toString?.() ?? msg.sender;
+
+  return {
+    id,
+    text: msg.text,
+    channel,
+    sender,
+    createdAt: msg.createdAt,
+    updatedAt: msg.updatedAt,
+  };
+};
 
 export default function registerChatHandlers(io, socket) {
   socket.on("message", async (data) => {

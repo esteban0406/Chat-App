@@ -1,19 +1,28 @@
 import { jest } from "@jest/globals";
-import { HttpError } from "../../../src/utils/httpError.js";
-import { createFriendRequestController } from "../../../src/services/user/friendRequest/friendRequest.controller.js";
-import { createFriendRequestService } from "../../../src/services/user/friendRequest/friendRequest.service.js";
-
-const FriendRequestMock = jest.fn();
-FriendRequestMock.findOne = jest.fn();
-FriendRequestMock.findById = jest.fn();
-FriendRequestMock.find = jest.fn();
-
-const findUserByIdMock = jest.fn();
-const getUsersByIdsMock = jest.fn();
+import { HttpError, createHttpError, validationError } from "../../../src/utils/httpError.js";
 
 const SELF_ID = "507f191e810c19729de860ea";
 const OTHER_ID = "507f191e810c19729de860eb";
 const THIRD_ID = "507f191e810c19729de860ec";
+
+// Create mock service
+const mockFriendRequestService = {
+  sendFriendRequest: jest.fn(),
+  respondFriendRequest: jest.fn(),
+  listPendingFriendRequests: jest.fn(),
+  listFriends: jest.fn(),
+};
+
+// Mock the service module
+jest.unstable_mockModule("../../../src/services/user/friendRequest/friendRequest.service.js", () => ({
+  __esModule: true,
+  createFriendRequestService: jest.fn(() => mockFriendRequestService),
+  defaultFriendRequestService: mockFriendRequestService,
+}));
+
+const { createFriendRequestController } = await import(
+  "../../../src/services/user/friendRequest/friendRequest.controller.js"
+);
 
 const createRequestDoc = (overrides = {}) => {
   const doc = {
@@ -21,17 +30,26 @@ const createRequestDoc = (overrides = {}) => {
     from: SELF_ID,
     to: OTHER_ID,
     status: "pending",
-    save: jest.fn().mockResolvedValue(undefined),
-  };
-
-  Object.assign(doc, overrides);
-
-  if (!overrides.toObject) {
-    doc.toObject = jest.fn(() => ({
-      _id: doc._id,
+    createdAt: new Date("2025-10-31T23:07:04.791Z"),
+    toJSON: jest.fn(() => ({
+      id: doc._id,
       from: doc.from,
       to: doc.to,
       status: doc.status,
+      createdAt: doc.createdAt,
+    })),
+  };
+
+  Object.assign(doc, overrides);
+  if (overrides.toJSON) {
+    doc.toJSON = overrides.toJSON;
+  } else {
+    doc.toJSON = jest.fn(() => ({
+      id: doc._id,
+      from: doc.from,
+      to: doc.to,
+      status: doc.status,
+      createdAt: doc.createdAt,
     }));
   }
 
@@ -39,117 +57,92 @@ const createRequestDoc = (overrides = {}) => {
 };
 
 describe("friend.controller", () => {
+  let controller;
   let req;
   let res;
   let next;
-  let controller;
-  let sendFriendRequest;
-  let respondFriendRequest;
-  let getPendingFriendRequests;
-  let getFriends;
-
-  const buildController = () => {
-    const friendRequestService = createFriendRequestService({
-      FriendRequestModel: FriendRequestMock,
-      userApi: {
-        getUserById: findUserByIdMock,
-        getUsersByIds: getUsersByIdsMock,
-      },
-    });
-    return createFriendRequestController({ friendRequestService });
-  };
 
   beforeEach(() => {
-    req = { body: {}, params: {}, user: { _id: SELF_ID } };
+    controller = createFriendRequestController({
+      friendRequestService: mockFriendRequestService,
+    });
+    req = { body: {}, params: {}, user: { _id: SELF_ID }, authContext: { headers: {} } };
     res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
     };
     next = jest.fn();
 
-    FriendRequestMock.mockReset();
-    FriendRequestMock.findOne.mockReset();
-    FriendRequestMock.findById.mockReset();
-    FriendRequestMock.find.mockReset();
-
-    findUserByIdMock.mockReset();
-    getUsersByIdsMock.mockReset();
-    getUsersByIdsMock.mockResolvedValue([]);
-    findUserByIdMock.mockImplementation(async (id) => ({
-      id,
-      username: `user-${id}`,
-      email: `${id}@mail.com`,
-    }));
-
-    controller = buildController();
-    ({
-      sendFriendRequest,
-      respondFriendRequest,
-      getPendingFriendRequests,
-      getFriends,
-    } = controller);
+    jest.clearAllMocks();
   });
 
   describe("sendFriendRequest", () => {
     test("retorna 400 si falta el destinatario", async () => {
       req.body = {};
 
-      await sendFriendRequest(req, res, next);
+      const error = validationError("Falta el usuario destinatario (to)");
+      mockFriendRequestService.sendFriendRequest.mockRejectedValue(error);
+
+      await controller.sendFriendRequest(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
-      const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error.status).toBe(400);
-      expect(error.message).toBe("Falta el usuario destinatario (to)");
+      const receivedError = next.mock.calls[0][0];
+      expect(receivedError).toBeInstanceOf(HttpError);
+      expect(receivedError.status).toBe(400);
+      expect(receivedError.message).toBe("Falta el usuario destinatario (to)");
       expect(res.status).not.toHaveBeenCalled();
     });
 
     test("retorna 400 si el usuario intenta enviarse a sí mismo", async () => {
       req.body = { to: req.user._id };
 
-      await sendFriendRequest(req, res, next);
+      const error = createHttpError(400, "No puedes enviarte una solicitud a ti mismo", { code: "INVALID_OPERATION" });
+      mockFriendRequestService.sendFriendRequest.mockRejectedValue(error);
+
+      await controller.sendFriendRequest(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
-      const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error.status).toBe(400);
-      expect(error.message).toBe("No puedes enviarte una solicitud a ti mismo");
+      const receivedError = next.mock.calls[0][0];
+      expect(receivedError).toBeInstanceOf(HttpError);
+      expect(receivedError.status).toBe(400);
+      expect(receivedError.message).toBe("No puedes enviarte una solicitud a ti mismo");
       expect(res.status).not.toHaveBeenCalled();
     });
 
     test("retorna 409 si ya existe una solicitud pendiente", async () => {
       req.body = { to: OTHER_ID };
-      FriendRequestMock.findOne.mockResolvedValue({ _id: "request123" });
 
-      await sendFriendRequest(req, res, next);
+      const error = createHttpError(409, "Ya enviaste una solicitud a este usuario", { code: "REQUEST_EXISTS" });
+      mockFriendRequestService.sendFriendRequest.mockRejectedValue(error);
 
-      expect(FriendRequestMock.findOne).toHaveBeenCalledWith({
-        from: SELF_ID,
-        to: OTHER_ID,
-        status: "pending",
+      await controller.sendFriendRequest(req, res, next);
+
+      expect(mockFriendRequestService.sendFriendRequest).toHaveBeenCalledWith({
+        fromUserId: SELF_ID,
+        toUserId: OTHER_ID,
+        authContext: req.authContext,
       });
       expect(next).toHaveBeenCalledTimes(1);
-      const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error.status).toBe(409);
-      expect(error.message).toBe("Ya enviaste una solicitud a este usuario");
+      const receivedError = next.mock.calls[0][0];
+      expect(receivedError).toBeInstanceOf(HttpError);
+      expect(receivedError.status).toBe(409);
+      expect(receivedError.message).toBe("Ya enviaste una solicitud a este usuario");
       expect(res.status).not.toHaveBeenCalled();
     });
 
     test("crea la solicitud cuando no existe", async () => {
       req.body = { to: OTHER_ID };
-      FriendRequestMock.findOne.mockResolvedValue(null);
-      const requestInstance = createRequestDoc();
-      FriendRequestMock.mockImplementation(() => requestInstance);
 
-      await sendFriendRequest(req, res, next);
+      const requestDoc = createRequestDoc();
+      mockFriendRequestService.sendFriendRequest.mockResolvedValue(requestDoc);
 
-      expect(FriendRequestMock).toHaveBeenCalledWith({
-        from: SELF_ID,
-        to: OTHER_ID,
-        status: "pending",
+      await controller.sendFriendRequest(req, res, next);
+
+      expect(mockFriendRequestService.sendFriendRequest).toHaveBeenCalledWith({
+        fromUserId: SELF_ID,
+        toUserId: OTHER_ID,
+        authContext: req.authContext,
       });
-      expect(requestInstance.save).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -160,6 +153,7 @@ describe("friend.controller", () => {
             from: SELF_ID,
             to: OTHER_ID,
             status: "pending",
+            createdAt: expect.any(Date),
           },
         },
       });
@@ -169,18 +163,9 @@ describe("friend.controller", () => {
     test("retorna 500 ante errores inesperados", async () => {
       req.body = { to: OTHER_ID };
       const error = new Error("save failed");
-      FriendRequestMock.findOne.mockResolvedValue(null);
-      FriendRequestMock.mockImplementation(() => ({
-        toObject: jest.fn(() => ({
-          _id: "req1",
-          from: SELF_ID,
-          to: OTHER_ID,
-          status: "pending",
-        })),
-        save: jest.fn().mockRejectedValue(error),
-      }));
+      mockFriendRequestService.sendFriendRequest.mockRejectedValue(error);
 
-      await sendFriendRequest(req, res, next);
+      await controller.sendFriendRequest(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith(error);
@@ -192,28 +177,33 @@ describe("friend.controller", () => {
     test("retorna 404 si la solicitud no existe", async () => {
       req.params = { id: "request123" };
       req.body = { status: "accepted" };
-      FriendRequestMock.findById.mockResolvedValue(null);
 
-      await respondFriendRequest(req, res, next);
+      const error = createHttpError(404, "Solicitud no encontrada", { code: "REQUEST_NOT_FOUND" });
+      mockFriendRequestService.respondFriendRequest.mockRejectedValue(error);
+
+      await controller.respondFriendRequest(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
-      const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error.status).toBe(404);
-      expect(error.message).toBe("Solicitud no encontrada");
+      const receivedError = next.mock.calls[0][0];
+      expect(receivedError).toBeInstanceOf(HttpError);
+      expect(receivedError.status).toBe(404);
+      expect(receivedError.message).toBe("Solicitud no encontrada");
       expect(res.status).not.toHaveBeenCalled();
     });
 
     test("actualiza la solicitud y agrega amigos cuando se acepta", async () => {
       req.params = { id: "request123" };
       req.body = { status: "accepted" };
-      const request = createRequestDoc();
-      FriendRequestMock.findById.mockResolvedValue(request);
 
-      await respondFriendRequest(req, res, next);
+      const requestDoc = createRequestDoc({ status: "accepted" });
+      mockFriendRequestService.respondFriendRequest.mockResolvedValue(requestDoc);
 
-      expect(request.status).toBe("accepted");
-      expect(request.save).toHaveBeenCalled();
+      await controller.respondFriendRequest(req, res, next);
+
+      expect(mockFriendRequestService.respondFriendRequest).toHaveBeenCalledWith({
+        requestId: "request123",
+        status: "accepted",
+      });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -224,6 +214,7 @@ describe("friend.controller", () => {
             from: SELF_ID,
             to: OTHER_ID,
             status: "accepted",
+            createdAt: expect.any(Date),
           },
         },
       });
@@ -233,12 +224,12 @@ describe("friend.controller", () => {
     test("actualiza la solicitud sin agregar amigos cuando se rechaza", async () => {
       req.params = { id: "request123" };
       req.body = { status: "rejected" };
-      const request = createRequestDoc();
-      FriendRequestMock.findById.mockResolvedValue(request);
 
-      await respondFriendRequest(req, res, next);
+      const requestDoc = createRequestDoc({ status: "rejected" });
+      mockFriendRequestService.respondFriendRequest.mockResolvedValue(requestDoc);
 
-      expect(request.status).toBe("rejected");
+      await controller.respondFriendRequest(req, res, next);
+
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -249,6 +240,7 @@ describe("friend.controller", () => {
             from: SELF_ID,
             to: OTHER_ID,
             status: "rejected",
+            createdAt: expect.any(Date),
           },
         },
       });
@@ -259,9 +251,9 @@ describe("friend.controller", () => {
       req.params = { id: "request123" };
       req.body = { status: "accepted" };
       const error = new Error("lookup failed");
-      FriendRequestMock.findById.mockRejectedValue(error);
+      mockFriendRequestService.respondFriendRequest.mockRejectedValue(error);
 
-      await respondFriendRequest(req, res, next);
+      await controller.respondFriendRequest(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith(error);
@@ -272,26 +264,24 @@ describe("friend.controller", () => {
   describe("getPendingFriendRequests", () => {
     test("retorna solicitudes formateadas", async () => {
       const createdAt = new Date("2025-10-31T23:07:04.791Z");
-      const requests = [
-        {
-          _id: "req1",
-          from: "user123",
-          status: "pending",
-          createdAt,
-        },
-      ];
-      FriendRequestMock.find.mockResolvedValue(requests);
-      getUsersByIdsMock.mockResolvedValue([
-        { id: "user123", username: "User", email: "user@example.com" },
+      const requestDoc = createRequestDoc({
+        _id: "req1",
+        from: "user123",
+        to: SELF_ID,
+        createdAt,
+      });
+      const fromUser = { id: "user123", username: "User", email: "user@example.com" };
+
+      mockFriendRequestService.listPendingFriendRequests.mockResolvedValue([
+        { request: requestDoc, fromUser },
       ]);
 
-      await getPendingFriendRequests(req, res, next);
+      await controller.getPendingFriendRequests(req, res, next);
 
-      expect(FriendRequestMock.find).toHaveBeenCalledWith({
-        to: SELF_ID,
-        status: "pending",
+      expect(mockFriendRequestService.listPendingFriendRequests).toHaveBeenCalledWith({
+        userId: SELF_ID,
+        authContext: req.authContext,
       });
-      expect(getUsersByIdsMock).toHaveBeenCalledWith(["user123"], undefined);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -318,11 +308,9 @@ describe("friend.controller", () => {
 
     test("retorna 500 cuando ocurre un error", async () => {
       const error = new Error("lookup failed");
-      FriendRequestMock.find.mockImplementation(() => {
-        throw error;
-      });
+      mockFriendRequestService.listPendingFriendRequests.mockRejectedValue(error);
 
-      await getPendingFriendRequests(req, res, next);
+      await controller.getPendingFriendRequests(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith(error);
@@ -332,23 +320,19 @@ describe("friend.controller", () => {
 
   describe("getFriends", () => {
     test("retorna usuarios amigos", async () => {
-      const friendRequests = [
-        { from: SELF_ID, to: OTHER_ID },
-        { from: THIRD_ID, to: SELF_ID },
-      ];
-      FriendRequestMock.find.mockResolvedValue(friendRequests);
-      getUsersByIdsMock.mockResolvedValue([
+      const friends = [
         { id: OTHER_ID, username: "Friend1", email: "friend1@example.com" },
         { id: THIRD_ID, username: "Friend2", email: "friend2@example.com" },
-      ]);
+      ];
 
-      await getFriends(req, res, next);
+      mockFriendRequestService.listFriends.mockResolvedValue(friends);
 
-      expect(FriendRequestMock.find).toHaveBeenCalledWith({
-        status: "accepted",
-        $or: [{ from: SELF_ID }, { to: SELF_ID }],
+      await controller.getFriends(req, res, next);
+
+      expect(mockFriendRequestService.listFriends).toHaveBeenCalledWith({
+        userId: SELF_ID,
+        authContext: req.authContext,
       });
-      expect(getUsersByIdsMock).toHaveBeenCalledWith([OTHER_ID, THIRD_ID], undefined);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -373,9 +357,9 @@ describe("friend.controller", () => {
 
     test("retorna 500 cuando ocurre un error", async () => {
       const error = new Error("lookup failed");
-      FriendRequestMock.find.mockRejectedValue(error);
+      mockFriendRequestService.listFriends.mockRejectedValue(error);
 
-      await getFriends(req, res, next);
+      await controller.getFriends(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith(error);

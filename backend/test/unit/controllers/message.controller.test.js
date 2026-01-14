@@ -1,66 +1,48 @@
 import { jest } from "@jest/globals";
-import { HttpError } from "../../../src/utils/httpError.js";
+import { HttpError, validationError as createValidationError } from "../../../src/utils/httpError.js";
 
-const MessageMock = jest.fn();
-MessageMock.find = jest.fn();
-
-const ChannelMock = {
-  findById: jest.fn(),
+// Create mock service
+const mockMessageService = {
+  createMessage: jest.fn(),
+  listMessages: jest.fn(),
 };
 
-const getUserByIdMock = jest.fn();
-const getUsersByIdsMock = jest.fn();
+// Mock the service module
+jest.unstable_mockModule("../../../src/services/message/message.service.js", () => ({
+  __esModule: true,
+  createMessageService: jest.fn(() => mockMessageService),
+  defaultMessageService: mockMessageService,
+}));
+
+const { createMessageController } = await import(
+  "../../../src/services/message/message.controller.js"
+);
 
 const ioMock = {
   to: jest.fn().mockReturnThis(),
   emit: jest.fn(),
 };
 
-jest.unstable_mockModule("../../../src/services/message/Message.model.js", () => ({
-  __esModule: true,
-  default: MessageMock,
-}));
-
-jest.unstable_mockModule("../../../src/services/channel/Channel.model.js", () => ({
-  __esModule: true,
-  default: ChannelMock,
-}));
-
-jest.unstable_mockModule("../../../src/services/user/betterAuthUser.api.js", () => ({
-  __esModule: true,
-  betterAuthUserApi: {
-    getUserById: getUserByIdMock,
-    getUsersByIds: getUsersByIdsMock,
-  },
-}));
-
-const { createMessageController } = await import(
-  "../../../src/services/message/message.controller.js",
-);
-
 const createMessageDoc = (overrides = {}) => {
   const doc = {
     _id: "message123",
     text: "Hola",
-    sender: { _id: "user123", username: "test" },
+    sender: "user123",
     channel: "channel123",
     createdAt: new Date("2025-10-31T23:07:04.791Z"),
-    save: jest.fn().mockResolvedValue(undefined),
-    populate: jest.fn().mockResolvedValue(undefined),
-  };
-
-  Object.assign(doc, overrides);
-
-  doc.populate.mockImplementation(async () => doc);
-  doc.toObject =
-    overrides.toObject ??
-    jest.fn(() => ({
-      _id: doc._id,
+    toJSON: jest.fn(() => ({
+      id: doc._id,
       text: doc.text,
       sender: doc.sender,
       channel: doc.channel,
       createdAt: doc.createdAt,
-    }));
+    })),
+  };
+
+  Object.assign(doc, overrides);
+  if (overrides.toJSON) {
+    doc.toJSON = overrides.toJSON;
+  }
 
   return doc;
 };
@@ -72,8 +54,11 @@ describe("message.controller", () => {
   let next;
 
   beforeEach(() => {
-    controller = createMessageController({ io: ioMock });
-    req = { body: {}, params: {} };
+    controller = createMessageController({
+      messageService: mockMessageService,
+      io: ioMock,
+    });
+    req = { body: {}, params: {}, authContext: { headers: {} } };
     res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
@@ -81,16 +66,6 @@ describe("message.controller", () => {
     next = jest.fn();
 
     jest.clearAllMocks();
-    MessageMock.mockReset();
-    MessageMock.find.mockReset();
-    ChannelMock.findById.mockReset();
-    getUserByIdMock.mockReset();
-    getUsersByIdsMock.mockReset();
-    getUsersByIdsMock.mockResolvedValue([]);
-    getUserByIdMock.mockResolvedValue({
-      id: "user123",
-      username: "test",
-    });
     ioMock.to.mockReturnThis();
     ioMock.to.mockClear();
     ioMock.emit.mockClear();
@@ -99,6 +74,9 @@ describe("message.controller", () => {
   describe("sendMessage", () => {
     test("retorna 400 cuando faltan campos obligatorios", async () => {
       req.body = { text: "", senderId: "", channelId: "" };
+
+      const validationError = createValidationError("Faltan campos obligatorios");
+      mockMessageService.createMessage.mockRejectedValue(validationError);
 
       await controller.sendMessage(req, res, next);
 
@@ -114,27 +92,22 @@ describe("message.controller", () => {
     test("crea mensaje, lo asocia y emite por socket", async () => {
       req.body = { text: "Hola", senderId: "user123", channelId: "channel123" };
 
-      const messageInstance = createMessageDoc();
-      MessageMock.mockImplementation(() => messageInstance);
+      const messageDoc = createMessageDoc();
+      const sender = { id: "user123", username: "test" };
 
-      const channel = {
-        messages: [],
-        save: jest.fn().mockResolvedValue(undefined),
-      };
-      ChannelMock.findById.mockResolvedValue(channel);
+      mockMessageService.createMessage.mockResolvedValue({
+        message: messageDoc,
+        sender,
+      });
 
       await controller.sendMessage(req, res, next);
 
-      expect(MessageMock).toHaveBeenCalledWith({
+      expect(mockMessageService.createMessage).toHaveBeenCalledWith({
         text: "Hola",
-        sender: "user123",
-        channel: "channel123",
+        senderId: "user123",
+        channelId: "channel123",
+        authContext: req.authContext,
       });
-      expect(messageInstance.save).toHaveBeenCalled();
-      expect(ChannelMock.findById).toHaveBeenCalledWith("channel123");
-      expect(channel.messages).toContain("message123");
-      expect(channel.save).toHaveBeenCalled();
-      expect(getUserByIdMock).toHaveBeenCalledWith("user123", undefined);
       expect(ioMock.to).toHaveBeenCalledWith("channel123");
       expect(ioMock.emit).toHaveBeenCalledWith("message", {
         id: "message123",
@@ -144,7 +117,7 @@ describe("message.controller", () => {
           username: "test",
         },
         channel: "channel123",
-        createdAt: messageInstance.createdAt,
+        createdAt: messageDoc.createdAt,
       });
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
@@ -159,7 +132,7 @@ describe("message.controller", () => {
               username: "test",
             },
             channel: "channel123",
-            createdAt: messageInstance.createdAt,
+            createdAt: messageDoc.createdAt,
           },
         },
       });
@@ -169,10 +142,7 @@ describe("message.controller", () => {
     test("retorna 500 cuando ocurre un error", async () => {
       req.body = { text: "Hola", senderId: "user123", channelId: "channel123" };
       const error = new Error("save failed");
-      MessageMock.mockImplementation(() => ({
-        save: jest.fn().mockRejectedValue(error),
-        populate: jest.fn(),
-      }));
+      mockMessageService.createMessage.mockRejectedValue(error);
 
       await controller.sendMessage(req, res, next);
 
@@ -185,29 +155,19 @@ describe("message.controller", () => {
   describe("getMessages", () => {
     test("retorna mensajes del canal", async () => {
       req.params = { channelId: "channel123" };
-      const messageDocs = [
-        createMessageDoc({
-          _id: "message123",
-          channel: "channel123",
-          text: "Hola",
-          sender: { _id: "user123", username: "test" },
-          toObject: jest.fn(() => ({
-            _id: "message123",
-            channel: "channel123",
-            text: "Hola",
-            sender: { _id: "user123", username: "test" },
-            createdAt: new Date("2025-10-31T23:07:04.791Z"),
-          })),
-        }),
-      ];
-      MessageMock.find.mockResolvedValue(messageDocs);
-      getUsersByIdsMock.mockResolvedValue([
-        { id: "user123", username: "test" },
+      const messageDoc = createMessageDoc();
+      const sender = { id: "user123", username: "test" };
+
+      mockMessageService.listMessages.mockResolvedValue([
+        { message: messageDoc, sender },
       ]);
 
       await controller.getMessages(req, res, next);
 
-      expect(MessageMock.find).toHaveBeenCalledWith({ channel: "channel123" });
+      expect(mockMessageService.listMessages).toHaveBeenCalledWith({
+        channelId: "channel123",
+        authContext: req.authContext,
+      });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -216,9 +176,9 @@ describe("message.controller", () => {
           messages: [
             {
               id: "message123",
-              channel: "channel123",
               text: "Hola",
               sender: { id: "user123", username: "test" },
+              channel: "channel123",
               createdAt: expect.any(Date),
             },
           ],
@@ -230,9 +190,7 @@ describe("message.controller", () => {
     test("retorna 500 cuando ocurre un error", async () => {
       req.params = { channelId: "channel123" };
       const error = new Error("lookup failed");
-      MessageMock.find.mockImplementation(() => {
-        throw error;
-      });
+      mockMessageService.listMessages.mockRejectedValue(error);
 
       await controller.getMessages(req, res, next);
 

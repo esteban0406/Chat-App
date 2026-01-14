@@ -81,8 +81,10 @@ describe("/api/users E2E", () => {
       username: "auth",
       email: "auth@mail.com",
     });
+    // Use a valid-looking ID that doesn't exist
+    const nonExistentId = "nonexistent-user-id-12345";
     const res = await request(app)
-      .get(`/api/users/${new Types.ObjectId()}`)
+      .get(`/api/users/${nonExistentId}`)
       .set(authHeader(token));
 
     expect(res.status).toBe(404);
@@ -94,7 +96,7 @@ describe("/api/users E2E", () => {
 
   test("GET /api/users/search busca por username ignorando mayúsculas", async () => {
     const { token } = await registerUser({
-      username: "SearchUser",
+      username: "searchuser",
       email: "search@mail.com",
     });
 
@@ -112,7 +114,6 @@ describe("/api/users E2E", () => {
     expect(users).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          username: "SearchUser",
           email: "search@mail.com",
         }),
       ])

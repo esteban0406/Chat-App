@@ -88,8 +88,8 @@ describe("server.js extra coverage", () => {
     process.emit("SIGINT");
     await new Promise((resolve) => setImmediate(resolve));
 
-    expect(logSpy).toHaveBeenCalledWith("🛑 Shutting down...");
-    expect(logSpy).toHaveBeenCalledWith("👋 Server closed gracefully");
+    expect(logSpy).toHaveBeenCalledWith("\n🛑 Shutting down gracefully...");
+    expect(logSpy).toHaveBeenCalledWith("👋 Goodbye!");
     expect(exitSpy).toHaveBeenCalledWith(0);
 
     disconnectSpy.mockRestore();

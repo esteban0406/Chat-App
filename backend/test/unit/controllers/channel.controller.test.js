@@ -1,26 +1,22 @@
 import { jest } from "@jest/globals";
-import { HttpError } from "../../../src/utils/httpError.js";
+import { HttpError, createHttpError, validationError } from "../../../src/utils/httpError.js";
 
-const ChannelMock = jest.fn();
-ChannelMock.findById = jest.fn();
-ChannelMock.findByIdAndDelete = jest.fn();
-
-const ServerMock = {
-  findById: jest.fn(),
-  findByIdAndUpdate: jest.fn(),
+// Create mock service
+const mockChannelService = {
+  createChannel: jest.fn(),
+  listChannelsForServer: jest.fn(),
+  updateChannel: jest.fn(),
+  deleteChannel: jest.fn(),
 };
 
-jest.unstable_mockModule("../../../src/services/channel/Channel.model.js", () => ({
+// Mock the service module
+jest.unstable_mockModule("../../../src/services/channel/channel.service.js", () => ({
   __esModule: true,
-  default: ChannelMock,
+  createChannelService: jest.fn(() => mockChannelService),
+  defaultChannelService: mockChannelService,
 }));
 
-jest.unstable_mockModule("../../../src/services/server/Server.model.js", () => ({
-  __esModule: true,
-  default: ServerMock,
-}));
-
-const { createChannel, getChannels, deleteChannel } = await import(
+const { createChannelController } = await import(
   "../../../src/services/channel/channel.controller.js"
 );
 
@@ -31,48 +27,41 @@ const createChannelDoc = (overrides = {}) => {
     type: "text",
     server: "server123",
     messages: [],
-    save: jest.fn().mockResolvedValue(undefined),
+    toJSON: jest.fn(() => ({
+      id: doc._id,
+      name: doc.name,
+      type: doc.type,
+      server: doc.server,
+      messages: doc.messages,
+    })),
   };
 
   Object.assign(doc, overrides);
-
-  doc.toObject =
-    overrides.toObject ??
-    jest.fn(() => ({
-      _id: doc._id,
+  if (overrides.toJSON) {
+    doc.toJSON = overrides.toJSON;
+  } else {
+    doc.toJSON = jest.fn(() => ({
+      id: doc._id,
       name: doc.name,
       type: doc.type,
       server: doc.server,
       messages: doc.messages,
     }));
+  }
 
   return doc;
 };
 
-const createServerDoc = (overrides = {}) => {
-  const server = {
-    _id: "server123",
-    members: ["user123"],
-    channels: [],
-    save: jest.fn().mockResolvedValue(undefined),
-  };
-
-  Object.assign(server, overrides);
-  return server;
-};
-
-const createPopulateQuery = (resolvedValue) => {
-  return {
-    populate: jest.fn().mockResolvedValue(resolvedValue),
-  };
-};
-
 describe("channel.controller", () => {
+  let controller;
   let req;
   let res;
   let next;
 
   beforeEach(() => {
+    controller = createChannelController({
+      channelService: mockChannelService,
+    });
     req = { body: {}, params: {}, user: { _id: "user123" } };
     res = {
       status: jest.fn().mockReturnThis(),
@@ -81,77 +70,78 @@ describe("channel.controller", () => {
     next = jest.fn();
 
     jest.clearAllMocks();
-    ChannelMock.mockReset();
-    ChannelMock.findById.mockReset();
-    ChannelMock.findByIdAndDelete.mockReset();
-    ServerMock.findById.mockReset();
-    ServerMock.findByIdAndUpdate.mockReset();
   });
 
   describe("createChannel", () => {
     test("retorna 400 cuando faltan datos requeridos", async () => {
       req.body = { name: "", serverId: "" };
 
-      await createChannel(req, res, next);
+      const error = validationError("El nombre y el serverId son requeridos");
+      mockChannelService.createChannel.mockRejectedValue(error);
+
+      await controller.createChannel(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
-      const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error.status).toBe(400);
-      expect(error.code).toBe("VALIDATION_ERROR");
-      expect(error.message).toBe("El nombre y el serverId son requeridos");
+      const receivedError = next.mock.calls[0][0];
+      expect(receivedError).toBeInstanceOf(HttpError);
+      expect(receivedError.status).toBe(400);
+      expect(receivedError.code).toBe("VALIDATION_ERROR");
+      expect(receivedError.message).toBe("El nombre y el serverId son requeridos");
       expect(res.status).not.toHaveBeenCalled();
     });
 
     test("retorna 404 si el servidor no existe", async () => {
       req.body = { name: "general", serverId: "server123" };
-      ServerMock.findById.mockResolvedValue(null);
 
-      await createChannel(req, res, next);
+      const error = createHttpError(404, "Servidor no encontrado", { code: "SERVER_NOT_FOUND" });
+      mockChannelService.createChannel.mockRejectedValue(error);
 
-      expect(ServerMock.findById).toHaveBeenCalledWith("server123");
+      await controller.createChannel(req, res, next);
+
+      expect(mockChannelService.createChannel).toHaveBeenCalledWith({
+        name: "general",
+        type: undefined,
+        serverId: "server123",
+        requesterId: "user123",
+      });
       expect(next).toHaveBeenCalledTimes(1);
-      const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error.status).toBe(404);
-      expect(error.code).toBe("SERVER_NOT_FOUND");
-      expect(error.message).toBe("Servidor no encontrado");
+      const receivedError = next.mock.calls[0][0];
+      expect(receivedError).toBeInstanceOf(HttpError);
+      expect(receivedError.status).toBe(404);
+      expect(receivedError.code).toBe("SERVER_NOT_FOUND");
       expect(res.status).not.toHaveBeenCalled();
     });
 
     test("retorna 403 si el usuario no es miembro", async () => {
       req.body = { name: "general", serverId: "server123" };
-      const server = createServerDoc({ members: ["otherUser"] });
-      ServerMock.findById.mockResolvedValue(server);
 
-      await createChannel(req, res, next);
+      const error = createHttpError(403, "No eres miembro de este servidor", { code: "FORBIDDEN" });
+      mockChannelService.createChannel.mockRejectedValue(error);
+
+      await controller.createChannel(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
-      const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error.status).toBe(403);
-      expect(error.code).toBe("FORBIDDEN");
-      expect(error.message).toBe("No eres miembro de este servidor");
+      const receivedError = next.mock.calls[0][0];
+      expect(receivedError).toBeInstanceOf(HttpError);
+      expect(receivedError.status).toBe(403);
+      expect(receivedError.code).toBe("FORBIDDEN");
       expect(res.status).not.toHaveBeenCalled();
     });
 
     test("crea canal y lo asocia al servidor", async () => {
       req.body = { name: "general", type: "text", serverId: "server123" };
-      const channelInstance = createChannelDoc();
-      ChannelMock.mockImplementation(() => channelInstance);
-      const server = createServerDoc();
-      ServerMock.findById.mockResolvedValue(server);
 
-      await createChannel(req, res, next);
+      const channelDoc = createChannelDoc();
+      mockChannelService.createChannel.mockResolvedValue(channelDoc);
 
-      expect(ChannelMock).toHaveBeenCalledWith({
+      await controller.createChannel(req, res, next);
+
+      expect(mockChannelService.createChannel).toHaveBeenCalledWith({
         name: "general",
         type: "text",
-        server: "server123",
+        serverId: "server123",
+        requesterId: "user123",
       });
-      expect(channelInstance.save).toHaveBeenCalled();
-      expect(server.channels).toContain("channel123");
-      expect(server.save).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -172,9 +162,9 @@ describe("channel.controller", () => {
     test("retorna 500 ante errores inesperados", async () => {
       req.body = { name: "general", type: "text", serverId: "server123" };
       const error = new Error("save failed");
-      ServerMock.findById.mockRejectedValue(error);
+      mockChannelService.createChannel.mockRejectedValue(error);
 
-      await createChannel(req, res, next);
+      await controller.createChannel(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith(error);
@@ -185,46 +175,48 @@ describe("channel.controller", () => {
   describe("getChannels", () => {
     test("retorna 404 cuando el servidor no existe", async () => {
       req.params = { serverId: "server123" };
-      ServerMock.findById.mockReturnValue(createPopulateQuery(null));
 
-      await getChannels(req, res, next);
+      const error = createHttpError(404, "Servidor no encontrado", { code: "SERVER_NOT_FOUND" });
+      mockChannelService.listChannelsForServer.mockRejectedValue(error);
+
+      await controller.getChannels(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
-      const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error.status).toBe(404);
-      expect(error.code).toBe("SERVER_NOT_FOUND");
-      expect(error.message).toBe("Servidor no encontrado");
+      const receivedError = next.mock.calls[0][0];
+      expect(receivedError).toBeInstanceOf(HttpError);
+      expect(receivedError.status).toBe(404);
+      expect(receivedError.code).toBe("SERVER_NOT_FOUND");
       expect(res.status).not.toHaveBeenCalled();
     });
 
     test("retorna 403 cuando el usuario no es miembro", async () => {
       req.params = { serverId: "server123" };
-      const server = createServerDoc({ members: ["otherUser"], channels: [] });
-      ServerMock.findById.mockReturnValue(createPopulateQuery(server));
 
-      await getChannels(req, res, next);
+      const error = createHttpError(403, "No eres miembro de este servidor", { code: "FORBIDDEN" });
+      mockChannelService.listChannelsForServer.mockRejectedValue(error);
+
+      await controller.getChannels(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
-      const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error.status).toBe(403);
-      expect(error.code).toBe("FORBIDDEN");
-      expect(error.message).toBe("No eres miembro de este servidor");
+      const receivedError = next.mock.calls[0][0];
+      expect(receivedError).toBeInstanceOf(HttpError);
+      expect(receivedError.status).toBe(403);
+      expect(receivedError.code).toBe("FORBIDDEN");
       expect(res.status).not.toHaveBeenCalled();
     });
 
     test("devuelve la lista de canales", async () => {
       req.params = { serverId: "server123" };
+
       const channelDoc = createChannelDoc();
-      const server = createServerDoc({ channels: [channelDoc] });
-      ServerMock.findById.mockReturnValue(createPopulateQuery(server));
+      mockChannelService.listChannelsForServer.mockResolvedValue([channelDoc]);
 
-      await getChannels(req, res, next);
+      await controller.getChannels(req, res, next);
 
-      expect(ServerMock.findById).toHaveBeenCalledWith("server123");
-      const populate = ServerMock.findById.mock.results[0].value.populate;
-      expect(populate).toHaveBeenCalledWith("channels");
+      expect(mockChannelService.listChannelsForServer).toHaveBeenCalledWith({
+        serverId: "server123",
+        requesterId: "user123",
+      });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -247,11 +239,9 @@ describe("channel.controller", () => {
     test("retorna 500 cuando hay errores", async () => {
       req.params = { serverId: "server123" };
       const error = new Error("lookup failed");
-      ServerMock.findById.mockImplementation(() => {
-        throw error;
-      });
+      mockChannelService.listChannelsForServer.mockRejectedValue(error);
 
-      await getChannels(req, res, next);
+      await controller.getChannels(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith(error);
@@ -262,32 +252,30 @@ describe("channel.controller", () => {
   describe("deleteChannel", () => {
     test("retorna 404 cuando el canal no existe", async () => {
       req.params = { channelId: "channel123" };
-      ChannelMock.findById.mockResolvedValue(null);
 
-      await deleteChannel(req, res, next);
+      const error = createHttpError(404, "Canal no encontrado", { code: "CHANNEL_NOT_FOUND" });
+      mockChannelService.deleteChannel.mockRejectedValue(error);
+
+      await controller.deleteChannel(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
-      const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error.status).toBe(404);
-      expect(error.code).toBe("CHANNEL_NOT_FOUND");
-      expect(error.message).toBe("Canal no encontrado");
+      const receivedError = next.mock.calls[0][0];
+      expect(receivedError).toBeInstanceOf(HttpError);
+      expect(receivedError.status).toBe(404);
+      expect(receivedError.code).toBe("CHANNEL_NOT_FOUND");
       expect(res.status).not.toHaveBeenCalled();
     });
 
     test("elimina el canal y actualiza el servidor", async () => {
       req.params = { channelId: "channel123" };
-      const channel = createChannelDoc({ messages: undefined });
-      ChannelMock.findById.mockResolvedValue(channel);
-      ServerMock.findByIdAndUpdate.mockResolvedValue(undefined);
-      ChannelMock.findByIdAndDelete.mockResolvedValue(undefined);
 
-      await deleteChannel(req, res, next);
+      mockChannelService.deleteChannel.mockResolvedValue(undefined);
 
-      expect(ServerMock.findByIdAndUpdate).toHaveBeenCalledWith("server123", {
-        $pull: { channels: "channel123" },
+      await controller.deleteChannel(req, res, next);
+
+      expect(mockChannelService.deleteChannel).toHaveBeenCalledWith({
+        channelId: "channel123",
       });
-      expect(ChannelMock.findByIdAndDelete).toHaveBeenCalledWith("channel123");
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -300,9 +288,9 @@ describe("channel.controller", () => {
     test("retorna 500 cuando ocurre un error", async () => {
       req.params = { channelId: "channel123" };
       const error = new Error("delete failed");
-      ChannelMock.findById.mockRejectedValue(error);
+      mockChannelService.deleteChannel.mockRejectedValue(error);
 
-      await deleteChannel(req, res, next);
+      await controller.deleteChannel(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith(error);

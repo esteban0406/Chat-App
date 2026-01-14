@@ -36,8 +36,8 @@ const expectFail = (response, status, message, code) => {
 };
 
 const AUTH_ERROR = {
-  message: "Token invalido o expirado",
-  code: "INVALID_TOKEN",
+  message: "Not authenticated",
+  code: "AUTH_REQUIRED",
 };
 
 const registerUser = ({ username, email }) =>

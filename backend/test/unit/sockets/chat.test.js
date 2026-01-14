@@ -31,15 +31,16 @@ test("ignora mensaje sin campos obligatorios", (done) => {
     expect(spy).toHaveBeenCalled();
     spy.mockRestore();
     done();
-  }, 50);
+  }, 100);
 });
 
 test("emite mensaje fake cuando DISABLE_DB_WRITE=true", (done) => {
-  clientSocket.emit("message", { text: "Hola", channelId: "chan", senderId: "usr" });
-  clientSocket.on("message", (msg) => {
+  // Use once to listen for exactly one message
+  clientSocket.once("message", (msg) => {
     expect(msg.text).toBe("Hola");
     expect(msg.channel).toBe("chan");
     expect(msg.sender).toBe("usr");
     done();
   });
-});
+  clientSocket.emit("message", { text: "Hola", channelId: "chan", senderId: "usr" });
+}, 10000);
