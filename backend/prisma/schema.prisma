@@ -1,0 +1,202 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output          = "../src/generated/prisma"
+  moduleFormat  = "cjs"
+}
+
+////////////////////
+/// ENUMS
+////////////////////
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
+enum ChannelType {
+  TEXT
+  VOICE
+}
+
+enum UserStatus {
+  OFFLINE
+  ONLINE
+}
+
+////////////////////
+/// USER
+////////////////////
+
+model User {
+  id            String    @id @default(uuid())
+  email         String?   @unique
+  passwordHash  String?
+  username      String    @unique
+  avatarUrl     String?   // Cloudinary secure_url
+  avatarPublicId String?  // Cloudinary public_id
+  status        UserStatus @default(OFFLINE)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  accounts      Account[]
+  serversOwned  Server[]  @relation("ServerOwner")
+  memberships   Member[]
+  messages      Message[]
+
+  friendshipsSent     Friendship[] @relation("FriendshipSender")
+  friendshipsReceived Friendship[] @relation("FriendshipReceiver")
+
+  serverInvitesSent     ServerInvite[] @relation("InviteSender")
+  serverInvitesReceived ServerInvite[] @relation("InviteReceiver")
+}
+
+////////////////////
+/// OAUTH ACCOUNTS
+////////////////////
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  provider          String
+  providerAccountId String
+  accessToken       String?
+  refreshToken      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+////////////////////
+/// FRIENDSHIPS
+////////////////////
+
+model Friendship {
+  id         String        @id @default(uuid())
+  senderId   String
+  receiverId String
+  status     RequestStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+
+  sender   User @relation("FriendshipSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("FriendshipReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+}
+
+////////////////////
+/// SERVER
+////////////////////
+
+model Server {
+  id        String   @id @default(uuid())
+  name      String
+  iconUrl   String?
+  ownerId   String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner     User           @relation("ServerOwner", fields: [ownerId], references: [id])
+  members   Member[]
+  channels  Channel[]
+  roles     Role[]
+  invites   ServerInvite[]
+}
+
+////////////////////
+/// SERVER INVITE
+////////////////////
+
+model ServerInvite {
+  id         String        @id @default(uuid())
+  senderId   String
+  receiverId String
+  serverId   String
+  status     RequestStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+
+  sender   User   @relation("InviteSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User   @relation("InviteReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  server   Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId, serverId])
+}
+
+////////////////////
+/// MEMBER 
+////////////////////
+
+model Member {
+  id        String   @id @default(uuid())
+  userId    String
+  serverId  String
+  roleId    String?
+
+  joinedAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  server Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  role   Role?  @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, serverId])
+}
+
+////////////////////
+/// ROLE
+////////////////////
+
+model Role {
+  id        String   @id @default(uuid())
+  name      String
+  color     String?
+  serverId  String
+
+  createdAt DateTime @default(now())
+
+  server  Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  members Member[]
+}
+
+////////////////////
+/// CHANNEL
+////////////////////
+
+model Channel {
+  id        String      @id @default(uuid())
+  name      String
+  type      ChannelType
+  serverId  String
+
+  createdAt DateTime @default(now())
+
+  server   Server    @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  messages Message[]
+}
+
+////////////////////
+/// MESSAGE
+////////////////////
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String
+  authorId  String
+  channelId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author  User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+}

@@ -1,6 +1,5 @@
 # Env files
-.env
-.env.local
+*.env
 
 # Docker image archives
 *.tar
