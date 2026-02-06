@@ -14,7 +14,7 @@ import { getMe, User } from "@/lib/auth";
 import { Channel } from "@/lib/definitions";
 import { useLayoutContext } from "@/ui/layout/LayoutContext";
 import VoiceRoom from "@/ui/voice/VoiceRoom";
-import { backendFetch, unwrapList } from "@/lib/backend-client";
+import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
 
 export default function ChannelPage() {
   const params = useParams();
@@ -46,11 +46,12 @@ export default function ChannelPage() {
   useEffect(() => {
     async function loadChannel() {
       try {
-        const res = await backendFetch(`/api/channels/${serverId}`, {
+        const res = await backendFetch(`/api/channels/server/${serverId}`, {
           cache: "no-store",
         });
         if (!res.ok) {
-          throw new Error("No se pudo cargar la información del canal");
+          const msg = await extractErrorMessage(res, "No se pudo cargar la información del canal");
+          throw new Error(msg);
         }
         const body = await res.json();
         const list = unwrapList<Channel>(body, "channels");
@@ -130,7 +131,6 @@ export default function ChannelPage() {
       <div className="flex h-[72px] items-center border-t border-gray-800 bg-gray-800 px-3">
         <ChatInput
           channelId={channelId ?? ""}
-          senderId={currentUser?.id}
           onError={() => refresh()}
         />
       </div>

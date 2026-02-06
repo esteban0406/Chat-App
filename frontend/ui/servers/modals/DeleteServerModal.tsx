@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Server } from "@/lib/definitions";
-import { backendFetch } from "@/lib/backend-client";
+import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 
 type Props = {
   server: Server | null;
@@ -29,13 +29,15 @@ export default function DeleteServerModal({
         method: "DELETE",
       });
       if (!res.ok) {
-        throw new Error("Failed to delete server");
+        const msg = await extractErrorMessage(res, "No se pudo eliminar el servidor");
+        throw new Error(msg);
       }
       onClose();
       router.push("/friends");
     } catch (err) {
       console.error(err);
-      setError("No se pudo eliminar el servidor");
+      const message = err instanceof Error ? err.message : "No se pudo eliminar el servidor";
+      setError(message);
     } finally {
       setLoading(false);
     }

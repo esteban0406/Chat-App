@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Channel } from "@/lib/definitions";
-import { backendFetch } from "@/lib/backend-client";
+import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 
 type Props = {
   channel: Channel;
@@ -36,16 +36,17 @@ export default function EditChannelModal({
       });
 
       if (!res.ok) {
-        throw new Error("No se pudo actualizar el canal");
+        const msg = await extractErrorMessage(res, "No se pudo actualizar el canal");
+        throw new Error(msg);
       }
-      
+
       const response = await res.json();
       onUpdated?.(response.data.channel);
       onClose();
-      
     } catch (err) {
       console.error(err);
-      setError("No se pudo actualizar el canal");
+      const message = err instanceof Error ? err.message : "No se pudo actualizar el canal";
+      setError(message);
     } finally {
       setLoading(false);
     }

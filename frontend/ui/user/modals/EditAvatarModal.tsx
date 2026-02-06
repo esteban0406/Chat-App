@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { backendFetch } from "@/lib/backend-client";
+import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 
 type Props = {
   onClose: () => void;
@@ -68,16 +68,16 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
       });
 
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body?.message || "No se pudo actualizar el avatar");
+        const msg = await extractErrorMessage(res, "No se pudo actualizar el avatar");
+        throw new Error(msg);
       }
-      
+
       onUpdated?.();
       resetState();
       onClose();
     } catch (err: unknown) {
       console.error(err);
-      setError( "Error al subir imagen");
+      setError(err instanceof Error ? err.message : "Error al subir imagen");
     } finally {
       setLoading(false);
     }

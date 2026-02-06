@@ -7,7 +7,7 @@ import {
   useRoomContext,
 } from "@livekit/components-react";
 import { RoomEvent } from "livekit-client";
-import { backendFetch } from "@/lib/backend-client";
+import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 
 import "@livekit/components-styles";
 import "./voice-theme.css";
@@ -52,9 +52,10 @@ export default function VoiceRoom({
       }),
       signal: controller.signal,
     })
-      .then((res) => {
+      .then(async (res) => {
         if (!res.ok) {
-          throw new Error("Failed to fetch LiveKit token");
+          const msg = await extractErrorMessage(res, "No se pudo conectar al canal de voz");
+          throw new Error(msg);
         }
         return res.json();
       })
@@ -64,7 +65,8 @@ export default function VoiceRoom({
       })
       .catch((err) => {
         console.error("Error joining voice channel", err);
-        setError("No se pudo conectar al canal de voz.");
+        const message = err instanceof Error ? err.message : "No se pudo conectar al canal de voz.";
+        setError(message);
       });
   }, [channelId, userId, resolvedDisplayName, roomName, retryKey]);
 

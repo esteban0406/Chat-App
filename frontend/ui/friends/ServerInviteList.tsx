@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ServerInvite, Server } from "@/lib/definitions";
-import { backendFetch, unwrapList } from "@/lib/backend-client";
+import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
 
 export default function ServerInviteList() {
   const router = useRouter();
@@ -20,7 +20,8 @@ export default function ServerInviteList() {
         cache: "no-store",
       });
       if (!res.ok) {
-        throw new Error("No se pudieron cargar las invitaciones");
+        const msg = await extractErrorMessage(res, "No se pudieron cargar las invitaciones");
+        throw new Error(msg);
       }
       const body = await res.json();
       const list = unwrapList<ServerInvite>(body, "invites");
@@ -28,7 +29,8 @@ export default function ServerInviteList() {
     } catch (err) {
       console.error(err);
       setInvites([]);
-      setError("No se pudieron cargar las invitaciones");
+      const message = err instanceof Error ? err.message : "No se pudieron cargar las invitaciones";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -52,7 +54,8 @@ export default function ServerInviteList() {
         }
       );
       if (!res.ok) {
-        throw new Error("No se pudo actualizar la invitación");
+        const msg = await extractErrorMessage(res, "No se pudo actualizar la invitación");
+        throw new Error(msg);
       }
       setInvites((prev) => prev.filter((item) => item.id !== inviteId));
       if (action === "accept") {
@@ -66,7 +69,8 @@ export default function ServerInviteList() {
       }
     } catch (err) {
       console.error(err);
-      setError("No se pudo actualizar la invitación");
+      const message = err instanceof Error ? err.message : "No se pudo actualizar la invitación";
+      setError(message);
     } finally {
       setProcessingId(null);
     }

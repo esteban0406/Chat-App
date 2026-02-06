@@ -34,7 +34,8 @@ export function useMessages(channelId?: string) {
         });
 
         if (!res.ok) {
-          throw new Error("No se pudieron cargar los mensajes");
+          const msg = await extractErrorMessage(res, "No se pudieron cargar los mensajes");
+          throw new Error(msg);
         }
 
         const body = await res.json();
@@ -46,7 +47,8 @@ export function useMessages(channelId?: string) {
         console.error(err);
         if (!cancelled) {
           setMessages([]);
-          setError("No se pudieron cargar los mensajes");
+          const message = err instanceof Error ? err.message : "No se pudieron cargar los mensajes";
+          setError(message);
         }
       } finally {
         if (!cancelled) {

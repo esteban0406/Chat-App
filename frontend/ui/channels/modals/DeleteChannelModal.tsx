@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Channel } from "@/lib/definitions";
-import { backendFetch } from "@/lib/backend-client";
+import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 
 type Props = {
   channel: Channel;
@@ -31,14 +31,16 @@ export default function DeleteChannelModal({
       });
 
       if (!res.ok) {
-        throw new Error("No se pudo eliminar el canal");
+        const msg = await extractErrorMessage(res, "No se pudo eliminar el canal");
+        throw new Error(msg);
       }
 
       onDeleted?.(channelId);
       onClose();
     } catch (err) {
       console.error(err);
-      setError("No se pudo eliminar el canal");
+      const message = err instanceof Error ? err.message : "No se pudo eliminar el canal";
+      setError(message);
     } finally {
       setLoading(false);
     }

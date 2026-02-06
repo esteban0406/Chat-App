@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Server } from "@/lib/definitions";
 import CreateServerModal from "./modals/CreateServerModal";
-import { backendFetch, unwrapList } from "@/lib/backend-client";
+import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
 
 export default function ServerSidebar({ onClose }: { onClose?: () => void }) {
   const [servers, setServers] = useState<Server[]>([]);
@@ -19,7 +19,8 @@ export default function ServerSidebar({ onClose }: { onClose?: () => void }) {
           cache: "no-store",
         });
         if (!res.ok) {
-          throw new Error("No se pudieron cargar los servidores");
+          const msg = await extractErrorMessage(res, "No se pudieron cargar los servidores");
+          throw new Error(msg);
         }
         const body = await res.json();
         const list = unwrapList<Server>(body, "servers");

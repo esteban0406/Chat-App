@@ -1,27 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { backendFetch } from "@/lib/backend-client";
+import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 type Props = {
   channelId: string;
-  senderId?: string;
   disabled?: boolean;
   onError?: (error: string) => void;
 };
 
-export default function ChatInput({
-  channelId,
-  senderId,
-  disabled,
-  onError,
-}: Props) {
-  const [text, setText] = useState("");
+export default function ChatInput({ channelId, disabled, onError }: Props) {
+  const [content, setContent] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!text.trim() || !channelId || !senderId || sending) {
+    if (!content.trim() || !channelId || sending) {
       return;
     }
 
@@ -32,30 +26,26 @@ export default function ChatInput({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          text,
+          content: content,
           channelId,
-          senderId,
         }),
       });
 
       if (!res.ok) {
-        throw new Error("No se pudo enviar el mensaje");
+        const msg = await extractErrorMessage(res, "No se pudo enviar el mensaje");
+        throw new Error(msg);
       }
 
-      setText("");
+      setContent("");
     } catch (err) {
       console.error(err);
-      const message = "No se pudo enviar el mensaje";
+      const message = err instanceof Error ? err.message : "No se pudo enviar el mensaje";
       setError(message);
       onError?.(message);
     } finally {
       setSending(false);
     }
   };
-
-  const placeholder = senderId
-    ? "Escribe un mensaje..."
-    : "Inicia sesión para enviar mensajes";
 
   return (
     <form
@@ -64,22 +54,20 @@ export default function ChatInput({
     >
       <input
         type="text"
-        value={text}
-        onChange={(event) => setText(event.target.value)}
-        placeholder={placeholder}
-        disabled={!senderId || disabled || sending}
+        value={content}
+        onChange={(event) => setContent(event.target.value)}
+        placeholder="Escribe un mensaje..."
+        disabled={disabled || sending}
         className="flex-1 rounded bg-gray-700 px-3 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
       />
       <button
         type="submit"
-        disabled={!senderId || disabled || sending}
+        disabled={disabled || sending}
         className="rounded bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-60"
       >
         {sending ? "Enviando..." : "Enviar"}
       </button>
-      {error && (
-        <span className="text-xs text-red-400">{error}</span>
-      )}
+      {error && <span className="text-xs text-red-400">{error}</span>}
     </form>
   );
 }

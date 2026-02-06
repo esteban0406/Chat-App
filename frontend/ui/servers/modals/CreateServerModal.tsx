@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { backendFetch } from "@/lib/backend-client";
+import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 
 type Props = {
   onClose: () => void;
@@ -30,15 +30,17 @@ export default function CreateServerModal({ onClose, created }: Props) {
       });
 
       if (!res.ok) {
-        throw new Error("No se pudo crear el servidor");
+        const msg = await extractErrorMessage(res, "No se pudo crear el servidor");
+        throw new Error(msg);
       }
       const response = await res.json();
       created();
-      router.push(`/servers/${response.data.server.id}`);     
+      router.push(`/servers/${response.data.server.id}`);
       onClose();
     } catch (err) {
       console.error(err);
-      setError("No se pudo crear el servidor ❌");
+      const message = err instanceof Error ? err.message : "No se pudo crear el servidor";
+      setError(message);
     } finally {
       setLoading(false);
     }

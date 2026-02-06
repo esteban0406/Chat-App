@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { Menu } from "@headlessui/react";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
 import { Channel, Server } from "@/lib/definitions";
-import { backendFetch, unwrapList } from "@/lib/backend-client";
+import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
 import CreateChannelModal from "./modals/CreateChannelModal";
 import EditChannelModal from "./modals/EditChannelModal";
 import DeleteChannelModal from "./modals/DeleteChannelModal";
@@ -27,8 +27,8 @@ export default function ChannelSidebar({
   const [channels, setChannels] = useState<Channel[]>([]);
 
   const [createType, setCreateType] = useState<"TEXT" | "VOICE">();
-  const [channelToEdit, setChannelToEdit] = useState<Channel >();
-  const [channelToDelete, setChannelToDelete] = useState<Channel >();
+  const [channelToEdit, setChannelToEdit] = useState<Channel>();
+  const [channelToDelete, setChannelToDelete] = useState<Channel>();
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showEditServerModal, setShowEditServerModal] = useState(false);
   const [showDeleteServerModal, setShowDeleteServerModal] = useState(false);
@@ -40,12 +40,13 @@ export default function ChannelSidebar({
           cache: "no-store",
         });
         if (!res.ok) {
-          throw new Error("No se pudieron cargar los servidores");
+          const msg = await extractErrorMessage(res, "No se pudieron cargar los servidores");
+          throw new Error(msg);
         }
         const body = await res.json();
         const list = unwrapList<Server>(body, "servers");
         const found = list.find(
-          (server: Server) => server.id === effectiveServerId
+          (server: Server) => server.id === effectiveServerId,
         );
         setServer(found);
       } catch (error) {
@@ -64,13 +65,14 @@ export default function ChannelSidebar({
     async function loadChannels() {
       try {
         const res = await backendFetch(
-          `/api/channels/${effectiveServerId}`,
+          `/api/channels/server/${effectiveServerId}`,
           {
             cache: "no-store",
-          }
+          },
         );
         if (!res.ok) {
-          throw new Error("No se pudieron cargar los canales");
+          const msg = await extractErrorMessage(res, "No se pudieron cargar los canales");
+          throw new Error(msg);
         }
         const body = await res.json();
         const list = unwrapList<Channel>(body, "channels");
@@ -93,7 +95,7 @@ export default function ChannelSidebar({
 
   const handleChannelUpdated = (updated: Channel) => {
     setChannels((prev) =>
-      prev.map((channel) => (channel.id === updated.id ? updated : channel))
+      prev.map((channel) => (channel.id === updated.id ? updated : channel)),
     );
   };
 

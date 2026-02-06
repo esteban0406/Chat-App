@@ -22,7 +22,8 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
           cache: "no-store",
         });
         if (!res.ok) {
-          throw new Error("Failed to load friends");
+          const msg = await extractErrorMessage(res, "Failed to load friends");
+          throw new Error(msg);
         }
         const body = await res.json();
         const list = unwrapList<User>(body, "friends");
@@ -42,7 +43,8 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
           cache: "no-store",
         });
         if (!res.ok) {
-          throw new Error("Failed to load pending invites");
+          const msg = await extractErrorMessage(res, "Failed to load pending invites");
+          throw new Error(msg);
         }
         const data = await res.json();
         const invites = unwrapList<ServerInvite>(data, "invites");
