@@ -46,9 +46,9 @@ export default function CreateChannelModal({
       }
 
       const response = await res.json();
-      onCreated?.(response.data.channel);
+      onCreated?.(response.id);
       onClose();
-      router.push(`/servers/${serverId}/channels/${response.data.channel.id}`);
+      router.push(`/servers/${serverId}/channels/${response.id}`);
     } catch (err) {
       console.error(err);
       const message = err instanceof Error ? err.message : "No se pudo crear el canal";
