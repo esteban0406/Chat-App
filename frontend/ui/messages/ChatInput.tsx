@@ -1,49 +1,36 @@
 "use client";
 
 import { useState } from "react";
-import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
+import { connectSocket } from "@/lib/socket";
+
 type Props = {
   channelId: string;
+  senderId?: string;
   disabled?: boolean;
   onError?: (error: string) => void;
 };
 
-export default function ChatInput({ channelId, disabled, onError }: Props) {
+export default function ChatInput({ channelId, senderId, disabled, onError }: Props) {
   const [content, setContent] = useState("");
-  const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!content.trim() || !channelId || sending) {
+    const text = content.trim();
+    if (!text || !channelId || !senderId) {
       return;
     }
 
-    setSending(true);
     setError(null);
     try {
-      const res = await backendFetch("/api/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content: content,
-          channelId,
-        }),
-      });
-
-      if (!res.ok) {
-        const msg = await extractErrorMessage(res, "No se pudo enviar el mensaje");
-        throw new Error(msg);
-      }
-
+      const socket = connectSocket();
+      socket.emit("message", { channelId, senderId, text });
       setContent("");
     } catch (err) {
       console.error(err);
       const message = err instanceof Error ? err.message : "No se pudo enviar el mensaje";
       setError(message);
       onError?.(message);
-    } finally {
-      setSending(false);
     }
   };
 
@@ -57,15 +44,15 @@ export default function ChatInput({ channelId, disabled, onError }: Props) {
         value={content}
         onChange={(event) => setContent(event.target.value)}
         placeholder="Escribe un mensaje..."
-        disabled={disabled || sending}
+        disabled={disabled}
         className="flex-1 rounded bg-gray-700 px-3 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
       />
       <button
         type="submit"
-        disabled={disabled || sending}
+        disabled={disabled}
         className="rounded bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-60"
       >
-        {sending ? "Enviando..." : "Enviar"}
+        Enviar
       </button>
       {error && <span className="text-xs text-red-400">{error}</span>}
     </form>

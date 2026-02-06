@@ -131,6 +131,7 @@ export default function ChannelPage() {
       <div className="flex h-[72px] items-center border-t border-gray-800 bg-gray-800 px-3">
         <ChatInput
           channelId={channelId ?? ""}
+          senderId={currentUser?.id}
           onError={() => refresh()}
         />
       </div>
