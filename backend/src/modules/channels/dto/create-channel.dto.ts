@@ -1,4 +1,11 @@
-import { IsString, IsUUID, IsOptional, IsIn, MinLength, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsUUID,
+  IsOptional,
+  IsIn,
+  MinLength,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateChannelDto {
   @IsString()

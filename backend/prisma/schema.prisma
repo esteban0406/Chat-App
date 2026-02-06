@@ -16,7 +16,6 @@ enum RequestStatus {
   PENDING
   ACCEPTED
   REJECTED
-  BLOCKED
 }
 
 enum ChannelType {

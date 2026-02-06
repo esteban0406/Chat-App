@@ -1,13 +1,13 @@
-import { Session } from "./auth-client"
+import { User } from "./auth";
 
-export type User = Session["user"];
+export type { User };
 
 export type Message = {
   id: string;
-  text: string;
-  sender: User;
-  channel: string;
-  timestamp: string;
+  content: string;
+  author: User;
+  channelId: string;
+  authorId: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -15,8 +15,9 @@ export type Message = {
 export type Channel = {
   id: string;
   name: string;
-  type: "text" | "voice";
-  server: Server;
+  type: "TEXT" | "VOICE";
+  serverId: string;
+  server?: Server;
   messages?: Message[];
   createdAt: string;
   updatedAt: string;
@@ -26,55 +27,43 @@ export type Server = {
   id: string;
   name: string;
   description?: string;
-  owner: string;
-  members: User[];
-  channels: Channel[];
+  ownerId: string;
+  owner?: User;
+  members?: Member[];
+  channels?: Channel[];
   createdAt: string;
   updatedAt: string;
 };
 
-export type FriendRequest = {
+export type Member = {
   id: string;
-  from:  User;
-  to: User;
-  status: "pending" | "accepted" | "rejected";
+  userId: string;
+  serverId: string;
+  user?: User;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Friendship = {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  sender?: User;
+  receiver?: User;
+  status: "PENDING" | "ACCEPTED" | "REJECTED" | "BLOCKED";
   createdAt: string;
   updatedAt: string;
 };
 
 export type ServerInvite = {
   id: string;
-  from: string | User;
-  to: User;
-  server:  Server;
-  status: "pending" | "accepted" | "rejected";
+  senderId: string;
+  receiverId: string;
+  serverId: string;
+  sender?: User;
+  receiver?: User;
+  server?: Server;
+  status: "PENDING" | "ACCEPTED" | "REJECTED";
   createdAt: string;
   updatedAt: string;
 };
-
-type AuthClient = typeof import("@/lib/auth-client")["authClient"];
-
-export type EmailSignInResult = Awaited<
-  ReturnType<AuthClient["signIn"]["email"]>
->;
-
-export type EmailSignUpResult = Awaited<
-  ReturnType<AuthClient["signUp"]["email"]>
->;
-
-export type SocialSignInResult = Awaited<
-  ReturnType<AuthClient["signIn"]["social"]>
->;
-
-export type UpdateUserResult = Awaited<ReturnType<AuthClient["updateUser"]>>;
-
-export type AuthResult =
-  | EmailSignInResult
-  | EmailSignUpResult
-  | SocialSignInResult
-  | null
-  | undefined;
-
-type InferData<T> = T extends { data: infer D } ? NonNullable<D> : never;
-
-export type SocialSignInData = InferData<SocialSignInResult>;

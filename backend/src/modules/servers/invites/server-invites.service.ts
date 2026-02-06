@@ -67,7 +67,9 @@ export class ServerInvitesService {
     });
 
     if (existingInvite) {
-      throw new ConflictException('User already has a pending invite for this server');
+      throw new ConflictException(
+        'User already has a pending invite for this server',
+      );
     }
 
     return this.prisma.serverInvite.create({
@@ -132,7 +134,12 @@ export class ServerInvitesService {
         members: {
           include: {
             user: {
-              select: { id: true, username: true, avatarUrl: true, status: true },
+              select: {
+                id: true,
+                username: true,
+                avatarUrl: true,
+                status: true,
+              },
             },
           },
         },

@@ -3,17 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { authClient } from "@/lib/auth-client";
-import type {
-  AuthResult,
-  EmailSignInResult,
-  SocialSignInResult,
-} from "@/lib/definitions";
-
-type OAuthProvider = "google" | "microsoft-entra-id";
-
-const getErrorMessage = (result: AuthResult) =>
-  result?.error ? result.error?.message || String(result.error) : null;
+import { login } from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,45 +17,14 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const result = (await authClient.signIn.email({
-      email,
-      password,
-    })) as EmailSignInResult;
-
-    setLoading(false);
-    if (!result || result.error) {
-      setError(getErrorMessage(result) || "Invalid credentials");
-      return;
-    }
-
-    router.push("/friends");
-    router.refresh();
-  };
-
-  const handleOAuthLogin = async (provider: OAuthProvider) => {
-    setLoading(true);
-    setError(null);
-
-    const result = (await authClient.signIn.social({
-      provider,
-      callbackURL: `${window.location.origin}/servers`,
-      errorCallbackURL: `${window.location.origin}/login`,
-    })) as SocialSignInResult;
-
-    setLoading(false);
-
-    if (!result || result.error) {
-      setError(getErrorMessage(result) || "No se pudo iniciar sesión");
-      return;
-    }
-
-    const data = result?.data as
-      | { url?: string; redirect?: boolean }
-      | undefined;
-    const shouldRedirect = data?.redirect !== false;
-
-    if (data?.url && shouldRedirect) {
-      window.location.href = data.url;
+    try {
+      await login(email, password);
+      router.push("/friends");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Invalid credentials");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -111,14 +70,14 @@ export default function LoginPage() {
 
       <div className="flex flex-col gap-3">
         <button
-          onClick={() => handleOAuthLogin("google")}
-          className="w-full bg-red-500 hover:bg-red-600 py-2 rounded text-white font-semibold"
+          disabled
+          className="w-full bg-red-500 hover:bg-red-600 py-2 rounded text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Continuar con Google
         </button>
         <button
-          onClick={() => handleOAuthLogin("microsoft-entra-id")}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 py-2 rounded text-white font-semibold"
+          disabled
+          className="w-full bg-indigo-600 hover:bg-indigo-700 py-2 rounded text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Continuar con Microsoft
         </button>

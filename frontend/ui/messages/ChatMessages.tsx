@@ -34,7 +34,7 @@ export default function ChatMessages({
   return (
     <div className="flex flex-col space-y-3 p-4">
       {messages.map((message) => {
-        const isOwn = message.sender.id === currentUserId;
+        const isOwn = message.authorId === currentUserId;
         return (
           <div
             key={message.id}
@@ -47,12 +47,12 @@ export default function ChatMessages({
                 isOwn ? "bg-indigo-600 text-white" : "bg-gray-800 text-gray-100"
               }`}
             >
-              {!isOwn && typeof message.sender === "object" && (
+              {!isOwn && message.author && (
                 <span className="font-semibold text-indigo-300 mr-1">
-                  {message.sender?.username ?? "Usuario"}:
+                  {message.author.username ?? "Usuario"}:
                 </span>
               )}
-              <span className="break-words">{message.text}</span>
+              <span className="break-words">{message.content}</span>
             </div>
             <small className="mt-1 text-xs text-gray-400">
               {message.createdAt

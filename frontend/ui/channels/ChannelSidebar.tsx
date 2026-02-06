@@ -26,7 +26,7 @@ export default function ChannelSidebar({
   const [server, setServer] = useState<Server>();
   const [channels, setChannels] = useState<Channel[]>([]);
 
-  const [createType, setCreateType] = useState<"text" | "voice">();
+  const [createType, setCreateType] = useState<"TEXT" | "VOICE">();
   const [channelToEdit, setChannelToEdit] = useState<Channel >();
   const [channelToDelete, setChannelToDelete] = useState<Channel >();
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -82,8 +82,8 @@ export default function ChannelSidebar({
     loadChannels();
   }, [effectiveServerId]);
 
-  const textChannels = channels.filter((channel) => channel.type === "text");
-  const voiceChannels = channels.filter((channel) => channel.type === "voice");
+  const textChannels = channels.filter((channel) => channel.type === "TEXT");
+  const voiceChannels = channels.filter((channel) => channel.type === "VOICE");
 
   const closeSidebar = sidebarControls?.closeSidebar;
 
@@ -106,7 +106,7 @@ export default function ChannelSidebar({
       if (!prev) return prev;
       return {
         ...prev,
-        members: prev.members.filter((member) => member.id !== memberId),
+        members: prev.members?.filter((member) => member.id !== memberId),
       };
     });
   };
@@ -194,7 +194,7 @@ export default function ChannelSidebar({
           channels={textChannels}
           serverId={effectiveServerId as string}
           activeChannelId={activeChannelId as string}
-          onCreate={() => setCreateType("text")}
+          onCreate={() => setCreateType("TEXT")}
           onEdit={setChannelToEdit}
           onDelete={setChannelToDelete}
           onNavigate={closeSidebar}
@@ -206,7 +206,7 @@ export default function ChannelSidebar({
           channels={voiceChannels}
           serverId={effectiveServerId as string}
           activeChannelId={activeChannelId as string}
-          onCreate={() => setCreateType("voice")}
+          onCreate={() => setCreateType("VOICE")}
           onEdit={setChannelToEdit}
           onDelete={setChannelToDelete}
           onNavigate={closeSidebar}

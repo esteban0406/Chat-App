@@ -39,7 +39,10 @@ export class FriendshipsController {
     @Request() req: RequestWithUser,
     @Body() dto: SendFriendRequestDto,
   ) {
-    return this.friendshipsService.sendFriendRequest(req.user.id, dto.receiverId);
+    return this.friendshipsService.sendFriendRequest(
+      req.user.id,
+      dto.receiverId,
+    );
   }
 
   @Patch(':id')
@@ -48,14 +51,15 @@ export class FriendshipsController {
     @Param('id') id: string,
     @Body() dto: RespondFriendRequestDto,
   ) {
-    return this.friendshipsService.respondToRequest(id, req.user.id, dto.status);
+    return this.friendshipsService.respondToRequest(
+      id,
+      req.user.id,
+      dto.status,
+    );
   }
 
   @Delete(':id')
-  async removeFriend(
-    @Request() req: RequestWithUser,
-    @Param('id') id: string,
-  ) {
+  async removeFriend(@Request() req: RequestWithUser, @Param('id') id: string) {
     return this.friendshipsService.removeFriend(id, req.user.id);
   }
 

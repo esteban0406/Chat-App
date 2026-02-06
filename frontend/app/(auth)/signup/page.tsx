@@ -1,20 +1,9 @@
-// app/(auth)/signup/page.tsx
 "use client";
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { authClient } from "@/lib/auth-client";
-import type {
-  AuthResult,
-  EmailSignUpResult,
-  SocialSignInResult,
-} from "@/lib/definitions";
-
-type OAuthProvider = "google" | "microsoft-entra-id";
-
-const getErrorMessage = (result: AuthResult) =>
-  result?.error ? result.error?.message || String(result.error) : null;
+import { register } from "@/lib/auth";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -30,46 +19,14 @@ export default function SignUpPage() {
     setError(null);
     setLoading(true);
 
-    const result = (await authClient.signUp.email({
-      name: username,
-      email,
-      password,
-    })) as EmailSignUpResult;
-
-    setLoading(false);
-
-    if (!result || result.error) {
-      setError(getErrorMessage(result) || "Error al registrarse");
-      return;
-    }
-
-    router.push("/friends");
-    router.refresh();
-  };
-
-  const handleOAuthSignUp = async (provider: OAuthProvider) => {
-    setLoading(true);
-    setError(null);
-
-    const result = (await authClient.signIn.social({
-      provider,
-      callbackURL: `${window.location.origin}/friends`,
-      errorCallbackURL: `${window.location.origin}/signup`,
-    })) as SocialSignInResult;
-
-    setLoading(false);
-
-    if (!result || result.error) {
-      setError(getErrorMessage(result) || "No se pudo continuar con OAuth");
-      return;
-    }
-
-    const data = result?.data as
-      | { url?: string; redirect?: boolean }
-      | undefined;
-    const shouldRedirect = data?.redirect !== false;
-    if (data?.url && shouldRedirect) {
-      window.location.href = data.url;
+    try {
+      await register(email, password, username);
+      router.push("/friends");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al registrarse");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -122,14 +79,14 @@ export default function SignUpPage() {
 
       <div className="flex flex-col gap-3">
         <button
-          onClick={() => handleOAuthSignUp("google")}
-          className="w-full bg-red-500 hover:bg-red-600 py-2 rounded text-white font-semibold"
+          disabled
+          className="w-full bg-red-500 hover:bg-red-600 py-2 rounded text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Continuar con Google
         </button>
         <button
-          onClick={() => handleOAuthSignUp("microsoft-entra-id")}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 py-2 rounded text-white font-semibold"
+          disabled
+          className="w-full bg-indigo-600 hover:bg-indigo-700 py-2 rounded text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Continuar con Microsoft
         </button>

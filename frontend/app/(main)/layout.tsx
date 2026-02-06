@@ -7,10 +7,30 @@ import {
   LayoutContextProvider,
   useLayoutContext,
 } from "@/ui/layout/LayoutContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { isAuthenticated } from "@/lib/auth";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.replace("/login");
+    } else {
+      setIsChecking(false);
+    }
+  }, [router]);
+
+  if (isChecking) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-900 text-white">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <LayoutContextProvider>
       <AppLayoutInner>{children}</AppLayoutInner>
@@ -19,7 +39,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 }
 
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const {
     isServerDrawerOpen,
     isProfileDrawerOpen,

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { User } from "@/lib/definitions";
-import { backendFetch, unwrapList } from "@/lib/backend-client";
+import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
 
 export default function FriendList() {
   const [friends, setFriends] = useState<User[]>([]);
@@ -16,11 +16,12 @@ export default function FriendList() {
       setLoading(true);
       setError(null);
       try {
-        const res = await backendFetch("/api/friends/list", {
+        const res = await backendFetch("/api/friendships", {
           cache: "no-store",
         });
         if (!res.ok) {
-          throw new Error("No se pudieron cargar tus amigos");
+          const msg = await extractErrorMessage(res, "No se pudieron cargar tus amigos");
+          throw new Error(msg);
         }
 
         const body = await res.json();
@@ -31,7 +32,8 @@ export default function FriendList() {
       } catch (err) {
         console.error(err);
         if (!cancelled) {
-          setError("No se pudieron cargar tus amigos");
+          const message = err instanceof Error ? err.message : "No se pudieron cargar tus amigos";
+          setError(message);
           setFriends([]);
         }
       } finally {

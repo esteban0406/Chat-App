@@ -52,7 +52,11 @@ export class MessagesController {
     @Param('id') id: string,
     @Body() updateMessageDto: UpdateMessageDto,
   ) {
-    return this.messagesService.update(id, req.user.id, updateMessageDto.content);
+    return this.messagesService.update(
+      id,
+      req.user.id,
+      updateMessageDto.content,
+    );
   }
 
   @Delete(':id')

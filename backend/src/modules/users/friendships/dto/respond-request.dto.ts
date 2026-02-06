@@ -1,6 +1,6 @@
 import { IsIn } from 'class-validator';
 
 export class RespondFriendRequestDto {
-  @IsIn(['ACCEPTED', 'BLOCKED'])
-  status: 'ACCEPTED' | 'BLOCKED';
+  @IsIn(['ACCEPTED', 'REJECTED'])
+  status: 'ACCEPTED' | 'REJECTED';
 }

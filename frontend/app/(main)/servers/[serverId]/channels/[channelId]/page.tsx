@@ -10,8 +10,8 @@ import {
 import ChatMessages from "@/ui/messages/ChatMessages";
 import ChatInput from "@/ui/messages/ChatInput";
 import { useMessages } from "@/ui/messages/useMessages";
-import { authClient } from "@/lib/auth-client";
-import { Channel, User } from "@/lib/definitions";
+import { getMe, User } from "@/lib/auth";
+import { Channel } from "@/lib/definitions";
 import { useLayoutContext } from "@/ui/layout/LayoutContext";
 import VoiceRoom from "@/ui/voice/VoiceRoom";
 import { backendFetch, unwrapList } from "@/lib/backend-client";
@@ -36,8 +36,10 @@ export default function ChannelPage() {
   const { messages, loading, error, refresh } = useMessages(channelId);
 
   useEffect(() => {
-    authClient.getSession().then((session) => {
-      setCurrentUser(session?.data?.user);
+    getMe().then((user) => {
+      if (user) {
+        setCurrentUser(user);
+      }
     });
   }, []);
 
@@ -63,16 +65,16 @@ export default function ChannelPage() {
   }, [serverId, channelId]);
 
   const title = channel?.name
-    ? `${channel.type === "voice" ? "🔊" : "#"} ${channel.name}`
+    ? `${channel.type === "VOICE" ? "🔊" : "#"} ${channel.name}`
     : `Canal ${channelId ?? ""}`;
 
-  if (channel?.type === "voice") {
+  if (channel?.type === "VOICE") {
     return (
       <div className="flex h-full flex-col bg-gray-900">
         <VoiceRoom
           channelId={channelId ?? ""}
           userId={currentUser?.id}
-          displayName={currentUser?.name}
+          displayName={currentUser?.username}
           enableVideo={false}
         />
       </div>

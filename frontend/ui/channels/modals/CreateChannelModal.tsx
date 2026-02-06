@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { Channel } from "@/lib/definitions";
 import { useRouter } from "next/navigation";
-import { backendFetch } from "@/lib/backend-client";
+import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 
-type ChannelType = "text" | "voice";
+type ChannelType = "TEXT" | "VOICE";
 
 type Props = {
   serverId: string;
@@ -16,7 +16,7 @@ type Props = {
 
 export default function CreateChannelModal({
   serverId,
-  defaultType = "text",
+  defaultType = "TEXT",
   onClose,
   onCreated,
 }: Props) {
@@ -41,7 +41,8 @@ export default function CreateChannelModal({
       });
 
       if (!res.ok) {
-        throw new Error("No se pudo crear el canal");
+        const msg = await extractErrorMessage(res, "No se pudo crear el canal");
+        throw new Error(msg);
       }
 
       const response = await res.json();
@@ -50,7 +51,8 @@ export default function CreateChannelModal({
       router.push(`/servers/${serverId}/channels/${response.data.channel.id}`);
     } catch (err) {
       console.error(err);
-      setError("No se pudo crear el canal");
+      const message = err instanceof Error ? err.message : "No se pudo crear el canal";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -87,8 +89,8 @@ export default function CreateChannelModal({
               }
               className="w-full rounded bg-gray-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              <option value="text">Texto</option>
-              <option value="voice">Voz</option>
+              <option value="TEXT">Texto</option>
+              <option value="VOICE">Voz</option>
             </select>
           </div>
 

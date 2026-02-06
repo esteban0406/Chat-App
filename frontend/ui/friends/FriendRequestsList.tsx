@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FriendRequest, User } from "@/lib/definitions";
-import { backendFetch, unwrapList } from "@/lib/backend-client";
+import { Friendship, User } from "@/lib/definitions";
+import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
 
 export default function FriendRequestsList() {
-  const [requests, setRequests] = useState<FriendRequest[]>([]);
+  const [requests, setRequests] = useState<Friendship[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [respondingId, setRespondingId] = useState<string | null>(null);
@@ -14,19 +14,21 @@ export default function FriendRequestsList() {
     setLoading(true);
     setError(null);
     try {
-      const res = await backendFetch("/api/friends/pending", {
+      const res = await backendFetch("/api/friendships/pending", {
         cache: "no-store",
       });
       if (!res.ok) {
-        throw new Error("No se pudieron cargar las solicitudes");
+        const msg = await extractErrorMessage(res, "No se pudieron cargar las solicitudes");
+        throw new Error(msg);
       }
       const body = await res.json();
-      const list = unwrapList<FriendRequest>(body, "requests");
+      const list = unwrapList<Friendship>(body, "requests");
       setRequests(list);
     } catch (err) {
       console.error(err);
       setRequests([]);
-      setError("No se pudieron cargar las solicitudes");
+      const message = err instanceof Error ? err.message : "No se pudieron cargar las solicitudes";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -36,21 +38,23 @@ export default function FriendRequestsList() {
     loadRequests();
   }, []);
 
-  const handleResponse = async (id: string, status: "accepted" | "rejected") => {
+  const handleResponse = async (id: string, status: "ACCEPTED" | "REJECTED") => {
     setRespondingId(id);
     try {
-      const res = await backendFetch(`/api/friends/respond/${id}`, {
-        method: "POST",
+      const res = await backendFetch(`/api/friendships/${id}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
       if (!res.ok) {
-        throw new Error("No se pudo responder la solicitud");
+        const msg = await extractErrorMessage(res, "No se pudo responder la solicitud");
+        throw new Error(msg);
       }
       setRequests((prev) => prev.filter((request) => request.id !== id));
     } catch (err) {
       console.error(err);
-      setError("No se pudo actualizar la solicitud");
+      const message = err instanceof Error ? err.message : "No se pudo actualizar la solicitud";
+      setError(message);
     } finally {
       setRespondingId(null);
     }
@@ -76,15 +80,15 @@ export default function FriendRequestsList() {
           className="flex items-center justify-between rounded bg-gray-800 px-4 py-2 text-sm text-white"
         >
           <span>
-            <strong>{(request.from as User)?.username ?? "Usuario"}</strong>{" "}
+            <strong>{(request.sender as User)?.username ?? "Usuario"}</strong>{" "}
             <span className="text-gray-400">
-              ({(request.from as User)?.email ?? "Sin email"})
+              ({(request.sender as User)?.email ?? "Sin email"})
             </span>
           </span>
           <div className="space-x-2">
             <button
               type="button"
-              onClick={() => handleResponse(request.id, "accepted")}
+              onClick={() => handleResponse(request.id, "ACCEPTED")}
               disabled={respondingId === request.id}
               className="rounded bg-green-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-green-500 disabled:opacity-60"
             >
@@ -92,7 +96,7 @@ export default function FriendRequestsList() {
             </button>
             <button
               type="button"
-              onClick={() => handleResponse(request.id, "rejected")}
+              onClick={() => handleResponse(request.id, "REJECTED")}
               disabled={respondingId === request.id}
               className="rounded bg-red-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-red-500 disabled:opacity-60"
             >

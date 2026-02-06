@@ -43,7 +43,7 @@ export class FriendshipsService {
       if (existing.status === 'ACCEPTED') {
         throw new ConflictException('Already friends');
       }
-      if (existing.status === 'BLOCKED') {
+      if (existing.status === 'REJECTED') {
         throw new ForbiddenException('Cannot send request');
       }
     }
@@ -68,7 +68,7 @@ export class FriendshipsService {
   async respondToRequest(
     friendshipId: string,
     userId: string,
-    status: 'ACCEPTED' | 'BLOCKED',
+    status: 'ACCEPTED' | 'REJECTED',
   ) {
     const friendship = await this.prisma.friendship.findUnique({
       where: { id: friendshipId },

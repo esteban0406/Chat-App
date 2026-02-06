@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Message } from "@/lib/definitions";
-import { socket } from "@/lib/socket";
-import { backendFetch, unwrapList } from "@/lib/backend-client";
+import { connectSocket } from "@/lib/socket";
+import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
 
 export function useMessages(channelId?: string) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -29,7 +29,7 @@ export function useMessages(channelId?: string) {
       setLoading(true);
       setError(null);
       try {
-        const res = await backendFetch(`/api/messages/${channelId}`, {
+        const res = await backendFetch(`/api/messages/channel/${channelId}`, {
           cache: "no-store",
         });
 
@@ -66,14 +66,12 @@ export function useMessages(channelId?: string) {
       return;
     }
 
-    if (!socket.connected) {
-      socket.connect();
-    }
+    const socket = connectSocket();
 
     socket.emit("joinChannel", channelId);
 
     const handleMessage = (message: Message) => {
-      if (message.channel === channelId) {
+      if (message.channelId === channelId) {
         setMessages((msgs) => [...msgs, message]);
       }
     };

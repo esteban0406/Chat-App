@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsUrl, MinLength, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsUrl,
+  MinLength,
+  MaxLength,
+} from 'class-validator';
 
 export class UpdateServerDto {
   @IsOptional()

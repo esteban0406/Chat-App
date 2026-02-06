@@ -87,7 +87,11 @@ export class ChannelsService {
     return channel;
   }
 
-  async update(channelId: string, userId: string, updateChannelDto: UpdateChannelDto) {
+  async update(
+    channelId: string,
+    userId: string,
+    updateChannelDto: UpdateChannelDto,
+  ) {
     const channel = await this.prisma.channel.findUnique({
       where: { id: channelId },
     });
@@ -129,7 +133,9 @@ export class ChannelsService {
     });
 
     if (channelCount <= 1) {
-      throw new BadRequestException('Cannot delete the last channel in a server');
+      throw new BadRequestException(
+        'Cannot delete the last channel in a server',
+      );
     }
 
     await this.prisma.channel.delete({

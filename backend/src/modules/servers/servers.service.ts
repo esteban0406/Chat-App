@@ -37,7 +37,12 @@ export class ServersService {
         members: {
           include: {
             user: {
-              select: { id: true, username: true, avatarUrl: true, status: true },
+              select: {
+                id: true,
+                username: true,
+                avatarUrl: true,
+                status: true,
+              },
             },
           },
         },
@@ -62,7 +67,12 @@ export class ServersService {
         members: {
           include: {
             user: {
-              select: { id: true, username: true, avatarUrl: true, status: true },
+              select: {
+                id: true,
+                username: true,
+                avatarUrl: true,
+                status: true,
+              },
             },
           },
         },
@@ -84,7 +94,12 @@ export class ServersService {
         members: {
           include: {
             user: {
-              select: { id: true, username: true, avatarUrl: true, status: true },
+              select: {
+                id: true,
+                username: true,
+                avatarUrl: true,
+                status: true,
+              },
             },
           },
         },
@@ -144,7 +159,9 @@ export class ServersService {
     }
 
     if (server.ownerId === userId) {
-      throw new BadRequestException('Owner cannot leave the server. Transfer ownership or delete it.');
+      throw new BadRequestException(
+        'Owner cannot leave the server. Transfer ownership or delete it.',
+      );
     }
 
     const member = await this.prisma.member.findUnique({
@@ -220,7 +237,11 @@ export class ServersService {
     return { message: 'Server deleted successfully' };
   }
 
-  async updateServer(serverId: string, userId: string, data: { name?: string; iconUrl?: string }) {
+  async updateServer(
+    serverId: string,
+    userId: string,
+    data: { name?: string; iconUrl?: string },
+  ) {
     const server = await this.prisma.server.findUnique({
       where: { id: serverId },
     });
@@ -246,7 +267,12 @@ export class ServersService {
         members: {
           include: {
             user: {
-              select: { id: true, username: true, avatarUrl: true, status: true },
+              select: {
+                id: true,
+                username: true,
+                avatarUrl: true,
+                status: true,
+              },
             },
           },
         },

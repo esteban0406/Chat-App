@@ -4,6 +4,9 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ServersModule } from './modules/servers/servers.module';
 import { ChannelsModule } from './modules/channels/channels.module';
+import { MessagesModule } from './modules/messages/messages.module';
+import { LivekitModule } from './modules/livekit/livekit.module';
+import { GatewayModule } from './modules/gateway/gateway.module';
 
 @Module({
   imports: [
@@ -12,6 +15,9 @@ import { ChannelsModule } from './modules/channels/channels.module';
     AuthModule,
     ServersModule,
     ChannelsModule,
+    MessagesModule,
+    LivekitModule,
+    GatewayModule,
   ],
 })
 export class AppModule {}

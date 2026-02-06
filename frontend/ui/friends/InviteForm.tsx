@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { User } from "@/lib/definitions";
-import { authClient } from "@/lib/auth-client";
-import { backendFetch, unwrapList } from "@/lib/backend-client";
+import { getMe, User } from "@/lib/auth";
+import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
 
 export default function InviteForm() {
   const [query, setQuery] = useState("");
@@ -19,9 +18,9 @@ export default function InviteForm() {
 
     async function load() {
       try {
-        const [friendsRes, session] = await Promise.all([
-          backendFetch("/api/friends/list", { cache: "no-store" }),
-          authClient.getSession(),
+        const [friendsRes, user] = await Promise.all([
+          backendFetch("/api/friendships", { cache: "no-store" }),
+          getMe(),
         ]);
         if (!cancelled) {
           if (friendsRes.ok) {
@@ -29,7 +28,9 @@ export default function InviteForm() {
             const list = unwrapList<User>(body, "friends");
             setFriends(list);
           }
-          setCurrentUser(session?.data?.user);
+          if (user) {
+            setCurrentUser(user);
+          }
         }
       } catch (err) {
         console.error(err);
@@ -63,7 +64,8 @@ export default function InviteForm() {
         `/api/users/search?username=${encodeURIComponent(term)}`
       );
       if (!res.ok) {
-        throw new Error("No se pudo buscar usuarios");
+        const msg = await extractErrorMessage(res, "No se pudo buscar usuarios");
+        throw new Error(msg);
       }
       const body = await res.json();
       const users = unwrapList<User>(body, "users");
@@ -76,13 +78,14 @@ export default function InviteForm() {
       });
 
       if (!filtered.length) {
-        setStatus("No se encontraron usuarios disponibles ❌");
+        setStatus("No se encontraron usuarios disponibles");
       }
 
       setResults(filtered);
     } catch (err) {
       console.error(err);
-      setStatus("Error al buscar usuarios ❌");
+      const message = err instanceof Error ? err.message : "Error al buscar usuarios";
+      setStatus(message);
       setResults([]);
     } finally {
       setSearching(false);
@@ -94,19 +97,21 @@ export default function InviteForm() {
     setSendingId(user.id);
     setStatus(null);
     try {
-      const res = await backendFetch("/api/friends/send", {
+      const res = await backendFetch("/api/friendships", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ to: user.id }),
+        body: JSON.stringify({ receiverId: user.id }),
       });
       if (!res.ok) {
-        throw new Error("No se pudo enviar la invitación");
+        const msg = await extractErrorMessage(res, "No se pudo enviar la invitación");
+        throw new Error(msg);
       }
-      setStatus(`Invitación enviada a ${user.name} ✅`);
+      setStatus(`Invitación enviada a ${user.username}`);
       setResults((prev) => prev.filter((candidate) => candidate.id !== user.id));
     } catch (err) {
       console.error(err);
-      setStatus("Error al enviar invitación ❌");
+      const message = err instanceof Error ? err.message : "Error al enviar invitación";
+      setStatus(message);
     } finally {
       setSendingId(null);
     }
@@ -147,7 +152,7 @@ export default function InviteForm() {
               className="flex items-center justify-between rounded bg-gray-700 px-4 py-2 text-sm"
             >
               <span className="truncate">
-                {user.name}{" "}
+                {user.username}{" "}
                 <span className="text-gray-400">({user.email})</span>
               </span>
               <button

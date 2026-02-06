@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Server, User, ServerInvite } from "@/lib/definitions";
-import { backendFetch, unwrapList } from "@/lib/backend-client";
+import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
 
 type Props = {
   server: Server;
@@ -18,7 +18,7 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
   useEffect(() => {
     async function loadFriends() {
       try {
-        const res = await backendFetch("/api/friends/list", {
+        const res = await backendFetch("/api/friendships", {
           cache: "no-store",
         });
         if (!res.ok) {
@@ -38,16 +38,19 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
   useEffect(() => {
     async function loadPending() {
       try {
-        const res = await backendFetch(
-          `/api/server-invites/pending?serverId=${server.id}`,
-          { cache: "no-store" }
-        );
+        const res = await backendFetch("/api/server-invites/sent", {
+          cache: "no-store",
+        });
         if (!res.ok) {
           throw new Error("Failed to load pending invites");
         }
         const data = await res.json();
         const invites = unwrapList<ServerInvite>(data, "invites");
-        setPendingInvites(invites);
+        // Filter to only invites for this server
+        const serverInvites = invites.filter(
+          (invite) => invite.serverId === server.id
+        );
+        setPendingInvites(serverInvites);
       } catch (err) {
         console.error(err);
       }
@@ -59,9 +62,7 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
   const memberIds = useMemo(() => {
     if (!server?.members) return new Set<string>();
     return new Set(
-      server.members
-        .map((member) => (typeof member === "string" ? member : member.id))
-        .filter(Boolean)
+      server.members.map((member) => member.userId).filter(Boolean)
     );
   }, [server]);
 
@@ -69,7 +70,7 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
     () =>
       new Set(
         pendingInvites
-          .map((invite) => invite?.to?.id ?? invite?.to)
+          .map((invite) => invite.receiverId)
           .filter(Boolean)
       ),
     [pendingInvites]
@@ -84,23 +85,24 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
     setInvitingId(friendId);
     setStatus(null);
     try {
-      const res = await backendFetch("/api/server-invites/send", {
+      const res = await backendFetch("/api/server-invites", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ serverId: server.id, to: friendId }),
+        body: JSON.stringify({ serverId: server.id, receiverId: friendId }),
       });
       if (!res.ok) {
-        throw new Error("Failed to send invite");
+        const msg = await extractErrorMessage(res, "Failed to send invite");
+        throw new Error(msg);
       }
-      const body = await res.json();
-      const invite = body?.data?.invite ?? body?.invite;
+      const invite = await res.json();
       if (invite) {
         setPendingInvites((prev) => [...prev, invite]);
       }
-      setStatus("Invitación enviada ✅");
+      setStatus("Invitación enviada");
     } catch (err) {
       console.error(err);
-      setStatus("No se pudo enviar la invitación ❌");
+      const message = err instanceof Error ? err.message : "No se pudo enviar la invitación";
+      setStatus(message);
     } finally {
       setInvitingId(null);
     }

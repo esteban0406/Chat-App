@@ -21,24 +21,20 @@ services:
       - 1.1.1.1
       - 8.8.8.8
     environment:
-      - CLIENT_URL=http://frontend:5173
-      - MONGODB_URI=${MONGODB_URI}
+      - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
-      - NODE_ENV=${NODE_ENV}
       - LIVEKIT_API_KEY=${LIVEKIT_API_KEY}
       - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET}
       - LIVEKIT_URL=${LIVEKIT_URL}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}
-      - FRONTEND_URL=${FRONTEND_URL}
       - MS_CLIENT_ID=${MS_CLIENT_ID}
       - MS_CLIENT_SECRET=${MS_CLIENT_SECRET}
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
     volumes:
       - ./backend/src:/app/src
       - ./backend/.env:/app/.env
-    command: npm run dev
+    command: npm run start:dev
   
   livekit:
     image: livekit/livekit-server

@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  UnauthorizedException,
-  ConflictException,
-} from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../database/prisma.service';
@@ -41,7 +37,11 @@ export class AuthService {
   }
 
   async login(user: { id: string; email: string; username: string }) {
-    const payload = { sub: user.id, email: user.email, username: user.username };
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      username: user.username,
+    };
 
     // Update user status to ONLINE
     await this.usersService.updateStatus(user.id, 'ONLINE');
@@ -93,7 +93,11 @@ export class AuthService {
     });
 
     // Generate token
-    const payload = { sub: user.id, email: user.email, username: user.username };
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      username: user.username,
+    };
 
     return {
       user,

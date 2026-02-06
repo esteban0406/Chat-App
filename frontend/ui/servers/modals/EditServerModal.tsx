@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Server, User } from "@/lib/definitions";
-import { backendFetch } from "@/lib/backend-client";
+import { Server, Member } from "@/lib/definitions";
+import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 
 type Props = {
   server: Server;
   onClose: () => void;
-  onMemberRemoved?: (memberID : string) => void;
+  onMemberRemoved?: (memberID: string) => void;
 };
 
 export default function EditServerModal({
@@ -20,9 +20,9 @@ export default function EditServerModal({
 
   if (!server) return null;
 
-  const members: User[] = server.members;
+  const members: Member[] = server.members ?? [];
 
-  const handleRemove = async (member: User) => {
+  const handleRemove = async (member: Member) => {
     setRemovingId(member.id);
     setError(null);
     try {
@@ -31,12 +31,14 @@ export default function EditServerModal({
         { method: "DELETE" }
       );
       if (!res.ok) {
-        throw new Error("Failed to remove member");
+        const msg = await extractErrorMessage(res, "Failed to remove member");
+        throw new Error(msg);
       }
       onMemberRemoved?.(member.id);
     } catch (err) {
       console.error(err);
-      setError("No se pudo eliminar al miembro");
+      const message = err instanceof Error ? err.message : "No se pudo eliminar al miembro";
+      setError(message);
     } finally {
       setRemovingId(undefined);
     }
@@ -59,13 +61,13 @@ export default function EditServerModal({
             </p>
           ) : (
             members.map((member) => {
-              if (member.id != server.owner) {
+              if (member.userId !== server.ownerId) {
                 return (
                   <div
                     key={member.id}
                     className="flex items-center justify-between rounded bg-gray-700 px-3 py-2 text-sm"
                   >
-                    <span>{`${member.username} (${member.email})`}</span>
+                    <span>{`${member.user?.username ?? "Usuario"} (${member.user?.email ?? ""})`}</span>
                     <button
                       type="button"
                       onClick={() => handleRemove(member)}
@@ -77,6 +79,7 @@ export default function EditServerModal({
                   </div>
                 );
               }
+              return null;
             })
           )}
         </div>

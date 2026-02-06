@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { authClient } from "@/lib/auth-client";
-import { UpdateUserResult, User } from "@/lib/definitions";
+import { updateUser, User } from "@/lib/auth";
 
 type Props = {
   user: User;
@@ -11,17 +10,17 @@ type Props = {
 };
 
 export default function EditNameModal({ user, onClose, onUpdated }: Props) {
-  const [name, setName] = useState(user.name ?? "");
+  const [name, setName] = useState(user.username ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setName(user.name ?? "");
+    setName(user.username ?? "");
   }, [user]);
 
   const closeModal = () => {
     if (loading) return;
-    setName(user.name ?? "");
+    setName(user.username ?? "");
     setError("");
     onClose();
   };
@@ -35,7 +34,7 @@ export default function EditNameModal({ user, onClose, onUpdated }: Props) {
       return;
     }
 
-    if (trimmed === user.name) {
+    if (trimmed === user.username) {
       setError("Debes ingresar un nombre diferente");
       return;
     }
@@ -44,22 +43,13 @@ export default function EditNameModal({ user, onClose, onUpdated }: Props) {
     setError("");
 
     try {
-      const result = (await authClient.updateUser({
-        name: trimmed,
-      })) as UpdateUserResult;
-
-      if (!result || result.error) {
-        throw new Error(
-          result?.error?.message || "No se pudo actualizar el nombre"
-        );
-      }
-
+      await updateUser({ username: trimmed });
       onUpdated();
       setError("");
       onClose();
     } catch (err: unknown) {
       console.error(err);
-      setError("Error al actualizar nombre");
+      setError(err instanceof Error ? err.message : "Error al actualizar nombre");
     } finally {
       setLoading(false);
     }

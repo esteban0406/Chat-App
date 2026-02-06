@@ -4,9 +4,8 @@ import { useState, useEffect } from "react";
 import { Menu } from "@headlessui/react";
 import EditNameModal from "./modals/EditNameModal";
 import EditAvatarModal from "./modals/EditAvatarModal";
-import { authClient } from "@/lib/auth-client";
+import { getMe, logout, User } from "@/lib/auth";
 import { useRouter } from "next/navigation";
-import { User } from "@/lib/definitions";
 import { toBackendURL } from "@/lib/backend-client";
 
 export default function UserProfileBar() {
@@ -20,22 +19,24 @@ export default function UserProfileBar() {
     "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
   const fetchUser = async () => {
-    const session = await authClient.getSession();
-    return session.data?.user;
+    return await getMe();
   };
 
   useEffect(() => {
     (async () => {
       try {
-        setUser(await fetchUser());
+        const userData = await fetchUser();
+        if (userData) {
+          setUser(userData);
+        }
       } catch (error) {
-        console.error("❌ Error loading user profile:", error);
+        console.error("Error loading user profile:", error);
       }
     })();
   }, []);
 
   async function handleLogout() {
-    await authClient.signOut();
+    await logout();
     router.push("/login");
   }
 
@@ -55,7 +56,7 @@ export default function UserProfileBar() {
       <img
         key={avatarSrc}
         src={avatarSrc}
-        alt={user.name}
+        alt={user.username}
         className="w-10 h-10 rounded-full"
         onError={(e) => {
           e.currentTarget.src = fallbackAvatar;
@@ -64,8 +65,8 @@ export default function UserProfileBar() {
 
       {/* Username */}
       <div className="flex-1 truncate">
-        <p className="text-sm font-semibold truncate">{user.name}</p>
-        <p className="text-xs text-gray-400">Online</p>
+        <p className="text-sm font-semibold truncate">{user.username}</p>
+        <p className="text-xs text-gray-400">{user.status}</p>
       </div>
 
       {/* Settings dropdown */}
@@ -128,14 +129,15 @@ export default function UserProfileBar() {
           onClose={() => setOpenNameModal(false)}
           onUpdated={async () => {
             const updatedUser = await fetchUser();
-            setUser(updatedUser);
+            if (updatedUser) {
+              setUser(updatedUser);
+            }
           }}
         />
       )}
       {openAvatarModal && (
         <EditAvatarModal
           onClose={() => setOpenAvatarModal(false)}
-          //onUpdated={refreshUser}
         />
       )}
     </div>

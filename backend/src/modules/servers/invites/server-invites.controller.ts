@@ -41,26 +41,17 @@ export class ServerInvitesController {
   }
 
   @Post(':id/accept')
-  async acceptInvite(
-    @Request() req: RequestWithUser,
-    @Param('id') id: string,
-  ) {
+  async acceptInvite(@Request() req: RequestWithUser, @Param('id') id: string) {
     return this.serverInvitesService.acceptInvite(id, req.user.id);
   }
 
   @Post(':id/reject')
-  async rejectInvite(
-    @Request() req: RequestWithUser,
-    @Param('id') id: string,
-  ) {
+  async rejectInvite(@Request() req: RequestWithUser, @Param('id') id: string) {
     return this.serverInvitesService.rejectInvite(id, req.user.id);
   }
 
   @Delete(':id')
-  async cancelInvite(
-    @Request() req: RequestWithUser,
-    @Param('id') id: string,
-  ) {
+  async cancelInvite(@Request() req: RequestWithUser, @Param('id') id: string) {
     return this.serverInvitesService.cancelInvite(id, req.user.id);
   }
 }

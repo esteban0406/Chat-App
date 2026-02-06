@@ -1,3 +1,5 @@
+import { getToken } from "./auth";
+
 const getBackendBaseURL = () => {
   const base = process.env.NEXT_PUBLIC_BACKEND_URL;
   if (!base) return "";
@@ -22,8 +24,37 @@ export const unwrapList = <T>(body: unknown, key: string): T[] => {
   return Array.isArray(body) ? (body as T[]) : [];
 };
 
-export const backendFetch = (path: string, options: RequestInit = {}) =>
-  fetch(toBackendURL(path), {
+export const backendFetch = (path: string, options: RequestInit = {}) => {
+  const token = getToken();
+  const headers = new Headers(options.headers);
+
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  return fetch(toBackendURL(path), {
     ...options,
-    credentials: "include",
+    headers,
   });
+};
+
+/**
+ * Extract error message from NestJS error response
+ * Handles both string and array message formats
+ */
+export async function extractErrorMessage(
+  res: Response,
+  fallback: string
+): Promise<string> {
+  try {
+    const body = await res.json();
+    if (body.message) {
+      return Array.isArray(body.message)
+        ? body.message.join(", ")
+        : body.message;
+    }
+    return fallback;
+  } catch {
+    return fallback;
+  }
+}
