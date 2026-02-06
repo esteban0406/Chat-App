@@ -29,7 +29,6 @@ export class UsersController {
     return this.usersService.findByUsername(searchDto.username);
   }
 
-  // Protected /me endpoints - must be before :id routes
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async getMe(@Request() req: RequestWithUser) {

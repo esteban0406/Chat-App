@@ -35,7 +35,7 @@ export default function CreateServerModal({ onClose, created }: Props) {
       }
       const response = await res.json();
       created();
-      router.push(`/servers/${response.data.server.id}`);
+      router.push(`/servers/${response.id}`);
       onClose();
     } catch (err) {
       console.error(err);

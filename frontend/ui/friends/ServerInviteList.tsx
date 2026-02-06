@@ -48,7 +48,7 @@ export default function ServerInviteList() {
     setProcessingId(inviteId);
     try {
       const res = await backendFetch(
-        `/api/server-invites/${action}/${inviteId}`,
+        `/api/server-invites/${inviteId}/${action}`,
         {
         method: "POST",
         }
