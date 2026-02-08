@@ -35,8 +35,8 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
       return;
     }
 
-    if (selected.size > 2 * 1024 * 1024) {
-      setError("La imagen no puede superar los 2MB");
+    if (selected.size > 5 * 1024 * 1024) {
+      setError("La imagen no puede superar los 5MB");
       return;
     }
 
@@ -61,10 +61,12 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
     setError("");
 
     try {
-      const res = await backendFetch("/api/users/me/avatar", {
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      const res = await backendFetch("/api/users/me", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ avatar: preview }),
+        body: formData,
       });
 
       if (!res.ok) {

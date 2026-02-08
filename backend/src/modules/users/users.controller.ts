@@ -7,8 +7,14 @@ import {
   Body,
   Res,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  FileTypeValidator,
+  MaxFileSizeValidator,
   Request,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { UsersService } from './users.service';
 import { UpdateUserDto, SearchUserDto, UpdateStatusDto } from './dto';
@@ -37,11 +43,22 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('me')
+  @UseInterceptors(FileInterceptor('avatar'))
   async updateMe(
     @Request() req: RequestWithUser,
     @Body() updateUserDto: UpdateUserDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new FileTypeValidator({ fileType: /^image\/(jpeg|png|gif|webp)$/ }),
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
+        ],
+        fileIsRequired: false,
+      }),
+    )
+    avatar?: Express.Multer.File,
   ) {
-    return this.usersService.update(req.user.id, updateUserDto);
+    return this.usersService.update(req.user.id, updateUserDto, avatar);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { CloudinaryService } from '../../common/cloudinary/cloudinary.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   async findAll() {
     return this.prisma.user.findMany({
@@ -66,7 +70,11 @@ export class UsersService {
     });
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+    avatarFile?: Express.Multer.File,
+  ) {
     const user = await this.prisma.user.findUnique({
       where: { id },
     });
@@ -75,17 +83,29 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
+    const data: {
+      username?: string;
+      avatarUrl?: string;
+      avatarPublicId?: string;
+    } = {};
+
+    if (updateUserDto.username) {
+      data.username = updateUserDto.username.trim();
+    }
+
+    if (avatarFile) {
+      const uploadResult = await this.cloudinaryService.uploadImage(avatarFile);
+      data.avatarUrl = uploadResult.secure_url;
+      data.avatarPublicId = uploadResult.public_id;
+
+      if (user.avatarPublicId) {
+        await this.cloudinaryService.deleteImage(user.avatarPublicId);
+      }
+    }
+
     return this.prisma.user.update({
       where: { id },
-      data: {
-        ...(updateUserDto.username && {
-          username: updateUserDto.username.trim(),
-        }),
-        ...(updateUserDto.avatarUrl && { avatarUrl: updateUserDto.avatarUrl }),
-        ...(updateUserDto.avatarPublicId && {
-          avatarPublicId: updateUserDto.avatarPublicId,
-        }),
-      },
+      data,
       select: {
         id: true,
         email: true,

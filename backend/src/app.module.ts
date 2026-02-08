@@ -7,7 +7,7 @@ import { ChannelsModule } from './modules/channels/channels.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { LivekitModule } from './modules/livekit/livekit.module';
 import { GatewayModule } from './modules/gateway/gateway.module';
-import { HTTPLoggerMiddleware } from './common/logger.middleware';
+import { HTTPLoggerMiddleware } from './common/middleware/logger.middleware';
 
 @Module({
   imports: [

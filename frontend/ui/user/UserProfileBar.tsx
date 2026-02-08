@@ -138,6 +138,12 @@ export default function UserProfileBar() {
       {openAvatarModal && (
         <EditAvatarModal
           onClose={() => setOpenAvatarModal(false)}
+          onUpdated={async () => {
+            const updatedUser = await fetchUser();
+            if (updatedUser) {
+              setUser(updatedUser);
+            }
+          }}
         />
       )}
     </div>

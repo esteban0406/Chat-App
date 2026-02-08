@@ -10,8 +10,6 @@ export class HTTPLoggerMiddleware implements NestMiddleware {
 
     const body = req.body as Record<string, unknown>;
 
-    this.logger.log(`El logggeosss [${method}] ${originalUrl}`);
-
     if (body && Object.keys(body).length > 0) {
       const sanitizedBody = { ...body };
 
@@ -21,8 +19,11 @@ export class HTTPLoggerMiddleware implements NestMiddleware {
           sanitizedBody[field] = '[REDACTED]';
         }
       });
-
-      this.logger.debug(`Body: ${JSON.stringify(sanitizedBody)}`);
+      this.logger.log(
+        `Request: [${method}] ${originalUrl} with body: ${JSON.stringify(sanitizedBody)}`,
+      );
+    } else {
+      this.logger.log(`Request: [${method}] ${originalUrl}`);
     }
 
     next();
