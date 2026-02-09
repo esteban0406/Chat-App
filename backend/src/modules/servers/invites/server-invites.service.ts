@@ -111,7 +111,12 @@ export class ServerInvitesService {
       throw new BadRequestException('Invite has already been responded to');
     }
 
-    // Update invite status and add user as member
+    // Find the default Member role for this server
+    const memberRole = await this.prisma.role.findFirst({
+      where: { serverId: invite.serverId, name: 'Member' },
+    });
+
+    // Update invite status and add user as member with Member role
     await this.prisma.$transaction([
       this.prisma.serverInvite.update({
         where: { id: inviteId },
@@ -121,11 +126,12 @@ export class ServerInvitesService {
         data: {
           userId,
           serverId: invite.serverId,
+          roleId: memberRole?.id,
         },
       }),
     ]);
 
-    return this.prisma.server.findUnique({
+    const server = await this.prisma.server.findUnique({
       where: { id: invite.serverId },
       include: {
         owner: {
@@ -146,6 +152,8 @@ export class ServerInvitesService {
         channels: true,
       },
     });
+
+    return { server, senderId: invite.senderId, serverId: invite.serverId };
   }
 
   async rejectInvite(inviteId: string, userId: string) {
@@ -228,6 +236,10 @@ export class ServerInvitesService {
       where: { id: inviteId },
     });
 
-    return { message: 'Invite cancelled' };
+    return {
+      message: 'Invite cancelled',
+      receiverId: invite.receiverId,
+      serverId: invite.serverId,
+    };
   }
 }

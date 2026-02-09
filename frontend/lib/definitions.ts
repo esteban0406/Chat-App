@@ -35,10 +35,30 @@ export type Server = {
   updatedAt: string;
 };
 
+export type ServerPermission =
+  | "CREATE_CHANNEL"
+  | "DELETE_CHANNEL"
+  | "DELETE_SERVER"
+  | "INVITE_MEMBER"
+  | "REMOVE_MEMBER"
+  | "MANAGE_ROLES";
+
+export type Role = {
+  id: string;
+  name: string;
+  color?: string;
+  serverId: string;
+  permissions: ServerPermission[];
+  createdAt: string;
+  _count?: { members: number };
+};
+
 export type Member = {
   id: string;
   userId: string;
   serverId: string;
+  roleId?: string;
+  role?: Role;
   user?: User;
   createdAt: string;
   updatedAt: string;

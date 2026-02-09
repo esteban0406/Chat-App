@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ServerInvite, Server } from "@/lib/definitions";
 import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
+import { useNotificationSocket } from "@/lib/useNotificationSocket";
 
 export default function ServerInviteList() {
   const router = useRouter();
@@ -39,6 +40,17 @@ export default function ServerInviteList() {
   useEffect(() => {
     loadInvites();
   }, []);
+
+  useNotificationSocket({
+    onServerInviteReceived: (invite) => {
+      setInvites((prev) =>
+        prev.some((i) => i.id === invite.id) ? prev : [invite, ...prev]
+      );
+    },
+    onServerInviteCancelled: ({ inviteId }) => {
+      setInvites((prev) => prev.filter((i) => i.id !== inviteId));
+    },
+  });
 
   const handleAction = async (
     invite: ServerInvite,

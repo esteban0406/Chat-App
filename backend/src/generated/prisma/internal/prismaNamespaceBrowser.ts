@@ -155,6 +155,7 @@ export const RoleScalarFieldEnum = {
   name: 'name',
   color: 'color',
   serverId: 'serverId',
+  permissions: 'permissions',
   createdAt: 'createdAt'
 } as const
 

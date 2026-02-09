@@ -10,6 +10,8 @@ import {
   UsersIcon,
   UserCircleIcon,
 } from "@heroicons/react/24/outline";
+import { useNotifications } from "@/lib/NotificationContext";
+import { useEffect } from "react";
 
 const tabs = [
   { href: "/friends", label: "Todos", exact: true },
@@ -37,6 +39,17 @@ function FriendsContent({ children }: { children: React.ReactNode }) {
     openSectionSidebar,
     openProfileDrawer,
   } = useLayoutContext();
+  const {
+    hasNewFriendRequests,
+    hasNewServerInvites,
+    clearFriendRequests,
+    clearServerInvites,
+  } = useNotifications();
+
+  useEffect(() => {
+    if (pathname.startsWith("/friends/requests")) clearFriendRequests();
+    if (pathname.startsWith("/friends/server-requests")) clearServerInvites();
+  }, [pathname, clearFriendRequests, clearServerInvites]);
 
   return (
     <div className="flex h-full flex-col bg-gray-900 text-white">
@@ -78,17 +91,23 @@ function FriendsContent({ children }: { children: React.ReactNode }) {
             const isActive = tab.exact
               ? pathname === tab.href
               : pathname.startsWith(tab.href);
+            const showDot =
+              (tab.href === "/friends/requests" && hasNewFriendRequests && !isActive) ||
+              (tab.href === "/friends/server-requests" && hasNewServerInvites && !isActive);
             return (
               <Link
                 key={tab.href}
                 href={tab.href}
-                className={`whitespace-nowrap pb-2 ${
+                className={`relative whitespace-nowrap pb-2 ${
                   isActive
                     ? "border-b-2 border-indigo-500 text-indigo-400"
                     : "text-gray-400 hover:text-gray-200"
                 }`}
               >
                 {tab.label}
+                {showDot && (
+                  <span className="absolute -top-1 -right-2 h-2 w-2 rounded-full bg-red-500" />
+                )}
               </Link>
             );
           })}

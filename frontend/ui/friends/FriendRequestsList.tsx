@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Friendship, User } from "@/lib/definitions";
 import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
+import { useNotificationSocket } from "@/lib/useNotificationSocket";
 
 export default function FriendRequestsList() {
   const [requests, setRequests] = useState<Friendship[]>([]);
@@ -37,6 +38,17 @@ export default function FriendRequestsList() {
   useEffect(() => {
     loadRequests();
   }, []);
+
+  useNotificationSocket({
+    onFriendRequestReceived: (friendship) => {
+      setRequests((prev) =>
+        prev.some((r) => r.id === friendship.id) ? prev : [friendship, ...prev]
+      );
+    },
+    onFriendRequestCancelled: ({ friendshipId }) => {
+      setRequests((prev) => prev.filter((r) => r.id !== friendshipId));
+    },
+  });
 
   const handleResponse = async (id: string, status: "ACCEPTED" | "REJECTED") => {
     setRespondingId(id);

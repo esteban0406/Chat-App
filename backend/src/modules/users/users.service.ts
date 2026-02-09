@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { CloudinaryService } from '../../common/cloudinary/cloudinary.service';
+import { CloudinaryService } from '../../database/cloudinary/cloudinary.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()

@@ -10,6 +10,8 @@ import {
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isAuthenticated } from "@/lib/auth";
+import { connectSocket, disconnectSocket } from "@/lib/socket";
+import { NotificationProvider } from "@/lib/NotificationContext";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -20,7 +22,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       router.replace("/login");
     } else {
       setIsChecking(false);
+      connectSocket();
     }
+    return () => {
+      disconnectSocket();
+    };
   }, [router]);
 
   if (isChecking) {
@@ -33,7 +39,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <LayoutContextProvider>
-      <AppLayoutInner>{children}</AppLayoutInner>
+      <NotificationProvider>
+        <AppLayoutInner>{children}</AppLayoutInner>
+      </NotificationProvider>
     </LayoutContextProvider>
   );
 }

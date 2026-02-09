@@ -13,6 +13,9 @@ import { ChannelsService } from './channels.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { RequestWithUser } from '../auth/types';
 import { CreateChannelDto, UpdateChannelDto } from './dto';
+import { ServerPermissionGuard } from '../../common/rbac/server-permission.guard';
+import { RequirePermission } from '../../common/rbac/require-permission.decorator';
+import { ServerPermission } from '../../generated/prisma/client';
 
 @Controller('channels')
 @UseGuards(JwtAuthGuard)
@@ -20,6 +23,11 @@ export class ChannelsController {
   constructor(private readonly channelsService: ChannelsService) {}
 
   @Post()
+  @UseGuards(ServerPermissionGuard)
+  @RequirePermission(ServerPermission.CREATE_CHANNEL, {
+    from: 'body',
+    field: 'serverId',
+  })
   async create(
     @Request() req: RequestWithUser,
     @Body() createChannelDto: CreateChannelDto,
@@ -50,7 +58,12 @@ export class ChannelsController {
   }
 
   @Delete(':id')
-  async delete(@Request() req: RequestWithUser, @Param('id') id: string) {
-    return this.channelsService.delete(id, req.user.id);
+  @UseGuards(ServerPermissionGuard)
+  @RequirePermission(ServerPermission.DELETE_CHANNEL, {
+    from: 'channel',
+    field: 'id',
+  })
+  async delete(@Param('id') id: string) {
+    return this.channelsService.delete(id);
   }
 }

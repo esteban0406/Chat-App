@@ -6,51 +6,51 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateServerDto } from './dto/create-server.dto';
+import { ServerPermission } from '../../generated/prisma/client';
+
+const ALL_PERMISSIONS = Object.values(ServerPermission);
 
 @Injectable()
 export class ServersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(ownerId: string, createServerDto: CreateServerDto) {
-    // Create server with owner as first member and default channel
+    // Create server with default channel and default roles
     const server = await this.prisma.server.create({
       data: {
         name: createServerDto.name.trim(),
         iconUrl: createServerDto.iconUrl,
         ownerId,
-        members: {
-          create: {
-            userId: ownerId,
-          },
-        },
         channels: {
           create: {
             name: 'general',
             type: 'TEXT',
           },
         },
-      },
-      include: {
-        owner: {
-          select: { id: true, username: true, avatarUrl: true, status: true },
+        roles: {
+          create: [
+            { name: 'Admin', permissions: ALL_PERMISSIONS },
+            { name: 'Member', permissions: [] },
+          ],
         },
-        members: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                username: true,
-                avatarUrl: true,
-                status: true,
-              },
-            },
-          },
-        },
-        channels: true,
       },
     });
 
-    return server;
+    // Look up the Admin role to assign to the owner
+    const adminRole = await this.prisma.role.findFirst({
+      where: { serverId: server.id, name: 'Admin' },
+    });
+
+    // Create owner as first member with Admin role
+    await this.prisma.member.create({
+      data: {
+        userId: ownerId,
+        serverId: server.id,
+        roleId: adminRole!.id,
+      },
+    });
+
+    return this.findOne(server.id, ownerId);
   }
 
   async findAllForUser(userId: string) {
@@ -74,6 +74,7 @@ export class ServersService {
                 status: true,
               },
             },
+            role: true,
           },
         },
         channels: true,
@@ -101,6 +102,7 @@ export class ServersService {
                 status: true,
               },
             },
+            role: true,
           },
         },
         channels: true,
@@ -141,9 +143,18 @@ export class ServersService {
       throw new BadRequestException('Already a member of this server');
     }
 
-    // Add as member
+    // Find the default Member role for this server
+    const memberRole = await this.prisma.role.findFirst({
+      where: { serverId, name: 'Member' },
+    });
+
+    // Add as member with Member role
     await this.prisma.member.create({
-      data: { userId, serverId },
+      data: {
+        userId,
+        serverId,
+        roleId: memberRole?.id,
+      },
     });
 
     return this.findOne(serverId, userId);
@@ -190,10 +201,6 @@ export class ServersService {
       throw new NotFoundException('Server not found');
     }
 
-    if (server.ownerId !== requesterId) {
-      throw new ForbiddenException('Only the owner can remove members');
-    }
-
     if (memberId === requesterId) {
       throw new BadRequestException('Cannot remove yourself');
     }
@@ -216,17 +223,13 @@ export class ServersService {
     return this.findOne(serverId, requesterId);
   }
 
-  async deleteServer(serverId: string, userId: string) {
+  async deleteServer(serverId: string) {
     const server = await this.prisma.server.findUnique({
       where: { id: serverId },
     });
 
     if (!server) {
       throw new NotFoundException('Server not found');
-    }
-
-    if (server.ownerId !== userId) {
-      throw new ForbiddenException('Only the owner can delete the server');
     }
 
     // Prisma cascade will delete members, channels, messages, roles, and invites
@@ -274,6 +277,7 @@ export class ServersService {
                 status: true,
               },
             },
+            role: true,
           },
         },
         channels: true,

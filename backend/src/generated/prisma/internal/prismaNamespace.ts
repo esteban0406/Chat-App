@@ -1194,6 +1194,7 @@ export const RoleScalarFieldEnum = {
   name: 'name',
   color: 'color',
   serverId: 'serverId',
+  permissions: 'permissions',
   createdAt: 'createdAt'
 } as const
 
@@ -1306,6 +1307,20 @@ export type EnumRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'RequestStatus[]'
  */
 export type ListEnumRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RequestStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ServerPermission[]'
+ */
+export type ListEnumServerPermissionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ServerPermission[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ServerPermission'
+ */
+export type EnumServerPermissionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ServerPermission'>
     
 
 

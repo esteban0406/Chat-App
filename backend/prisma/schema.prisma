@@ -28,6 +28,15 @@ enum UserStatus {
   ONLINE
 }
 
+enum ServerPermission {
+  CREATE_CHANNEL
+  DELETE_CHANNEL
+  DELETE_SERVER
+  INVITE_MEMBER
+  REMOVE_MEMBER
+  MANAGE_ROLES
+}
+
 ////////////////////
 /// USER
 ////////////////////
@@ -146,7 +155,7 @@ model Member {
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   server Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  role   Role?  @relation(fields: [roleId], references: [id])
+  role   Role?  @relation(fields: [roleId], references: [id], onDelete: SetNull)
 
   @@unique([userId, serverId])
 }
@@ -156,10 +165,11 @@ model Member {
 ////////////////////
 
 model Role {
-  id        String   @id @default(uuid())
-  name      String
-  color     String?
-  serverId  String
+  id          String             @id @default(uuid())
+  name        String
+  color       String?
+  serverId    String
+  permissions ServerPermission[]
 
   createdAt DateTime @default(now())
 

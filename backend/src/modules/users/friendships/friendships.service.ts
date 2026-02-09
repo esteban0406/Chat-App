@@ -171,7 +171,12 @@ export class FriendshipsService {
       where: { id: friendshipId },
     });
 
-    return { message: 'Friendship removed' };
+    const otherUserId =
+      friendship.senderId === userId
+        ? friendship.receiverId
+        : friendship.senderId;
+
+    return { message: 'Friendship removed', otherUserId };
   }
 
   async cancelRequest(friendshipId: string, userId: string) {
@@ -196,6 +201,9 @@ export class FriendshipsService {
       where: { id: friendshipId },
     });
 
-    return { message: 'Friend request cancelled' };
+    return {
+      message: 'Friend request cancelled',
+      receiverId: friendship.receiverId,
+    };
   }
 }

@@ -41,7 +41,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly messagesService: MessagesService,
   ) {}
 
-  handleConnection(client: SocketWithData) {
+  async handleConnection(client: SocketWithData) {
     console.log('Client connected:', client.id);
 
     const token = client.handshake?.query?.token;
@@ -50,6 +50,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const decoded = this.jwtService.verify<JwtPayload>(token);
         client.data = client.data || {};
         client.data.userId = decoded.sub || decoded.id;
+
+        await client.join(`user:${client.data.userId}`);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error';
         console.warn('Invalid socket token:', message);
@@ -129,6 +131,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     return true;
+  }
+
+  emitToUser(userId: string, event: string, data: unknown) {
+    this.server.to(`user:${userId}`).emit(event, data);
   }
 
   emitToChannel(channelId: string, event: string, data: unknown) {

@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { Menu } from "@headlessui/react";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
 import { Channel, Server } from "@/lib/definitions";
+import { useServerPermissions } from "@/lib/useServerPermissions";
 import {
   backendFetch,
   unwrapList,
@@ -17,6 +18,7 @@ import DeleteChannelModal from "./modals/DeleteChannelModal";
 import InviteFriendsModal from "@/ui/servers/modals/InviteFriendsModal";
 import EditServerModal from "@/ui/servers/modals/EditServerModal";
 import DeleteServerModal from "@/ui/servers/modals/DeleteServerModal";
+import ManageRolesModal from "@/ui/servers/modals/ManageRolesModal";
 
 export default function ChannelSidebar({
   sidebarControls,
@@ -36,6 +38,9 @@ export default function ChannelSidebar({
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showEditServerModal, setShowEditServerModal] = useState(false);
   const [showDeleteServerModal, setShowDeleteServerModal] = useState(false);
+  const [showRolesModal, setShowRolesModal] = useState(false);
+
+  const { hasPermission } = useServerPermissions(server);
 
   useEffect(() => {
     async function loadServer() {
@@ -148,45 +153,66 @@ export default function ChannelSidebar({
               <EllipsisVerticalIcon className="h-5 w-5" />
             </Menu.Button>
             <Menu.Items className="absolute right-0 mt-2 w-44 rounded bg-gray-700 text-sm shadow-lg ring-1 ring-black/20 focus:outline-none">
-              <Menu.Item>
-                {({ active }) => (
-                  <button
-                    type="button"
-                    onClick={() => setShowInviteModal(true)}
-                    className={`block w-full px-3 py-2 text-left ${
-                      active ? "bg-gray-600 text-white" : "text-gray-200"
-                    }`}
-                  >
-                    Invitar amigos
-                  </button>
-                )}
-              </Menu.Item>
-              <Menu.Item>
-                {({ active }) => (
-                  <button
-                    type="button"
-                    onClick={() => setShowEditServerModal(true)}
-                    className={`block w-full px-3 py-2 text-left ${
-                      active ? "bg-gray-600 text-white" : "text-gray-200"
-                    }`}
-                  >
-                    Gestionar miembros
-                  </button>
-                )}
-              </Menu.Item>
-              <Menu.Item>
-                {({ active }) => (
-                  <button
-                    type="button"
-                    onClick={() => setShowDeleteServerModal(true)}
-                    className={`block w-full px-3 py-2 text-left ${
-                      active ? "bg-red-600 text-white" : "text-red-300"
-                    }`}
-                  >
-                    Eliminar servidor
-                  </button>
-                )}
-              </Menu.Item>
+              {hasPermission("INVITE_MEMBER") && (
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      type="button"
+                      onClick={() => setShowInviteModal(true)}
+                      className={`block w-full px-3 py-2 text-left ${
+                        active ? "bg-gray-600 text-white" : "text-gray-200"
+                      }`}
+                    >
+                      Invitar amigos
+                    </button>
+                  )}
+                </Menu.Item>
+              )}
+              {hasPermission("REMOVE_MEMBER") && (
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      type="button"
+                      onClick={() => setShowEditServerModal(true)}
+                      className={`block w-full px-3 py-2 text-left ${
+                        active ? "bg-gray-600 text-white" : "text-gray-200"
+                      }`}
+                    >
+                      Eliminar miembros
+                    </button>
+                  )}
+                </Menu.Item>
+              )}
+              {hasPermission("MANAGE_ROLES") && (
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      type="button"
+                      onClick={() => setShowRolesModal(true)}
+                      className={`block w-full px-3 py-2 text-left ${
+                        active ? "bg-gray-600 text-white" : "text-gray-200"
+                      }`}
+                    >
+                      Gestionar roles
+                    </button>
+                  )}
+                </Menu.Item>
+              )}
+              {hasPermission("DELETE_SERVER") && (
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteServerModal(true)}
+                      className={`block w-full px-3 py-2 text-left ${
+                        active ? "bg-red-600 text-white" : "text-red-300"
+                      }`}
+                    >
+                      Eliminar servidor
+                    </button>
+                  )}
+                </Menu.Item>
+              )}
             </Menu.Items>
           </Menu>
           {closeSidebar && (
@@ -210,6 +236,8 @@ export default function ChannelSidebar({
           onEdit={setChannelToEdit}
           onDelete={setChannelToDelete}
           onNavigate={closeSidebar}
+          canCreate={hasPermission("CREATE_CHANNEL")}
+          canDelete={hasPermission("DELETE_CHANNEL")}
         />
 
         <ChannelSection
@@ -222,6 +250,8 @@ export default function ChannelSidebar({
           onEdit={setChannelToEdit}
           onDelete={setChannelToDelete}
           onNavigate={closeSidebar}
+          canCreate={hasPermission("CREATE_CHANNEL")}
+          canDelete={hasPermission("DELETE_CHANNEL")}
         />
       </aside>
 
@@ -271,6 +301,13 @@ export default function ChannelSidebar({
           onClose={() => setShowDeleteServerModal(false)}
         />
       )}
+
+      {showRolesModal && (
+        <ManageRolesModal
+          server={server as Server}
+          onClose={() => setShowRolesModal(false)}
+        />
+      )}
     </>
   );
 }
@@ -285,6 +322,8 @@ type SectionProps = {
   onEdit: (channel: Channel) => void;
   onDelete: (channel: Channel) => void;
   onNavigate?: () => void;
+  canCreate?: boolean;
+  canDelete?: boolean;
 };
 
 function ChannelSection({
@@ -297,18 +336,22 @@ function ChannelSection({
   onEdit,
   onDelete,
   onNavigate,
+  canCreate,
+  canDelete,
 }: SectionProps) {
   return (
     <section className="mb-5">
       <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-wide text-gray-400">
         <span>{title}</span>
-        <button
-          type="button"
-          onClick={onCreate}
-          className="rounded px-2 py-1 text-gray-400 hover:bg-gray-700 hover:text-white"
-        >
-          +
-        </button>
+        {canCreate && (
+          <button
+            type="button"
+            onClick={onCreate}
+            className="rounded px-2 py-1 text-gray-400 hover:bg-gray-700 hover:text-white"
+          >
+            +
+          </button>
+        )}
       </div>
 
       <nav className="space-y-1 text-sm">
@@ -334,24 +377,26 @@ function ChannelSection({
                 {prefix} {channel.name}
               </Link>
 
-              <div className="ml-2 flex gap-1 opacity-0 transition group-hover:opacity-100">
-                <button
-                  type="button"
-                  onClick={() => onEdit(channel)}
-                  className="rounded px-1 text-xs text-gray-400 hover:text-white"
-                  aria-label="Editar canal"
-                >
-                  ✎
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onDelete(channel)}
-                  className="rounded px-1 text-xs text-red-400 hover:text-red-300"
-                  aria-label="Eliminar canal"
-                >
-                  🗑
-                </button>
-              </div>
+              {canDelete && (
+                <div className="ml-2 flex gap-1 opacity-0 transition group-hover:opacity-100">
+                  <button
+                    type="button"
+                    onClick={() => onEdit(channel)}
+                    className="rounded px-1 text-xs text-gray-400 hover:text-white"
+                    aria-label="Editar canal"
+                  >
+                    ✎
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onDelete(channel)}
+                    className="rounded px-1 text-xs text-red-400 hover:text-red-300"
+                    aria-label="Eliminar canal"
+                  >
+                    🗑
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}

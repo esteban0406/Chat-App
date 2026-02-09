@@ -13,6 +13,9 @@ import { ServersService } from './servers.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { RequestWithUser } from '../auth/types';
 import { CreateServerDto, UpdateServerDto } from './dto';
+import { ServerPermissionGuard } from '../../common/rbac/server-permission.guard';
+import { RequirePermission } from '../../common/rbac/require-permission.decorator';
+import { ServerPermission } from '../../generated/prisma/client';
 
 @Controller('servers')
 @UseGuards(JwtAuthGuard)
@@ -47,8 +50,13 @@ export class ServersController {
   }
 
   @Delete(':id')
-  async delete(@Request() req: RequestWithUser, @Param('id') id: string) {
-    return this.serversService.deleteServer(id, req.user.id);
+  @UseGuards(ServerPermissionGuard)
+  @RequirePermission(ServerPermission.DELETE_SERVER, {
+    from: 'params',
+    field: 'id',
+  })
+  async delete(@Param('id') id: string) {
+    return this.serversService.deleteServer(id);
   }
 
   @Post(':id/join')
@@ -62,6 +70,11 @@ export class ServersController {
   }
 
   @Delete(':id/members/:memberId')
+  @UseGuards(ServerPermissionGuard)
+  @RequirePermission(ServerPermission.REMOVE_MEMBER, {
+    from: 'params',
+    field: 'id',
+  })
   async removeMember(
     @Request() req: RequestWithUser,
     @Param('id') id: string,

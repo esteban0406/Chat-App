@@ -11,8 +11,7 @@
 export const RequestStatus = {
   PENDING: 'PENDING',
   ACCEPTED: 'ACCEPTED',
-  REJECTED: 'REJECTED',
-  BLOCKED: 'BLOCKED'
+  REJECTED: 'REJECTED'
 } as const
 
 export type RequestStatus = (typeof RequestStatus)[keyof typeof RequestStatus]
@@ -32,3 +31,15 @@ export const UserStatus = {
 } as const
 
 export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus]
+
+
+export const ServerPermission = {
+  CREATE_CHANNEL: 'CREATE_CHANNEL',
+  DELETE_CHANNEL: 'DELETE_CHANNEL',
+  DELETE_SERVER: 'DELETE_SERVER',
+  INVITE_MEMBER: 'INVITE_MEMBER',
+  REMOVE_MEMBER: 'REMOVE_MEMBER',
+  MANAGE_ROLES: 'MANAGE_ROLES'
+} as const
+
+export type ServerPermission = (typeof ServerPermission)[keyof typeof ServerPermission]

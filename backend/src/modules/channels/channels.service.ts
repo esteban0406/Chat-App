@@ -112,19 +112,13 @@ export class ChannelsService {
     });
   }
 
-  async delete(channelId: string, userId: string) {
+  async delete(channelId: string) {
     const channel = await this.prisma.channel.findUnique({
       where: { id: channelId },
-      include: { server: true },
     });
 
     if (!channel) {
       throw new NotFoundException('Channel not found');
-    }
-
-    // Only server owner can delete channels
-    if (channel.server.ownerId !== userId) {
-      throw new ForbiddenException('Only the server owner can delete channels');
     }
 
     // Prevent deleting the last channel
