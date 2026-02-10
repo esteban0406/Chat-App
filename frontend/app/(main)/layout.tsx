@@ -31,7 +31,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (isChecking) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-900 text-white">
+      <div className="flex h-screen items-center justify-center bg-deep text-white">
         <p>Loading...</p>
       </div>
     );
@@ -56,15 +56,15 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className="h-screen bg-gray-900 text-white md:grid"
+      className="h-screen bg-deep text-white md:grid"
       style={{
-        gridTemplateColumns: "72px 240px minmax(0, 1fr)",
-        gridTemplateRows: "minmax(0, 1fr) auto",
+        gridTemplateColumns: "var(--nav-width) var(--sidebar-width) minmax(0, 1fr)",
+        gridTemplateRows: "minmax(0, 1fr) var(--footer-height)",
         gridTemplateAreas: "'servers section chat' 'profile profile chat'",
       }}
     >
       <aside
-        className="hidden border-r border-gray-700 bg-gray-800 md:block"
+        className="hidden border-r border-border bg-deep md:block"
         style={{ gridArea: "servers" }}
       >
         <ServerSidebar />
@@ -73,7 +73,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
       <div className="contents">{children}</div>
 
       <aside
-        className="hidden border-t border-r border-gray-700 bg-gray-800 md:block"
+        className="hidden border-t border-r border-border bg-deep md:block"
         style={{ gridArea: "profile" }}
       >
         <UserProfileBar />

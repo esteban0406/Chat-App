@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Check, X } from "lucide-react";
 import { ServerInvite, Server } from "@/lib/definitions";
 import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
 import { useNotificationSocket } from "@/lib/useNotificationSocket";
@@ -89,15 +90,15 @@ export default function ServerInviteList() {
   };
 
   if (loading) {
-    return <p className="text-gray-400">Cargando invitaciones...</p>;
+    return <p className="text-text-muted">Cargando invitaciones...</p>;
   }
 
   if (error) {
-    return <p className="text-red-400">{error}</p>;
+    return <p className="text-ruby">{error}</p>;
   }
 
   if (!invites.length) {
-    return <p className="text-gray-400">No tienes invitaciones pendientes.</p>;
+    return <p className="text-text-muted">No tienes invitaciones pendientes.</p>;
   }
 
   return (
@@ -105,28 +106,30 @@ export default function ServerInviteList() {
       {invites.map((invite) => (
         <li
           key={invite.id}
-          className="flex items-center justify-between rounded bg-gray-800 px-4 py-2 text-sm text-white"
+          className="flex items-center justify-between rounded-lg border border-border bg-surface/30 px-4 py-3 text-sm"
         >
-          <span>
+          <span className="text-text-primary">
             Invitación al servidor{" "}
-            <strong>{(invite.server as Server)?.name ?? "Servidor"}</strong>
+            <strong className="text-gold">{(invite.server as Server)?.name ?? "Servidor"}</strong>
           </span>
-          <div className="space-x-2">
+          <div className="flex gap-2">
             <button
               type="button"
               onClick={() => handleAction(invite, "accept")}
               disabled={processingId === invite.id}
-              className="rounded bg-green-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-green-500 disabled:opacity-60"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-gold-muted text-gold transition hover:bg-gold hover:text-deep disabled:opacity-60"
+              aria-label="Aceptar"
             >
-              Aceptar
+              <Check className="h-4 w-4" />
             </button>
             <button
               type="button"
               onClick={() => handleAction(invite, "reject")}
               disabled={processingId === invite.id}
-              className="rounded bg-red-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-red-500 disabled:opacity-60"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-ruby-muted text-ruby transition hover:bg-ruby hover:text-white disabled:opacity-60"
+              aria-label="Rechazar"
             >
-              Rechazar
+              <X className="h-4 w-4" />
             </button>
           </div>
         </li>

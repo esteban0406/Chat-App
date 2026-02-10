@@ -9,6 +9,23 @@ type Props = {
   currentUserId?: string;
 };
 
+const AVATAR_COLORS = [
+  "bg-gold",
+  "bg-ruby",
+  "bg-[#4A90D9]",
+  "bg-[#43B581]",
+  "bg-[#B56AD8]",
+  "bg-[#E67E22]",
+];
+
+function getAvatarColor(userId: string) {
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
 export default function ChatMessages({
   messages,
   loading,
@@ -16,49 +33,51 @@ export default function ChatMessages({
   currentUserId,
 }: Props) {
   if (loading) {
-    return <p className="p-4 text-sm text-gray-400">Cargando mensajes...</p>;
+    return <p className="p-4 text-sm text-text-muted">Cargando mensajes...</p>;
   }
 
   if (error) {
-    return <p className="p-4 text-sm text-red-400">{error}</p>;
+    return <p className="p-4 text-sm text-ruby">{error}</p>;
   }
 
   if (!messages.length) {
     return (
-      <p className="p-4 text-sm text-gray-500">
+      <p className="p-4 text-sm text-text-muted">
         Aún no hay mensajes en este canal.
       </p>
     );
   }
 
   return (
-    <div className="flex flex-col space-y-3 p-4">
+    <div className="flex flex-col gap-5 p-4">
       {messages.map((message) => {
-        const isOwn = message.authorId === currentUserId;
+        const authorName = message.author?.username ?? "Usuario";
+        const authorId = message.authorId ?? "unknown";
+        const avatarColor = getAvatarColor(authorId);
+
         return (
-          <div
-            key={message.id}
-            className={`flex flex-col max-w-[85%] sm:max-w-[70%] ${
-              isOwn ? "self-end items-end" : "self-start items-start"
-            }`}
-          >
+          <div key={message.id} className="flex items-start gap-3">
             <div
-              className={`inline-block rounded-lg px-3 py-2 shadow-sm text-sm ${
-                isOwn ? "bg-indigo-600 text-white" : "bg-gray-800 text-gray-100"
-              }`}
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-sm font-semibold text-white ${avatarColor}`}
             >
-              {!isOwn && message.author && (
-                <span className="font-semibold text-indigo-300 mr-1">
-                  {message.author.username ?? "Usuario"}:
-                </span>
-              )}
-              <span className="break-words">{message.content}</span>
+              {authorName[0]?.toUpperCase() ?? "?"}
             </div>
-            <small className="mt-1 text-xs text-gray-400">
-              {message.createdAt
-                ? new Date(message.createdAt).toLocaleTimeString()
-                : ""}
-            </small>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex items-baseline gap-2">
+                <span className="text-sm font-semibold text-gold">
+                  {authorName}
+                </span>
+                <span className="text-xs text-text-muted">
+                  {message.createdAt
+                    ? new Date(message.createdAt).toLocaleTimeString()
+                    : ""}
+                </span>
+              </div>
+              <p className="mt-0.5 text-sm leading-relaxed text-text-body break-words">
+                {message.content}
+              </p>
+            </div>
           </div>
         );
       })}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Check, X } from "lucide-react";
 import { Friendship, User } from "@/lib/definitions";
 import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
 import { useNotificationSocket } from "@/lib/useNotificationSocket";
@@ -73,15 +74,15 @@ export default function FriendRequestsList() {
   };
 
   if (loading) {
-    return <p className="text-gray-400">Cargando solicitudes...</p>;
+    return <p className="text-text-muted">Cargando solicitudes...</p>;
   }
 
   if (error) {
-    return <p className="text-red-400">{error}</p>;
+    return <p className="text-ruby">{error}</p>;
   }
 
   if (!requests.length) {
-    return <p className="text-gray-400">No tienes solicitudes pendientes.</p>;
+    return <p className="text-text-muted">No tienes solicitudes pendientes.</p>;
   }
 
   return (
@@ -89,30 +90,39 @@ export default function FriendRequestsList() {
       {requests.map((request) => (
         <li
           key={request.id}
-          className="flex items-center justify-between rounded bg-gray-800 px-4 py-2 text-sm text-white"
+          className="flex items-center justify-between rounded-lg border border-border bg-surface/30 px-4 py-3 text-sm"
         >
-          <span>
-            <strong>{(request.sender as User)?.username ?? "Usuario"}</strong>{" "}
-            <span className="text-gray-400">
-              ({(request.sender as User)?.email ?? "Sin email"})
+          <div className="flex items-center gap-3 truncate">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface text-xs font-semibold text-text-primary">
+              {((request.sender as User)?.username?.[0] ?? "?").toUpperCase()}
+            </div>
+            <span className="truncate">
+              <span className="font-medium text-text-primary">
+                {(request.sender as User)?.username ?? "Usuario"}
+              </span>{" "}
+              <span className="text-xs text-text-muted">
+                ({(request.sender as User)?.email ?? "Sin email"})
+              </span>
             </span>
-          </span>
-          <div className="space-x-2">
+          </div>
+          <div className="flex gap-2">
             <button
               type="button"
               onClick={() => handleResponse(request.id, "ACCEPTED")}
               disabled={respondingId === request.id}
-              className="rounded bg-green-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-green-500 disabled:opacity-60"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-gold-muted text-gold transition hover:bg-gold hover:text-deep disabled:opacity-60"
+              aria-label="Aceptar"
             >
-              Aceptar
+              <Check className="h-4 w-4" />
             </button>
             <button
               type="button"
               onClick={() => handleResponse(request.id, "REJECTED")}
               disabled={respondingId === request.id}
-              className="rounded bg-red-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-red-500 disabled:opacity-60"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-ruby-muted text-ruby transition hover:bg-ruby hover:text-white disabled:opacity-60"
+              aria-label="Rechazar"
             >
-              Rechazar
+              <X className="h-4 w-4" />
             </button>
           </div>
         </li>

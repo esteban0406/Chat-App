@@ -14,7 +14,7 @@ export default function MobileDrawer({
   children: React.ReactNode;
 }) {
   const base =
-    "absolute bg-gray-800 shadow-xl transition-transform duration-200 ease-out z-50";
+    "absolute bg-sidebar shadow-xl transition-transform duration-200 ease-out z-50";
 
   const sides = {
     left: "left-0 top-0 bottom-0 w-64 max-w-[80%]",

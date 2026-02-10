@@ -4,7 +4,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Menu } from "@headlessui/react";
-import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
+import {
+  ChevronDown,
+  Hash,
+  Volume2,
+  Pencil,
+  Trash2,
+  Plus,
+} from "lucide-react";
 import { Channel, Server } from "@/lib/definitions";
 import { useServerPermissions } from "@/lib/useServerPermissions";
 import {
@@ -130,7 +137,7 @@ export default function ChannelSidebar({
 
   if (!effectiveServerId) {
     return (
-      <aside className="flex h-full flex-col bg-gray-800 p-4 text-sm text-gray-400">
+      <aside className="flex h-full flex-col bg-sidebar p-4 text-sm text-text-secondary">
         <p>Selecciona un servidor para ver sus canales.</p>
       </aside>
     );
@@ -138,21 +145,18 @@ export default function ChannelSidebar({
 
   return (
     <>
-      <aside className="flex h-full flex-col bg-gray-800 p-3 text-white">
-        <header className="mb-4 flex items-center justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-gray-400">
-              Servidor
-            </p>
-            <h2 className="text-lg font-semibold">
+      <aside className="flex h-full flex-col bg-sidebar text-white">
+        <header className="flex h-[var(--header-height)] items-center justify-between border-b border-border px-3">
+          <div className="min-w-0 flex-1">
+            <h2 className="truncate font-display text-xl font-semibold">
               {server?.name ?? "Servidor"}
             </h2>
           </div>
           <Menu as="div" className="relative">
-            <Menu.Button className="rounded bg-gray-700 p-2 text-gray-200 hover:bg-gray-600">
-              <EllipsisVerticalIcon className="h-5 w-5" />
+            <Menu.Button className="rounded-md p-1.5 text-text-secondary transition hover:bg-surface hover:text-text-primary">
+              <ChevronDown className="h-4 w-4" />
             </Menu.Button>
-            <Menu.Items className="absolute right-0 mt-2 w-44 rounded bg-gray-700 text-sm shadow-lg ring-1 ring-black/20 focus:outline-none">
+            <Menu.Items className="absolute right-0 z-10 mt-2 w-44 rounded-md bg-surface text-sm shadow-lg ring-1 ring-black/20 focus:outline-none">
               {hasPermission("INVITE_MEMBER") && (
                 <Menu.Item>
                   {({ active }) => (
@@ -160,7 +164,7 @@ export default function ChannelSidebar({
                       type="button"
                       onClick={() => setShowInviteModal(true)}
                       className={`block w-full px-3 py-2 text-left ${
-                        active ? "bg-gray-600 text-white" : "text-gray-200"
+                        active ? "bg-surface/80 text-white" : "text-text-secondary"
                       }`}
                     >
                       Invitar amigos
@@ -175,7 +179,7 @@ export default function ChannelSidebar({
                       type="button"
                       onClick={() => setShowEditServerModal(true)}
                       className={`block w-full px-3 py-2 text-left ${
-                        active ? "bg-gray-600 text-white" : "text-gray-200"
+                        active ? "bg-surface/80 text-white" : "text-text-secondary"
                       }`}
                     >
                       Eliminar miembros
@@ -190,7 +194,7 @@ export default function ChannelSidebar({
                       type="button"
                       onClick={() => setShowRolesModal(true)}
                       className={`block w-full px-3 py-2 text-left ${
-                        active ? "bg-gray-600 text-white" : "text-gray-200"
+                        active ? "bg-surface/80 text-white" : "text-text-secondary"
                       }`}
                     >
                       Gestionar roles
@@ -205,7 +209,7 @@ export default function ChannelSidebar({
                       type="button"
                       onClick={() => setShowDeleteServerModal(true)}
                       className={`block w-full px-3 py-2 text-left ${
-                        active ? "bg-red-600 text-white" : "text-red-300"
+                        active ? "bg-ruby text-white" : "text-ruby"
                       }`}
                     >
                       Eliminar servidor
@@ -219,40 +223,42 @@ export default function ChannelSidebar({
             <button
               type="button"
               onClick={closeSidebar}
-              className="rounded-md p-2 text-gray-400 transition hover:bg-gray-700 hover:text-white md:hidden"
+              className="rounded-md p-2 text-text-muted transition hover:bg-surface hover:text-white md:hidden"
             >
               ✕
             </button>
           )}
         </header>
 
-        <ChannelSection
-          title="Canales de texto"
-          prefix="#"
-          channels={textChannels}
-          serverId={effectiveServerId as string}
-          activeChannelId={activeChannelId as string}
-          onCreate={() => setCreateType("TEXT")}
-          onEdit={setChannelToEdit}
-          onDelete={setChannelToDelete}
-          onNavigate={closeSidebar}
-          canCreate={hasPermission("CREATE_CHANNEL")}
-          canDelete={hasPermission("DELETE_CHANNEL")}
-        />
+        <div className="flex-1 overflow-y-auto p-3">
+          <ChannelSection
+            title="Canales de texto"
+            type="TEXT"
+            channels={textChannels}
+            serverId={effectiveServerId as string}
+            activeChannelId={activeChannelId as string}
+            onCreate={() => setCreateType("TEXT")}
+            onEdit={setChannelToEdit}
+            onDelete={setChannelToDelete}
+            onNavigate={closeSidebar}
+            canCreate={hasPermission("CREATE_CHANNEL")}
+            canDelete={hasPermission("DELETE_CHANNEL")}
+          />
 
-        <ChannelSection
-          title="Canales de voz"
-          prefix="🔊"
-          channels={voiceChannels}
-          serverId={effectiveServerId as string}
-          activeChannelId={activeChannelId as string}
-          onCreate={() => setCreateType("VOICE")}
-          onEdit={setChannelToEdit}
-          onDelete={setChannelToDelete}
-          onNavigate={closeSidebar}
-          canCreate={hasPermission("CREATE_CHANNEL")}
-          canDelete={hasPermission("DELETE_CHANNEL")}
-        />
+          <ChannelSection
+            title="Canales de voz"
+            type="VOICE"
+            channels={voiceChannels}
+            serverId={effectiveServerId as string}
+            activeChannelId={activeChannelId as string}
+            onCreate={() => setCreateType("VOICE")}
+            onEdit={setChannelToEdit}
+            onDelete={setChannelToDelete}
+            onNavigate={closeSidebar}
+            canCreate={hasPermission("CREATE_CHANNEL")}
+            canDelete={hasPermission("DELETE_CHANNEL")}
+          />
+        </div>
       </aside>
 
       {createType && (
@@ -314,7 +320,7 @@ export default function ChannelSidebar({
 
 type SectionProps = {
   title: string;
-  prefix: string;
+  type: "TEXT" | "VOICE";
   channels: Channel[];
   serverId: string;
   activeChannelId: string;
@@ -328,7 +334,7 @@ type SectionProps = {
 
 function ChannelSection({
   title,
-  prefix,
+  type,
   channels,
   serverId,
   activeChannelId,
@@ -339,22 +345,24 @@ function ChannelSection({
   canCreate,
   canDelete,
 }: SectionProps) {
+  const Icon = type === "TEXT" ? Hash : Volume2;
+
   return (
     <section className="mb-5">
-      <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-wide text-gray-400">
+      <div className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-text-muted">
         <span>{title}</span>
         {canCreate && (
           <button
             type="button"
             onClick={onCreate}
-            className="rounded px-2 py-1 text-gray-400 hover:bg-gray-700 hover:text-white"
+            className="rounded p-1 text-text-muted transition hover:text-gold"
           >
-            +
+            <Plus className="h-3.5 w-3.5" />
           </button>
         )}
       </div>
 
-      <nav className="space-y-1 text-sm">
+      <nav className="space-y-0.5 text-sm">
         {channels.map((channel) => {
           const channelId = channel.id;
           const href = `/servers/${serverId}/channels/${channelId}`;
@@ -363,18 +371,19 @@ function ChannelSection({
           return (
             <div
               key={channelId}
-              className={`group flex items-center justify-between rounded px-3 py-2 ${
+              className={`group flex items-center justify-between rounded-md px-2 py-1.5 ${
                 isActive
-                  ? "bg-gray-700 text-white"
-                  : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                  ? "bg-glass text-text-primary backdrop-blur-sm"
+                  : "text-text-secondary hover:bg-surface/30 hover:text-text-primary"
               }`}
             >
               <Link
                 href={href}
                 onClick={onNavigate}
-                className="flex-1 truncate"
+                className="flex flex-1 items-center gap-1.5 truncate"
               >
-                {prefix} {channel.name}
+                <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-gold" : "text-text-muted"}`} />
+                <span className="truncate">{channel.name}</span>
               </Link>
 
               {canDelete && (
@@ -382,18 +391,18 @@ function ChannelSection({
                   <button
                     type="button"
                     onClick={() => onEdit(channel)}
-                    className="rounded px-1 text-xs text-gray-400 hover:text-white"
+                    className="rounded p-0.5 text-text-muted transition hover:text-text-primary"
                     aria-label="Editar canal"
                   >
-                    ✎
+                    <Pencil className="h-3.5 w-3.5" />
                   </button>
                   <button
                     type="button"
                     onClick={() => onDelete(channel)}
-                    className="rounded px-1 text-xs text-red-400 hover:text-red-300"
+                    className="rounded p-0.5 text-ruby/60 transition hover:text-ruby"
                     aria-label="Eliminar canal"
                   >
-                    🗑
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               )}
@@ -402,7 +411,7 @@ function ChannelSection({
         })}
 
         {channels.length === 0 && (
-          <p className="px-3 py-2 text-xs text-gray-500">Aún no hay canales.</p>
+          <p className="px-2 py-2 text-xs text-text-muted">Aún no hay canales.</p>
         )}
       </nav>
     </section>

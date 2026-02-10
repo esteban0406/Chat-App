@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { House, Plus } from "lucide-react";
 import { Server } from "@/lib/definitions";
 import CreateServerModal from "./modals/CreateServerModal";
 import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
@@ -40,27 +41,28 @@ export default function ServerSidebar({ onClose }: { onClose?: () => void }) {
   }, [loadServers, pathname]);
 
   return (
-    <div className="flex flex-col items-center gap-4 py-4 bg-gray-800 h-full">
-      <Link
-        href="/friends"
-        onClick={onClose}
-        className="relative w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center"
-      >
-        Me
-        {(hasNewFriendRequests || hasNewServerInvites) && (
-          <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-red-500 border-2 border-gray-800" />
-        )}
-      </Link>
+    <div className="flex flex-col items-center bg-deep h-full">
+      <div className="flex h-[var(--header-height)] w-full shrink-0 items-center justify-center border-b border-border">
+        <Link
+          href="/friends"
+          onClick={onClose}
+          className="relative flex h-12 w-12 items-center justify-center rounded-[14px] bg-gold shadow-md shadow-black/25 transition-transform hover:scale-105"
+        >
+          <House className="h-5 w-5 text-deep" />
+          {(hasNewFriendRequests || hasNewServerInvites) && (
+            <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-ruby border-2 border-deep" />
+          )}
+        </Link>
+      </div>
 
-      <div className="w-10 border-t border-gray-700" />
-
+      <div className="flex flex-col items-center gap-3 overflow-y-auto py-3">
       {servers.map((server) => {
         return (
           <Link
             key={server.id}
             href={server.id ? `/servers/${server.id}` : "/servers"}
             onClick={onClose}
-            className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center"
+            className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface text-sm font-semibold text-text-secondary shadow-md shadow-black/25 transition-all hover:rounded-[14px] hover:bg-gold hover:text-deep"
           >
             {server.name?.[0] ?? "?"}
           </Link>
@@ -69,10 +71,11 @@ export default function ServerSidebar({ onClose }: { onClose?: () => void }) {
 
       <button
         onClick={() => setShowCreate(true)}
-        className="w-12 h-12 rounded-full bg-gray-700 text-green-400"
+        className="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-dashed border-gold-muted text-gold transition-all hover:rounded-[14px] hover:bg-gold hover:text-deep"
       >
-        +
+        <Plus className="h-5 w-5" />
       </button>
+      </div>
 
       {showCreate && (
         <CreateServerModal

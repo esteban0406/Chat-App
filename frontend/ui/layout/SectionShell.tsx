@@ -44,7 +44,7 @@ export default function SectionShell({
   return (
     <>
       <aside
-        className="hidden h-full min-h-0 overflow-y-auto border-r border-gray-700 bg-gray-800 md:block"
+        className="hidden h-full min-h-0 overflow-y-auto border-r border-border bg-sidebar md:block"
         style={{ gridArea: "section" }}
       >
         {sidebarContent}
@@ -58,14 +58,14 @@ export default function SectionShell({
             onClick={closeSectionSidebar}
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           />
-          <div className="relative z-10 h-full w-72 max-w-[80%] overflow-y-auto bg-gray-800 shadow-xl">
+          <div className="relative z-10 h-full w-72 max-w-[80%] overflow-y-auto bg-sidebar shadow-xl">
             {sidebarContent}
           </div>
         </div>
       )}
 
       <div
-        className="flex h-full min-h-0 flex-col overflow-hidden bg-gray-900"
+        className="flex h-full min-h-0 flex-col overflow-hidden bg-main"
         style={{ gridArea: "chat" }}
       >
         {children}

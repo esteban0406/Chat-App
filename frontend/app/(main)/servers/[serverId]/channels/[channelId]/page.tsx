@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import {
-  Bars3Icon,
-  HashtagIcon,
-  UserCircleIcon,
-} from "@heroicons/react/24/outline";
+  Menu,
+  Hash,
+  Volume2,
+  CircleUser,
+} from "lucide-react";
 import ChatMessages from "@/ui/messages/ChatMessages";
 import ChatInput from "@/ui/messages/ChatInput";
 import { useMessages } from "@/ui/messages/useMessages";
@@ -65,13 +66,11 @@ export default function ChannelPage() {
     loadChannel();
   }, [serverId, channelId]);
 
-  const title = channel?.name
-    ? `${channel.type === "VOICE" ? "🔊" : "#"} ${channel.name}`
-    : `Canal ${channelId ?? ""}`;
+  const ChannelIcon = channel?.type === "VOICE" ? Volume2 : Hash;
 
   if (channel?.type === "VOICE") {
     return (
-      <div className="flex h-full flex-col bg-gray-900">
+      <div className="flex h-full flex-col bg-main">
         <VoiceRoom
           channelId={channelId ?? ""}
           userId={currentUser?.id}
@@ -83,38 +82,38 @@ export default function ChannelPage() {
   }
 
   return (
-    
-    <div className="flex h-full flex-col bg-gray-900">
-      <header className="flex items-center justify-between border-b border-gray-800 bg-gray-800 px-4 py-3">
+    <div className="flex h-full flex-col bg-main">
+      <header className="flex h-[var(--header-height)] items-center justify-between border-b border-border px-4">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={openServerDrawer}
-            className="rounded-md p-2 text-gray-400 transition hover:bg-gray-700 hover:text-white focus:outline-none md:hidden"
+            className="rounded-md p-2 text-text-muted transition hover:bg-surface hover:text-text-primary focus:outline-none md:hidden"
             aria-label="Abrir servidores"
           >
-            <Bars3Icon className="h-5 w-5" />
+            <Menu className="h-5 w-5" />
           </button>
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
-            {title}
+          <h2 className="flex items-center gap-2 text-base font-semibold text-text-primary">
+            <ChannelIcon className="h-4 w-4 text-text-secondary" />
+            {channel?.name ?? `Canal ${channelId ?? ""}`}
           </h2>
         </div>
         <div className="flex items-center gap-2 md:hidden">
           <button
             type="button"
             onClick={openSectionSidebar}
-            className="rounded-md p-2 text-gray-400 transition hover:bg-gray-700 hover:text-white focus:outline-none"
+            className="rounded-md p-2 text-text-muted transition hover:bg-surface hover:text-text-primary focus:outline-none"
             aria-label="Abrir canales"
           >
-            <HashtagIcon className="h-5 w-5" />
+            <Hash className="h-5 w-5" />
           </button>
           <button
             type="button"
             onClick={openProfileDrawer}
-            className="rounded-md p-2 text-gray-400 transition hover:bg-gray-700 hover:text-white focus:outline-none"
+            className="rounded-md p-2 text-text-muted transition hover:bg-surface hover:text-text-primary focus:outline-none"
             aria-label="Abrir perfil"
           >
-            <UserCircleIcon className="h-5 w-5" />
+            <CircleUser className="h-5 w-5" />
           </button>
         </div>
       </header>
@@ -128,7 +127,7 @@ export default function ChannelPage() {
         />
       </main>
 
-      <div className="flex h-[72px] items-center border-t border-gray-800 bg-gray-800 px-3">
+      <div className="flex h-[var(--footer-height)] items-center px-3">
         <ChatInput
           channelId={channelId ?? ""}
           senderId={currentUser?.id}

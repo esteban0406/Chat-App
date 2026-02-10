@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Menu } from "@headlessui/react";
+import { Settings } from "lucide-react";
 import EditNameModal from "./modals/EditNameModal";
 import EditAvatarModal from "./modals/EditAvatarModal";
 import { getMe, logout, User } from "@/lib/auth";
@@ -51,70 +52,64 @@ export default function UserProfileBar() {
     : fallbackAvatar;
 
   return (
-    <div className="flex h-[72px] items-center gap-3 border-t border-gray-700 bg-gray-800 px-3">
-      {/* Avatar */}
+    <div className="flex h-[var(--footer-height)] items-center gap-3 border-t border-border bg-deep px-3">
       <img
         key={avatarSrc}
         src={avatarSrc}
         alt={user.username}
-        className="w-10 h-10 rounded-full"
+        className="h-10 w-10 rounded-full ring-2 ring-gold"
         onError={(e) => {
           e.currentTarget.src = fallbackAvatar;
         }}
       />
 
-      {/* Username */}
       <div className="flex-1 truncate">
-        <p className="text-sm font-semibold truncate">{user.username}</p>
-        <p className="text-xs text-gray-400">{user.status}</p>
+        <p className="truncate text-sm font-semibold text-text-primary">{user.username}</p>
+        <p className="text-xs text-text-muted">{user.status}</p>
       </div>
 
-      {/* Settings dropdown */}
       <Menu as="div" className="relative">
-        <Menu.Button className="text-gray-400 hover:text-white transition">
-          ⚙️
+        <Menu.Button className="rounded-md p-1.5 text-text-secondary transition hover:text-text-primary">
+          <Settings className="h-4 w-4" />
         </Menu.Button>
 
-        <Menu.Items className="absolute right-0 bottom-10 w-40 bg-gray-700 rounded-md shadow-lg ring-1 ring-black/20 focus:outline-none">
-          <div className="p-1 text-sm">
-            {/* Edit Name */}
+        <Menu.Items className="absolute right-0 bottom-10 w-40 rounded-md bg-surface text-sm shadow-lg ring-1 ring-black/20 focus:outline-none">
+          <div className="p-1">
             <Menu.Item>
               {({ active }) => (
                 <button
                   onClick={() => setOpenNameModal(true)}
-                  className={`w-full px-2 py-2 rounded-md ${
-                    active ? "bg-gray-600 text-white" : "text-gray-200"
+                  className={`w-full rounded-md px-2 py-2 text-left ${
+                    active ? "bg-surface/80 text-white" : "text-text-secondary"
                   }`}
                 >
-                  Edit Name
+                  Editar nombre
                 </button>
               )}
             </Menu.Item>
 
-            {/* Edit Avatar */}
             <Menu.Item>
               {({ active }) => (
                 <button
                   onClick={() => setOpenAvatarModal(true)}
-                  className={`w-full px-2 py-2 rounded-md ${
-                    active ? "bg-gray-600 text-white" : "text-gray-200"
+                  className={`w-full rounded-md px-2 py-2 text-left ${
+                    active ? "bg-surface/80 text-white" : "text-text-secondary"
                   }`}
                 >
-                  Edit Avatar
+                  Editar avatar
                 </button>
               )}
             </Menu.Item>
 
-            {/* Logout */}
             <Menu.Item>
               {({ active }) => (
                 <button
                   onClick={handleLogout}
-                  className={`w-full px-2 py-2 rounded-md ${
-                    active ? "bg-red-600 text-white" : "text-red-400"
+                  className={`w-full rounded-md px-2 py-2 text-left ${
+                    active ? "bg-ruby text-white" : "text-ruby"
                   }`}
                 >
-                  Logout
+                  Cerrar sesión
                 </button>
               )}
             </Menu.Item>
@@ -122,7 +117,6 @@ export default function UserProfileBar() {
         </Menu.Items>
       </Menu>
 
-      {/* Modals */}
       {openNameModal && (
         <EditNameModal
           user={user}

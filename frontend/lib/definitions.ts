@@ -70,7 +70,7 @@ export type Friendship = {
   receiverId: string;
   sender?: User;
   receiver?: User;
-  status: "PENDING" | "ACCEPTED" | "REJECTED" | "BLOCKED";
+  status: "PENDING" | "ACCEPTED" | "REJECTED";
   createdAt: string;
   updatedAt: string;
 };

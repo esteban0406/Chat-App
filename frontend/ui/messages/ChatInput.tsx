@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { SendHorizontal } from "lucide-react";
 import { connectSocket } from "@/lib/socket";
 
 type Props = {
@@ -37,7 +38,7 @@ export default function ChatInput({ channelId, senderId, disabled, onError }: Pr
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex h-full w-full items-center gap-2 rounded-md bg-gray-800 px-3"
+      className="flex h-full w-full items-center gap-2"
     >
       <input
         type="text"
@@ -45,16 +46,16 @@ export default function ChatInput({ channelId, senderId, disabled, onError }: Pr
         onChange={(event) => setContent(event.target.value)}
         placeholder="Escribe un mensaje..."
         disabled={disabled}
-        className="flex-1 rounded bg-gray-700 px-3 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+        className="flex-1 rounded-lg bg-surface px-4 py-2 text-sm text-white placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-gold disabled:opacity-50"
       />
       <button
         type="submit"
         disabled={disabled}
-        className="rounded bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-60"
+        className="flex items-center justify-center rounded-lg bg-gold p-2 text-deep transition hover:bg-gold/90 disabled:opacity-60"
       >
-        Enviar
+        <SendHorizontal className="h-4 w-4" />
       </button>
-      {error && <span className="text-xs text-red-400">{error}</span>}
+      {error && <span className="text-xs text-ruby">{error}</span>}
     </form>
   );
 }
