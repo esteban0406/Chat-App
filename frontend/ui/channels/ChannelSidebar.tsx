@@ -84,7 +84,7 @@ export default function ChannelSidebar({
     async function loadChannels() {
       try {
         const res = await backendFetch(
-          `/api/channels/server/${effectiveServerId}`,
+          `/api/servers/${effectiveServerId}/channels`,
           {
             cache: "no-store",
           },

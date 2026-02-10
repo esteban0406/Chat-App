@@ -87,7 +87,7 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="w-96 rounded-lg bg-gray-800 p-6 text-white shadow-lg">
+      <div className="w-96 rounded-lg bg-deep border border-border p-6 text-white shadow-lg">
         <h2 className="mb-4 text-lg font-bold">Editar avatar</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -96,7 +96,7 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
             accept="image/*"
             disabled={loading}
             onChange={handleFileChange}
-            className="w-full text-sm text-gray-300"
+            className="w-full text-sm text-text-muted"
           />
 
           {preview && (
@@ -104,19 +104,19 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
               <img
                 src={preview}
                 alt="Vista previa del avatar"
-                className="h-24 w-24 rounded-full object-cover ring-2 ring-indigo-500"
+                className="h-24 w-24 rounded-full object-cover ring-2 ring-gold"
               />
             </div>
           )}
 
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <p className="text-sm text-ruby">{error}</p>}
 
           <div className="flex justify-end gap-2">
             <button
               type="button"
               onClick={closeModal}
               disabled={loading}
-              className="rounded bg-gray-600 px-4 py-2 hover:bg-gray-500 disabled:opacity-60"
+              className="rounded bg-surface px-4 py-2 hover:bg-surface/80 disabled:opacity-60"
             >
               Cancelar
             </button>
@@ -124,7 +124,7 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
             <button
               type="submit"
               disabled={loading || !file}
-              className="rounded bg-indigo-600 px-4 py-2 hover:bg-indigo-500 disabled:opacity-60"
+              className="rounded bg-gold px-4 py-2 text-deep hover:bg-gold/90 disabled:opacity-60"
             >
               {loading ? "Guardando..." : "Guardar"}
             </button>

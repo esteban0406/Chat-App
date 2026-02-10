@@ -41,26 +41,32 @@ export class MessagesController {
     });
   }
 
-  @Get(':id')
-  async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
-    return this.messagesService.findOne(id, req.user.id);
+  @Get(':messageId')
+  async findOne(
+    @Request() req: RequestWithUser,
+    @Param('messageId') messageId: string,
+  ) {
+    return this.messagesService.findOne(messageId, req.user.id);
   }
 
-  @Patch(':id')
+  @Patch(':messageId')
   async update(
     @Request() req: RequestWithUser,
-    @Param('id') id: string,
+    @Param('messageId') messageId: string,
     @Body() updateMessageDto: UpdateMessageDto,
   ) {
     return this.messagesService.update(
-      id,
+      messageId,
       req.user.id,
       updateMessageDto.content,
     );
   }
 
-  @Delete(':id')
-  async delete(@Request() req: RequestWithUser, @Param('id') id: string) {
-    return this.messagesService.delete(id, req.user.id);
+  @Delete(':messageId')
+  async delete(
+    @Request() req: RequestWithUser,
+    @Param('messageId') messageId: string,
+  ) {
+    return this.messagesService.delete(messageId, req.user.id);
   }
 }

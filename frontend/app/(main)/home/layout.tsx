@@ -42,8 +42,8 @@ function FriendsContent({ children }: { children: React.ReactNode }) {
   } = useNotifications();
 
   useEffect(() => {
-    if (pathname.startsWith("/friends/requests")) clearFriendRequests();
-    if (pathname.startsWith("/friends/server-requests")) clearServerInvites();
+    if (pathname.startsWith("/home/requests")) clearFriendRequests();
+    if (pathname.startsWith("/home/server-requests")) clearServerInvites();
   }, [pathname, clearFriendRequests, clearServerInvites]);
 
   return (
@@ -93,8 +93,8 @@ function FriendsContent({ children }: { children: React.ReactNode }) {
               ? pathname === tab.href
               : pathname.startsWith(tab.href);
             const showDot =
-              (tab.href === "/friends/requests" && hasNewFriendRequests && !isActive) ||
-              (tab.href === "/friends/server-requests" && hasNewServerInvites && !isActive);
+              (tab.href === "/home/requests" && hasNewFriendRequests && !isActive) ||
+              (tab.href === "/home/server-requests" && hasNewServerInvites && !isActive);
             return (
               <Link
                 key={tab.href}
@@ -130,8 +130,8 @@ function FriendsContent({ children }: { children: React.ReactNode }) {
               ? pathname === tab.href
               : pathname.startsWith(tab.href);
             const showDot =
-              (tab.href === "/friends/requests" && hasNewFriendRequests && !isActive) ||
-              (tab.href === "/friends/server-requests" && hasNewServerInvites && !isActive);
+              (tab.href === "/home/requests" && hasNewFriendRequests && !isActive) ||
+              (tab.href === "/home/server-requests" && hasNewServerInvites && !isActive);
             return (
               <Link
                 key={tab.href}
@@ -150,9 +150,9 @@ function FriendsContent({ children }: { children: React.ReactNode }) {
             );
           })}
           <Link
-            href="/friends/add"
+            href="/home/add"
             className={`whitespace-nowrap rounded px-3 py-1 font-semibold transition ${
-              pathname === "/friends/add"
+              pathname === "/home/add"
                 ? "bg-gold/80 text-deep"
                 : "bg-gold text-deep hover:bg-gold/90"
             }`}

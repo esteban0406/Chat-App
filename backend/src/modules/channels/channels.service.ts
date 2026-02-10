@@ -26,8 +26,12 @@ export class ChannelsService {
     return member;
   }
 
-  async create(userId: string, createChannelDto: CreateChannelDto) {
-    const { serverId, name, type } = createChannelDto;
+  async create(
+    userId: string,
+    serverId: string,
+    createChannelDto: CreateChannelDto,
+  ) {
+    const { name, type } = createChannelDto;
 
     // Check server exists
     const server = await this.prisma.server.findUnique({
@@ -69,7 +73,7 @@ export class ChannelsService {
     });
   }
 
-  async findOne(channelId: string, userId: string) {
+  async findOne(serverId: string, channelId: string, userId: string) {
     const channel = await this.prisma.channel.findUnique({
       where: { id: channelId },
       include: {
@@ -82,12 +86,13 @@ export class ChannelsService {
     }
 
     // Check membership
-    await this.ensureMembership(channel.serverId, userId);
+    await this.ensureMembership(serverId, userId);
 
     return channel;
   }
 
   async update(
+    serverId: string,
     channelId: string,
     userId: string,
     updateChannelDto: UpdateChannelDto,
@@ -101,7 +106,7 @@ export class ChannelsService {
     }
 
     // Check membership
-    await this.ensureMembership(channel.serverId, userId);
+    await this.ensureMembership(serverId, userId);
 
     return this.prisma.channel.update({
       where: { id: channelId },

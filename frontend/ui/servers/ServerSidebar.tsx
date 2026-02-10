@@ -44,7 +44,7 @@ export default function ServerSidebar({ onClose }: { onClose?: () => void }) {
     <div className="flex flex-col items-center bg-deep h-full">
       <div className="flex h-[var(--header-height)] w-full shrink-0 items-center justify-center border-b border-border">
         <Link
-          href="/friends"
+          href="/home"
           onClick={onClose}
           className="relative flex h-12 w-12 items-center justify-center rounded-[14px] bg-gold shadow-md shadow-black/25 transition-transform hover:scale-105"
         >

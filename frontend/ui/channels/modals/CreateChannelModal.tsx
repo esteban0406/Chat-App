@@ -34,10 +34,10 @@ export default function CreateChannelModal({
     setError(null);
 
     try {
-      const res = await backendFetch("/api/channels", {
+      const res = await backendFetch(`/api/servers/${serverId}/channels`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, type, serverId }),
+        body: JSON.stringify({ name, type }),
       });
 
       if (!res.ok) {
@@ -60,12 +60,12 @@ export default function CreateChannelModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-md rounded-lg bg-gray-800 p-6 text-white shadow-xl">
+      <div className="w-full max-w-md rounded-lg bg-deep border border-border p-6 text-white shadow-xl">
         <h2 className="mb-4 text-lg font-semibold">Crear canal</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-gray-300 mb-1">
+            <label className="block text-sm text-text-muted mb-1">
               Nombre del canal
             </label>
             <input
@@ -74,12 +74,12 @@ export default function CreateChannelModal({
               onChange={(event) => setName(event.target.value)}
               required
               placeholder="general"
-              className="w-full rounded bg-gray-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded bg-surface px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gold"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-300 mb-1">
+            <label className="block text-sm text-text-muted mb-1">
               Tipo
             </label>
             <select
@@ -87,7 +87,7 @@ export default function CreateChannelModal({
               onChange={(event) =>
                 setType(event.target.value as ChannelType)
               }
-              className="w-full rounded bg-gray-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded bg-surface px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gold"
             >
               <option value="TEXT">Texto</option>
               <option value="VOICE">Voz</option>
@@ -95,14 +95,14 @@ export default function CreateChannelModal({
           </div>
 
           {error && (
-            <p className="text-sm text-red-400">{error}</p>
+            <p className="text-sm text-ruby">{error}</p>
           )}
 
           <div className="flex justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="rounded bg-gray-600 px-4 py-2 hover:bg-gray-500"
+              className="rounded bg-surface px-4 py-2 hover:bg-surface/80"
               disabled={loading}
             >
               Cancelar
@@ -110,7 +110,7 @@ export default function CreateChannelModal({
             <button
               type="submit"
               disabled={loading}
-              className="rounded bg-indigo-600 px-4 py-2 hover:bg-indigo-500 disabled:opacity-60"
+              className="rounded bg-gold px-4 py-2 text-deep hover:bg-gold/90 disabled:opacity-60"
             >
               {loading ? "Creando..." : "Crear"}
             </button>

@@ -1,11 +1,4 @@
-import {
-  IsString,
-  IsUUID,
-  IsOptional,
-  IsIn,
-  MinLength,
-  MaxLength,
-} from 'class-validator';
+import { IsString, IsOptional, IsIn, MinLength, MaxLength } from 'class-validator';
 
 export class CreateChannelDto {
   @IsString()
@@ -16,7 +9,4 @@ export class CreateChannelDto {
   @IsOptional()
   @IsIn(['TEXT', 'VOICE'])
   type?: 'TEXT' | 'VOICE';
-
-  @IsUUID()
-  serverId: string;
 }

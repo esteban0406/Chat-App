@@ -26,7 +26,7 @@ export default function DeleteChannelModal({
     setError(null);
 
     try {
-      const res = await backendFetch(`/api/channels/${channelId}`, {
+      const res = await backendFetch(`/api/servers/${channel.serverId}/channels/${channelId}`, {
         method: "DELETE",
       });
 
@@ -48,11 +48,11 @@ export default function DeleteChannelModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-md rounded-lg bg-gray-800 p-6 text-white shadow-xl">
-        <h2 className="mb-3 text-lg font-semibold text-red-300">
+      <div className="w-full max-w-md rounded-lg bg-deep border border-border p-6 text-white shadow-xl">
+        <h2 className="mb-3 text-lg font-semibold text-ruby">
           Eliminar canal
         </h2>
-        <p className="text-sm text-gray-300">
+        <p className="text-sm text-text-muted">
           ¿Seguro que quieres eliminar el canal{" "}
           <span className="font-semibold text-white">
             #{channel?.name}
@@ -61,14 +61,14 @@ export default function DeleteChannelModal({
         </p>
 
         {error && (
-          <p className="mt-3 text-sm text-red-400">{error}</p>
+          <p className="mt-3 text-sm text-ruby">{error}</p>
         )}
 
         <div className="mt-6 flex justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="rounded bg-gray-600 px-4 py-2 hover:bg-gray-500"
+            className="rounded bg-surface px-4 py-2 hover:bg-surface/80"
             disabled={loading}
           >
             Cancelar
@@ -76,7 +76,7 @@ export default function DeleteChannelModal({
           <button
             type="button"
             onClick={handleDelete}
-            className="rounded bg-red-600 px-4 py-2 hover:bg-red-500 disabled:opacity-70"
+            className="rounded bg-ruby px-4 py-2 hover:bg-ruby/90 disabled:opacity-70"
             disabled={loading}
           >
             {loading ? "Eliminando..." : "Eliminar"}

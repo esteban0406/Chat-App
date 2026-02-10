@@ -51,6 +51,7 @@ export type Role = {
   permissions: ServerPermission[];
   createdAt: string;
   _count?: { members: number };
+  members?: Member[];
 };
 
 export type Member = {

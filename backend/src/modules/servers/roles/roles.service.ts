@@ -26,7 +26,16 @@ export class RolesService {
 
     return this.prisma.role.findMany({
       where: { serverId },
-      include: { _count: { select: { members: true } } },
+      include: {
+        _count: { select: { members: true } },
+        members: {
+          include: {
+            user: {
+              select: { id: true, username: true, avatarUrl: true },
+            },
+          },
+        },
+      },
       orderBy: { createdAt: 'asc' },
     });
   }

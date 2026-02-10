@@ -35,20 +35,18 @@ export class ServerInvitesController {
     return this.serverInvitesService.getSentInvites(req.user.id);
   }
 
-  @Post()
+  @Post('server/:serverId')
   @UseGuards(ServerPermissionGuard)
-  @RequirePermission(ServerPermission.INVITE_MEMBER, {
-    from: 'body',
-    field: 'serverId',
-  })
+  @RequirePermission(ServerPermission.INVITE_MEMBER)
   async sendInvite(
     @Request() req: RequestWithUser,
+    @Param('serverId') serverId: string,
     @Body() dto: SendServerInviteDto,
   ) {
     const invite = await this.serverInvitesService.sendInvite(
       req.user.id,
       dto.receiverId,
-      dto.serverId,
+      serverId,
     );
     this.chatGateway.emitToUser(
       dto.receiverId,
@@ -58,14 +56,17 @@ export class ServerInvitesController {
     return invite;
   }
 
-  @Post(':id/accept')
-  async acceptInvite(@Request() req: RequestWithUser, @Param('id') id: string) {
+  @Post(':inviteId/accept')
+  async acceptInvite(
+    @Request() req: RequestWithUser,
+    @Param('inviteId') inviteId: string,
+  ) {
     const result = await this.serverInvitesService.acceptInvite(
-      id,
+      inviteId,
       req.user.id,
     );
     this.chatGateway.emitToUser(result.senderId, 'serverInvite:accepted', {
-      inviteId: id,
+      inviteId,
       receiverId: req.user.id,
       serverId: result.serverId,
       serverName: result.server?.name,
@@ -73,28 +74,34 @@ export class ServerInvitesController {
     return result.server;
   }
 
-  @Post(':id/reject')
-  async rejectInvite(@Request() req: RequestWithUser, @Param('id') id: string) {
+  @Post(':inviteId/reject')
+  async rejectInvite(
+    @Request() req: RequestWithUser,
+    @Param('inviteId') inviteId: string,
+  ) {
     const invite = await this.serverInvitesService.rejectInvite(
-      id,
+      inviteId,
       req.user.id,
     );
     this.chatGateway.emitToUser(invite.senderId, 'serverInvite:rejected', {
-      inviteId: id,
+      inviteId,
       receiverId: req.user.id,
       serverId: invite.serverId,
     });
     return invite;
   }
 
-  @Delete(':id')
-  async cancelInvite(@Request() req: RequestWithUser, @Param('id') id: string) {
+  @Delete(':inviteId')
+  async cancelInvite(
+    @Request() req: RequestWithUser,
+    @Param('inviteId') inviteId: string,
+  ) {
     const result = await this.serverInvitesService.cancelInvite(
-      id,
+      inviteId,
       req.user.id,
     );
     this.chatGateway.emitToUser(result.receiverId, 'serverInvite:cancelled', {
-      inviteId: id,
+      inviteId,
       cancelledBy: req.user.id,
       serverId: result.serverId,
     });

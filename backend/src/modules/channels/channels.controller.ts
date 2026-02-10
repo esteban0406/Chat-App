@@ -17,53 +17,58 @@ import { ServerPermissionGuard } from '../../common/rbac/server-permission.guard
 import { RequirePermission } from '../../common/rbac/require-permission.decorator';
 import { ServerPermission } from '../../generated/prisma/client';
 
-@Controller('channels')
+@Controller('servers/:serverId/channels')
 @UseGuards(JwtAuthGuard)
 export class ChannelsController {
   constructor(private readonly channelsService: ChannelsService) {}
 
   @Post()
   @UseGuards(ServerPermissionGuard)
-  @RequirePermission(ServerPermission.CREATE_CHANNEL, {
-    from: 'body',
-    field: 'serverId',
-  })
+  @RequirePermission(ServerPermission.CREATE_CHANNEL)
   async create(
     @Request() req: RequestWithUser,
+    @Param('serverId') serverId: string,
     @Body() createChannelDto: CreateChannelDto,
   ) {
-    return this.channelsService.create(req.user.id, createChannelDto);
+    return this.channelsService.create(req.user.id, serverId, createChannelDto);
   }
 
-  @Get('server/:serverId')
-  async findAllForServer(
+  @Get()
+  async findAll(
     @Request() req: RequestWithUser,
     @Param('serverId') serverId: string,
   ) {
     return this.channelsService.findAllForServer(serverId, req.user.id);
   }
 
-  @Get(':id')
-  async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
-    return this.channelsService.findOne(id, req.user.id);
+  @Get(':channelId')
+  async findOne(
+    @Request() req: RequestWithUser,
+    @Param('serverId') serverId: string,
+    @Param('channelId') channelId: string,
+  ) {
+    return this.channelsService.findOne(serverId, channelId, req.user.id);
   }
 
-  @Patch(':id')
+  @Patch(':channelId')
   async update(
     @Request() req: RequestWithUser,
-    @Param('id') id: string,
+    @Param('serverId') serverId: string,
+    @Param('channelId') channelId: string,
     @Body() updateChannelDto: UpdateChannelDto,
   ) {
-    return this.channelsService.update(id, req.user.id, updateChannelDto);
+    return this.channelsService.update(
+      serverId,
+      channelId,
+      req.user.id,
+      updateChannelDto,
+    );
   }
 
-  @Delete(':id')
+  @Delete(':channelId')
   @UseGuards(ServerPermissionGuard)
-  @RequirePermission(ServerPermission.DELETE_CHANNEL, {
-    from: 'channel',
-    field: 'id',
-  })
-  async delete(@Param('id') id: string) {
-    return this.channelsService.delete(id);
+  @RequirePermission(ServerPermission.DELETE_CHANNEL)
+  async delete(@Param('channelId') channelId: string) {
+    return this.channelsService.delete(channelId);
   }
 }

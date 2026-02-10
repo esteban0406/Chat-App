@@ -35,51 +35,54 @@ export class ServersController {
     return this.serversService.findAllForUser(req.user.id);
   }
 
-  @Get(':id')
-  async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
-    return this.serversService.findOne(id, req.user.id);
+  @Get(':serverId')
+  async findOne(
+    @Request() req: RequestWithUser,
+    @Param('serverId') serverId: string,
+  ) {
+    return this.serversService.findOne(serverId, req.user.id);
   }
 
-  @Patch(':id')
+  @Patch(':serverId')
   async update(
     @Request() req: RequestWithUser,
-    @Param('id') id: string,
+    @Param('serverId') serverId: string,
     @Body() updateServerDto: UpdateServerDto,
   ) {
-    return this.serversService.updateServer(id, req.user.id, updateServerDto);
+    return this.serversService.updateServer(serverId, req.user.id, updateServerDto);
   }
 
-  @Delete(':id')
+  @Delete(':serverId')
   @UseGuards(ServerPermissionGuard)
-  @RequirePermission(ServerPermission.DELETE_SERVER, {
-    from: 'params',
-    field: 'id',
-  })
-  async delete(@Param('id') id: string) {
-    return this.serversService.deleteServer(id);
+  @RequirePermission(ServerPermission.DELETE_SERVER)
+  async delete(@Param('serverId') serverId: string) {
+    return this.serversService.deleteServer(serverId);
   }
 
-  @Post(':id/join')
-  async join(@Request() req: RequestWithUser, @Param('id') id: string) {
-    return this.serversService.joinServer(id, req.user.id);
+  @Post(':serverId/join')
+  async join(
+    @Request() req: RequestWithUser,
+    @Param('serverId') serverId: string,
+  ) {
+    return this.serversService.joinServer(serverId, req.user.id);
   }
 
-  @Post(':id/leave')
-  async leave(@Request() req: RequestWithUser, @Param('id') id: string) {
-    return this.serversService.leaveServer(id, req.user.id);
+  @Post(':serverId/leave')
+  async leave(
+    @Request() req: RequestWithUser,
+    @Param('serverId') serverId: string,
+  ) {
+    return this.serversService.leaveServer(serverId, req.user.id);
   }
 
-  @Delete(':id/members/:memberId')
+  @Delete(':serverId/members/:memberId')
   @UseGuards(ServerPermissionGuard)
-  @RequirePermission(ServerPermission.REMOVE_MEMBER, {
-    from: 'params',
-    field: 'id',
-  })
+  @RequirePermission(ServerPermission.REMOVE_MEMBER)
   async removeMember(
     @Request() req: RequestWithUser,
-    @Param('id') id: string,
+    @Param('serverId') serverId: string,
     @Param('memberId') memberId: string,
   ) {
-    return this.serversService.removeMember(id, memberId, req.user.id);
+    return this.serversService.removeMember(serverId, memberId, req.user.id);
   }
 }

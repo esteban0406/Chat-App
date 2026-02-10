@@ -46,17 +46,17 @@ export default function EditServerModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-lg rounded-lg bg-gray-800 p-6 text-white shadow-xl">
+      <div className="w-full max-w-lg rounded-lg bg-deep border border-border p-6 text-white shadow-xl">
         <div className="mb-4">
           <h3 className="text-lg font-semibold">Miembros de {server.name}</h3>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-text-muted">
             Elimina miembros del servidor.
           </p>
         </div>
 
         <div className="max-h-80 space-y-2 overflow-y-auto pr-2">
           {members.length === 0 ? (
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-text-muted">
               No hay miembros registrados.
             </p>
           ) : (
@@ -65,14 +65,14 @@ export default function EditServerModal({
                 return (
                   <div
                     key={member.id}
-                    className="flex items-center justify-between rounded bg-gray-700 px-3 py-2 text-sm"
+                    className="flex items-center justify-between rounded bg-surface px-3 py-2 text-sm"
                   >
                     <span>{`${member.user?.username ?? "Usuario"} (${member.user?.email ?? ""})`}</span>
                     <button
                       type="button"
                       onClick={() => handleRemove(member)}
                       disabled={removingId === member.id}
-                      className="rounded bg-red-600 px-3 py-1 text-xs font-semibold text-white hover:bg-red-500 disabled:opacity-60"
+                      className="rounded bg-ruby px-3 py-1 text-xs font-semibold text-white hover:bg-ruby/90 disabled:opacity-60"
                     >
                       Eliminar
                     </button>
@@ -84,13 +84,13 @@ export default function EditServerModal({
           )}
         </div>
 
-        {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+        {error && <p className="mt-3 text-sm text-ruby">{error}</p>}
 
         <div className="mt-4 text-right">
           <button
             type="button"
             onClick={onClose}
-            className="rounded bg-gray-600 px-4 py-2 text-sm font-semibold hover:bg-gray-500"
+            className="rounded bg-surface px-4 py-2 text-sm font-semibold hover:bg-surface/80"
           >
             Cerrar
           </button>

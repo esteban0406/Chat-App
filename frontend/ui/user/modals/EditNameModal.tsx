@@ -57,7 +57,7 @@ export default function EditNameModal({ user, onClose, onUpdated }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="w-96 rounded-lg bg-gray-800 p-6 text-white shadow-lg">
+      <div className="w-96 rounded-lg bg-deep border border-border p-6 text-white shadow-lg">
         <h2 className="mb-4 text-lg font-bold">Editar nombre</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -65,18 +65,18 @@ export default function EditNameModal({ user, onClose, onUpdated }: Props) {
             value={name}
             disabled={loading}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded bg-gray-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full rounded bg-surface px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gold"
             placeholder="Nuevo nombre de usuario"
           />
 
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <p className="text-sm text-ruby">{error}</p>}
 
           <div className="flex justify-end gap-2">
             <button
               type="button"
               onClick={closeModal}
               disabled={loading}
-              className="rounded bg-gray-600 px-4 py-2 hover:bg-gray-500 disabled:opacity-60"
+              className="rounded bg-surface px-4 py-2 hover:bg-surface/80 disabled:opacity-60"
             >
               Cancelar
             </button>
@@ -84,7 +84,7 @@ export default function EditNameModal({ user, onClose, onUpdated }: Props) {
             <button
               type="submit"
               disabled={loading}
-              className="rounded bg-indigo-600 px-4 py-2 hover:bg-indigo-500 disabled:opacity-60"
+              className="rounded bg-gold px-4 py-2 text-deep hover:bg-gold/90 disabled:opacity-60"
             >
               {loading ? "Guardando..." : "Guardar"}
             </button>

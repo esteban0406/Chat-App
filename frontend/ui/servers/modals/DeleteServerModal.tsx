@@ -33,7 +33,7 @@ export default function DeleteServerModal({
         throw new Error(msg);
       }
       onClose();
-      router.push("/friends");
+      router.push("/home");
     } catch (err) {
       console.error(err);
       const message = err instanceof Error ? err.message : "No se pudo eliminar el servidor";
@@ -45,18 +45,18 @@ export default function DeleteServerModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-md rounded-lg bg-gray-800 p-6 text-white shadow-xl">
+      <div className="w-full max-w-md rounded-lg bg-deep border border-border p-6 text-white shadow-xl">
         <h3 className="text-lg font-semibold mb-3">
           Eliminar servidor
         </h3>
-        <p className="text-sm text-gray-300">
+        <p className="text-sm text-text-muted">
           ¿Seguro que deseas eliminar{" "}
           <span className="font-semibold text-white">{server.name}</span>?
           Esta acción no se puede deshacer.
         </p>
 
         {error && (
-          <p className="mt-3 text-sm text-red-400">{error}</p>
+          <p className="mt-3 text-sm text-ruby">{error}</p>
         )}
 
         <div className="mt-6 flex justify-end gap-2 text-sm">
@@ -64,7 +64,7 @@ export default function DeleteServerModal({
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="rounded bg-gray-600 px-4 py-2 font-semibold hover:bg-gray-500 disabled:opacity-60"
+            className="rounded bg-surface px-4 py-2 font-semibold hover:bg-surface/80 disabled:opacity-60"
           >
             Cancelar
           </button>
@@ -72,7 +72,7 @@ export default function DeleteServerModal({
             type="button"
             onClick={handleDelete}
             disabled={loading}
-            className="rounded bg-red-600 px-4 py-2 font-semibold hover:bg-red-500 disabled:opacity-60"
+            className="rounded bg-ruby px-4 py-2 font-semibold hover:bg-ruby/90 disabled:opacity-60"
           >
             {loading ? "Eliminando..." : "Eliminar"}
           </button>

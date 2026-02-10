@@ -34,10 +34,7 @@ export class RolesController {
 
   @Post()
   @UseGuards(ServerPermissionGuard)
-  @RequirePermission(ServerPermission.MANAGE_ROLES, {
-    from: 'params',
-    field: 'serverId',
-  })
+  @RequirePermission(ServerPermission.MANAGE_ROLES)
   async create(
     @Param('serverId') serverId: string,
     @Body() createRoleDto: CreateRoleDto,
@@ -47,10 +44,7 @@ export class RolesController {
 
   @Patch(':roleId')
   @UseGuards(ServerPermissionGuard)
-  @RequirePermission(ServerPermission.MANAGE_ROLES, {
-    from: 'params',
-    field: 'serverId',
-  })
+  @RequirePermission(ServerPermission.MANAGE_ROLES)
   async update(
     @Param('serverId') serverId: string,
     @Param('roleId') roleId: string,
@@ -61,10 +55,7 @@ export class RolesController {
 
   @Delete(':roleId')
   @UseGuards(ServerPermissionGuard)
-  @RequirePermission(ServerPermission.MANAGE_ROLES, {
-    from: 'params',
-    field: 'serverId',
-  })
+  @RequirePermission(ServerPermission.MANAGE_ROLES)
   async delete(
     @Param('serverId') serverId: string,
     @Param('roleId') roleId: string,
@@ -74,10 +65,7 @@ export class RolesController {
 
   @Post('assign')
   @UseGuards(ServerPermissionGuard)
-  @RequirePermission(ServerPermission.MANAGE_ROLES, {
-    from: 'params',
-    field: 'serverId',
-  })
+  @RequirePermission(ServerPermission.MANAGE_ROLES)
   async assignRole(
     @Param('serverId') serverId: string,
     @Body() assignRoleDto: AssignRoleDto,

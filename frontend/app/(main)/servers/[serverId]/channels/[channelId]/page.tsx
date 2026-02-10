@@ -47,7 +47,7 @@ export default function ChannelPage() {
   useEffect(() => {
     async function loadChannel() {
       try {
-        const res = await backendFetch(`/api/channels/server/${serverId}`, {
+        const res = await backendFetch(`/api/servers/${serverId}/channels`, {
           cache: "no-store",
         });
         if (!res.ok) {

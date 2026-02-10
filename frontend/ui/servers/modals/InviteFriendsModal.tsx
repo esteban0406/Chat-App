@@ -87,10 +87,10 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
     setInvitingId(friendId);
     setStatus(null);
     try {
-      const res = await backendFetch("/api/server-invites", {
+      const res = await backendFetch(`/api/server-invites/server/${server.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ serverId: server.id, receiverId: friendId }),
+        body: JSON.stringify({ receiverId: friendId }),
       });
       if (!res.ok) {
         const msg = await extractErrorMessage(res, "Failed to send invite");
@@ -114,7 +114,7 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-lg rounded-lg bg-gray-800 p-6 text-white shadow-xl">
+      <div className="w-full max-w-lg rounded-lg bg-deep border border-border p-6 text-white shadow-xl">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-semibold">
             Invitar amigos a {server.name}
@@ -122,14 +122,14 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-white"
+            className="text-text-muted hover:text-white"
           >
             ✕
           </button>
         </div>
 
         {eligibleFriends.length === 0 ? (
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-text-muted">
             No hay amigos disponibles para invitar.
           </p>
         ) : (
@@ -137,17 +137,17 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
             {eligibleFriends.map((friend) => (
               <li
                 key={friend.id}
-                className="flex items-center justify-between rounded bg-gray-700 px-3 py-2 text-sm"
+                className="flex items-center justify-between rounded bg-surface px-3 py-2 text-sm"
               >
                 <span className="truncate">
                   {friend.username}{" "}
-                  <span className="text-gray-400">({friend.email})</span>
+                  <span className="text-text-muted">({friend.email})</span>
                 </span>
                 <button
                   type="button"
                   onClick={() => handleInvite(friend.id)}
                   disabled={invitingId === friend.id}
-                  className="rounded bg-indigo-600 px-3 py-1 font-semibold text-white hover:bg-indigo-500 disabled:opacity-60"
+                  className="rounded bg-gold px-3 py-1 text-deep font-semibold text-white hover:bg-gold/90 disabled:opacity-60"
                 >
                   {invitingId === friend.id ? "Enviando..." : "Invitar"}
                 </button>
@@ -156,7 +156,7 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
           </ul>
         )}
 
-        {status && <p className="mt-3 text-sm text-gray-300">{status}</p>}
+        {status && <p className="mt-3 text-sm text-text-muted">{status}</p>}
       </div>
     </div>
   );
