@@ -49,7 +49,11 @@ export class ServersController {
     @Param('serverId') serverId: string,
     @Body() updateServerDto: UpdateServerDto,
   ) {
-    return this.serversService.updateServer(serverId, req.user.id, updateServerDto);
+    return this.serversService.updateServer(
+      serverId,
+      req.user.id,
+      updateServerDto,
+    );
   }
 
   @Delete(':serverId')

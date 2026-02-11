@@ -1,63 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { User } from "@/lib/definitions";
-import {
-  backendFetch,
-  unwrapList,
-  extractErrorMessage,
-} from "@/lib/backend-client";
+import { useFriends } from "@/lib/FriendsContext";
 
 export default function FriendList() {
-  const [friends, setFriends] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadFriends() {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await backendFetch("/api/friendships", {
-          cache: "no-store",
-        });
-        if (!res.ok) {
-          const msg = await extractErrorMessage(
-            res,
-            "No se pudieron cargar tus amigos",
-          );
-          throw new Error(msg);
-        }
-
-        const body = await res.json();
-        const list = unwrapList<User>(body, "friends");
-        if (!cancelled) {
-          setFriends(list);
-        }
-      } catch (err) {
-        console.error(err);
-        if (!cancelled) {
-          const message =
-            err instanceof Error
-              ? err.message
-              : "No se pudieron cargar tus amigos";
-          setError(message);
-          setFriends([]);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadFriends();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { friends, loading, error } = useFriends();
 
   if (loading) {
     return <p className="text-text-muted">Cargando amigos...</p>;

@@ -201,19 +201,19 @@ export class ServersService {
       throw new NotFoundException('Server not found');
     }
 
-    if (memberId === requesterId) {
-      throw new BadRequestException('Cannot remove yourself');
-    }
-
     const member = await this.prisma.member.findFirst({
       where: {
+        id: memberId,
         serverId,
-        userId: memberId,
       },
     });
 
     if (!member) {
       throw new NotFoundException('Member not found');
+    }
+
+    if (member.userId === requesterId) {
+      throw new BadRequestException('Cannot remove yourself');
     }
 
     await this.prisma.member.delete({

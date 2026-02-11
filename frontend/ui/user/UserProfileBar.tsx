@@ -1,40 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Menu } from "@headlessui/react";
 import { Settings } from "lucide-react";
 import EditNameModal from "./modals/EditNameModal";
 import EditAvatarModal from "./modals/EditAvatarModal";
-import { getMe, logout, User } from "@/lib/auth";
+import { logout } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { toBackendURL } from "@/lib/backend-client";
+import { useCurrentUser } from "@/lib/CurrentUserContext";
 
 export default function UserProfileBar() {
   const router = useRouter();
 
-  const [user, setUser] = useState<User>();
+  const { currentUser: user, refreshUser } = useCurrentUser();
   const [openNameModal, setOpenNameModal] = useState(false);
   const [openAvatarModal, setOpenAvatarModal] = useState(false);
 
   const fallbackAvatar =
     "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-
-  const fetchUser = async () => {
-    return await getMe();
-  };
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const userData = await fetchUser();
-        if (userData) {
-          setUser(userData);
-        }
-      } catch (error) {
-        console.error("Error loading user profile:", error);
-      }
-    })();
-  }, []);
 
   async function handleLogout() {
     await logout();
@@ -121,23 +105,13 @@ export default function UserProfileBar() {
         <EditNameModal
           user={user}
           onClose={() => setOpenNameModal(false)}
-          onUpdated={async () => {
-            const updatedUser = await fetchUser();
-            if (updatedUser) {
-              setUser(updatedUser);
-            }
-          }}
+          onUpdated={() => refreshUser()}
         />
       )}
       {openAvatarModal && (
         <EditAvatarModal
           onClose={() => setOpenAvatarModal(false)}
-          onUpdated={async () => {
-            const updatedUser = await fetchUser();
-            if (updatedUser) {
-              setUser(updatedUser);
-            }
-          }}
+          onUpdated={() => refreshUser()}
         />
       )}
     </div>

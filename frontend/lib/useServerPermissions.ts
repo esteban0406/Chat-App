@@ -1,25 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { getMe } from "@/lib/auth";
+import { useCallback } from "react";
+import { useCurrentUser } from "@/lib/CurrentUserContext";
 import { Server, ServerPermission } from "@/lib/definitions";
 
 export function useServerPermissions(server: Server | undefined) {
-  const [userId, setUserId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    getMe().then((user) => {
-      if (!cancelled) {
-        setUserId(user?.id ?? null);
-        setLoading(false);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { currentUser, loading } = useCurrentUser();
+  const userId = currentUser?.id ?? null;
 
   const isOwner = !!(userId && server && server.ownerId === userId);
 

@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Search } from "lucide-react";
-import { User } from "@/lib/definitions";
-import { backendFetch, unwrapList } from "@/lib/backend-client";
+import { useFriends } from "@/lib/FriendsContext";
 
 type Props = {
   sidebarControls?: {
@@ -13,23 +12,8 @@ type Props = {
 
 export default function FriendsSidebar({ sidebarControls }: Props) {
   const closeSidebar = sidebarControls?.closeSidebar;
-  const [friends, setFriends] = useState<User[]>([]);
+  const { friends } = useFriends();
   const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    async function loadFriends() {
-      try {
-        const res = await backendFetch("/api/friendships", { cache: "no-store" });
-        if (!res.ok) return;
-        const body = await res.json();
-        const list = unwrapList<User>(body, "friends");
-        setFriends(list);
-      } catch {
-        // silently fail for sidebar
-      }
-    }
-    loadFriends();
-  }, []);
 
   const filtered = friends.filter((f) =>
     f.username?.toLowerCase().includes(search.toLowerCase()),

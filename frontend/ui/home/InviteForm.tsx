@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { getMe, User } from "@/lib/auth";
+import { User } from "@/lib/auth";
 import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
+import { useCurrentUser } from "@/lib/CurrentUserContext";
 
 export default function InviteForm() {
   const [query, setQuery] = useState("");
@@ -11,26 +12,19 @@ export default function InviteForm() {
   const [searching, setSearching] = useState(false);
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [friends, setFriends] = useState<User[]>([]);
-  const [currentUser, setCurrentUser] = useState<User>();
+
+  const { currentUser } = useCurrentUser();
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
       try {
-        const [friendsRes, user] = await Promise.all([
-          backendFetch("/api/friendships", { cache: "no-store" }),
-          getMe(),
-        ]);
-        if (!cancelled) {
-          if (friendsRes.ok) {
-            const body = await friendsRes.json();
-            const list = unwrapList<User>(body, "friends");
-            setFriends(list);
-          }
-          if (user) {
-            setCurrentUser(user);
-          }
+        const friendsRes = await backendFetch("/api/friendships", { cache: "no-store" });
+        if (!cancelled && friendsRes.ok) {
+          const body = await friendsRes.json();
+          const list = unwrapList<User>(body, "friends");
+          setFriends(list);
         }
       } catch (err) {
         console.error(err);

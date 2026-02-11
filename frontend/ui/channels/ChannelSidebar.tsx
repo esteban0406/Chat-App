@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Menu } from "@headlessui/react";
@@ -14,11 +14,7 @@ import {
 } from "lucide-react";
 import { Channel, Server } from "@/lib/definitions";
 import { useServerPermissions } from "@/lib/useServerPermissions";
-import {
-  backendFetch,
-  unwrapList,
-  extractErrorMessage,
-} from "@/lib/backend-client";
+import { useServers } from "@/lib/ServersContext";
 import CreateChannelModal from "./modals/CreateChannelModal";
 import EditChannelModal from "./modals/EditChannelModal";
 import DeleteChannelModal from "./modals/DeleteChannelModal";
@@ -36,8 +32,10 @@ export default function ChannelSidebar({
   const effectiveServerId = params.serverId;
   const activeChannelId = params.channelId;
 
-  const [server, setServer] = useState<Server>();
-  const [channels, setChannels] = useState<Channel[]>([]);
+  const { servers, refreshServers } = useServers();
+
+  const server = servers.find((s) => s.id === effectiveServerId);
+  const channels = server?.channels ?? [];
 
   const [createType, setCreateType] = useState<"TEXT" | "VOICE">();
   const [channelToEdit, setChannelToEdit] = useState<Channel>();
@@ -49,91 +47,10 @@ export default function ChannelSidebar({
 
   const { hasPermission } = useServerPermissions(server);
 
-  useEffect(() => {
-    async function loadServer() {
-      try {
-        const res = await backendFetch("/api/servers", {
-          cache: "no-store",
-        });
-        if (!res.ok) {
-          const msg = await extractErrorMessage(
-            res,
-            "No se pudieron cargar los servidores",
-          );
-          throw new Error(msg);
-        }
-        const body = await res.json();
-        const list = unwrapList<Server>(body, "servers");
-        const found = list.find(
-          (server: Server) => server.id === effectiveServerId,
-        );
-        setServer(found);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-    loadServer();
-  }, [effectiveServerId]);
-
-  useEffect(() => {
-    if (!effectiveServerId) {
-      setChannels([]);
-      return;
-    }
-
-    async function loadChannels() {
-      try {
-        const res = await backendFetch(
-          `/api/servers/${effectiveServerId}/channels`,
-          {
-            cache: "no-store",
-          },
-        );
-        if (!res.ok) {
-          const msg = await extractErrorMessage(
-            res,
-            "No se pudieron cargar los canales",
-          );
-          throw new Error(msg);
-        }
-        const body = await res.json();
-        const list = unwrapList<Channel>(body, "channels");
-        setChannels(list);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-    loadChannels();
-  }, [effectiveServerId, activeChannelId]);
-
   const textChannels = channels.filter((channel) => channel.type === "TEXT");
   const voiceChannels = channels.filter((channel) => channel.type === "VOICE");
 
   const closeSidebar = sidebarControls?.closeSidebar;
-
-  const handleChannelCreated = (channel: Channel) => {
-    setChannels((prev) => [...prev, channel]);
-  };
-
-  const handleChannelUpdated = (updated: Channel) => {
-    setChannels((prev) =>
-      prev.map((channel) => (channel.id === updated.id ? updated : channel)),
-    );
-  };
-
-  const handleChannelDeleted = (channelId: string) => {
-    setChannels((prev) => prev.filter((channel) => channel.id !== channelId));
-  };
-
-  const handleMemberRemoved = (memberId: string) => {
-    setServer((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        members: prev.members?.filter((member) => member.id !== memberId),
-      };
-    });
-  };
 
   if (!effectiveServerId) {
     return (
@@ -266,7 +183,7 @@ export default function ChannelSidebar({
           serverId={effectiveServerId as string}
           defaultType={createType}
           onClose={() => setCreateType(undefined)}
-          onCreated={handleChannelCreated}
+          onCreated={() => refreshServers()}
         />
       )}
 
@@ -274,7 +191,7 @@ export default function ChannelSidebar({
         <EditChannelModal
           channel={channelToEdit}
           onClose={() => setChannelToEdit(undefined)}
-          onUpdated={handleChannelUpdated}
+          onUpdated={() => refreshServers()}
         />
       )}
 
@@ -282,7 +199,7 @@ export default function ChannelSidebar({
         <DeleteChannelModal
           channel={channelToDelete}
           onClose={() => setChannelToDelete(undefined)}
-          onDeleted={handleChannelDeleted}
+          onDeleted={() => refreshServers()}
         />
       )}
 
@@ -297,7 +214,7 @@ export default function ChannelSidebar({
         <EditServerModal
           server={server as Server}
           onClose={() => setShowEditServerModal(false)}
-          onMemberRemoved={handleMemberRemoved}
+          onMemberRemoved={() => refreshServers()}
         />
       )}
 
@@ -305,6 +222,7 @@ export default function ChannelSidebar({
         <DeleteServerModal
           server={server as Server}
           onClose={() => setShowDeleteServerModal(false)}
+          onDeleted={refreshServers}
         />
       )}
 

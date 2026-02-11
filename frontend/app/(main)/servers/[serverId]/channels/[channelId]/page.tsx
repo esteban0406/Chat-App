@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useParams } from "next/navigation";
 import {
   Menu,
@@ -11,11 +11,10 @@ import {
 import ChatMessages from "@/ui/messages/ChatMessages";
 import ChatInput from "@/ui/messages/ChatInput";
 import { useMessages } from "@/ui/messages/useMessages";
-import { getMe, User } from "@/lib/auth";
-import { Channel } from "@/lib/definitions";
 import { useLayoutContext } from "@/ui/layout/LayoutContext";
 import VoiceRoom from "@/ui/voice/VoiceRoom";
-import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
+import { useServers } from "@/lib/ServersContext";
+import { useCurrentUser } from "@/lib/CurrentUserContext";
 
 export default function ChannelPage() {
   const params = useParams();
@@ -31,40 +30,13 @@ export default function ChannelPage() {
   const { openServerDrawer, openSectionSidebar, openProfileDrawer } =
     useLayoutContext();
 
-  const [channel, setChannel] = useState<Channel>();
-  const [currentUser, setCurrentUser] = useState<User>();
+  const { servers } = useServers();
+  const { currentUser } = useCurrentUser();
+
+  const server = servers.find((s) => s.id === serverId);
+  const channel = server?.channels?.find((c) => c.id === channelId);
 
   const { messages, loading, error, refresh } = useMessages(channelId);
-
-  useEffect(() => {
-    getMe().then((user) => {
-      if (user) {
-        setCurrentUser(user);
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    async function loadChannel() {
-      try {
-        const res = await backendFetch(`/api/servers/${serverId}/channels`, {
-          cache: "no-store",
-        });
-        if (!res.ok) {
-          const msg = await extractErrorMessage(res, "No se pudo cargar la información del canal");
-          throw new Error(msg);
-        }
-        const body = await res.json();
-        const list = unwrapList<Channel>(body, "channels");
-        const found = list.find((item: Channel) => item.id === channelId);
-        setChannel(found);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    loadChannel();
-  }, [serverId, channelId]);
 
   const ChannelIcon = channel?.type === "VOICE" ? Volume2 : Hash;
 

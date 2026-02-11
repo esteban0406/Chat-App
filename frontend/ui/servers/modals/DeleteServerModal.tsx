@@ -14,6 +14,7 @@ type Props = {
 export default function DeleteServerModal({
   server,
   onClose,
+  onDeleted,
 }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -32,6 +33,7 @@ export default function DeleteServerModal({
         const msg = await extractErrorMessage(res, "No se pudo eliminar el servidor");
         throw new Error(msg);
       }
+      onDeleted?.();
       onClose();
       router.push("/home");
     } catch (err) {

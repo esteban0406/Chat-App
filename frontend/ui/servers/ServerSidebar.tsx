@@ -1,44 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { House, Plus } from "lucide-react";
-import { Server } from "@/lib/definitions";
 import CreateServerModal from "./modals/CreateServerModal";
-import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
 import { useNotifications } from "@/lib/NotificationContext";
+import { useServers } from "@/lib/ServersContext";
 
 export default function ServerSidebar({ onClose }: { onClose?: () => void }) {
-  const [servers, setServers] = useState<Server[]>([]);
   const [showCreate, setShowCreate] = useState(false);
-  const pathname = usePathname();
+  const { servers, refreshServers } = useServers();
   const { hasNewFriendRequests, hasNewServerInvites } = useNotifications();
-
-  const loadServers = useCallback(() => {
-    async function loadServer() {
-      try {
-        const res = await backendFetch("/api/servers", {
-          cache: "no-store",
-        });
-        if (!res.ok) {
-          const msg = await extractErrorMessage(res, "No se pudieron cargar los servidores");
-          throw new Error(msg);
-        }
-        const body = await res.json();
-        const list = unwrapList<Server>(body, "servers");
-        setServers(list);
-      } catch (error) {
-        console.error("Error loading servers:", error);
-        setServers([]);
-      }
-    }
-    loadServer();
-  }, []);
-
-  useEffect(() => {
-    loadServers();
-  }, [loadServers, pathname]);
 
   return (
     <div className="flex flex-col items-center bg-deep h-full">
@@ -80,7 +52,7 @@ export default function ServerSidebar({ onClose }: { onClose?: () => void }) {
       {showCreate && (
         <CreateServerModal
           onClose={() => setShowCreate(false)}
-          created={loadServers}
+          created={refreshServers}
         />
       )}
     </div>

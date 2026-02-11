@@ -12,6 +12,8 @@ import { useRouter } from "next/navigation";
 import { isAuthenticated } from "@/lib/auth";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
 import { NotificationProvider } from "@/lib/NotificationContext";
+import { CurrentUserProvider } from "@/lib/CurrentUserContext";
+import { ServersProvider } from "@/lib/ServersContext";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -40,7 +42,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <LayoutContextProvider>
       <NotificationProvider>
-        <AppLayoutInner>{children}</AppLayoutInner>
+        <CurrentUserProvider>
+          <ServersProvider>
+            <AppLayoutInner>{children}</AppLayoutInner>
+          </ServersProvider>
+        </CurrentUserProvider>
       </NotificationProvider>
     </LayoutContextProvider>
   );

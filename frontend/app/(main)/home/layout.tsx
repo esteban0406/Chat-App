@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import SectionShell from "@/ui/layout/SectionShell";
 import FriendsSidebar from "@/ui/home/FriendsSidebar";
 import { useLayoutContext } from "@/ui/layout/LayoutContext";
+import { FriendsProvider } from "@/lib/FriendsContext";
 import { Menu, Users, CircleUser } from "lucide-react";
 import { useNotifications } from "@/lib/NotificationContext";
 import { useEffect } from "react";
@@ -21,9 +22,11 @@ export default function FriendsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SectionShell sidebar={<FriendsSidebar />}>
-      <FriendsContent>{children}</FriendsContent>
-    </SectionShell>
+    <FriendsProvider>
+      <SectionShell sidebar={<FriendsSidebar />}>
+        <FriendsContent>{children}</FriendsContent>
+      </SectionShell>
+    </FriendsProvider>
   );
 }
 
