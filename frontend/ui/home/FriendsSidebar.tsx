@@ -58,8 +58,19 @@ export default function FriendsSidebar({ sidebarControls }: Props) {
               className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-text-secondary hover:bg-surface/30 hover:text-text-primary"
             >
               <div className="relative">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-surface text-xs font-semibold text-text-primary">
-                  {friend.username?.[0]?.toUpperCase() ?? "?"}
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-surface text-xs font-semibold text-text-primary overflow-hidden">
+                  {friend.avatarUrl ? (
+                  <img
+                    src={friend.avatarUrl}
+                    alt={friend.username}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.classList.add("hidden");
+                    }}
+                  />
+                ) : (
+                  <span>{friend.username?.[0]?.toUpperCase() ?? "?"}</span>
+                )}
                 </div>
                 <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-sidebar bg-gold" />
               </div>
