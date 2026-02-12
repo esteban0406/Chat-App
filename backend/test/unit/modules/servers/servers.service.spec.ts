@@ -52,17 +52,23 @@ describe('ServersService', () => {
 
   it('findOne throws when server does not exist', async () => {
     prisma.server.findUnique.mockResolvedValue(null);
-    await expect(service.findOne('s1', 'u1')).rejects.toThrow(NotFoundException);
+    await expect(service.findOne('s1', 'u1')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('findOne throws when user is not a member', async () => {
     prisma.server.findUnique.mockResolvedValue({ id: 's1', members: [] });
-    await expect(service.findOne('s1', 'u1')).rejects.toThrow(ForbiddenException);
+    await expect(service.findOne('s1', 'u1')).rejects.toThrow(
+      ForbiddenException,
+    );
   });
 
   it('leaveServer throws when owner tries to leave', async () => {
     prisma.server.findUnique.mockResolvedValue({ id: 's1', ownerId: 'u1' });
-    await expect(service.leaveServer('s1', 'u1')).rejects.toThrow(BadRequestException);
+    await expect(service.leaveServer('s1', 'u1')).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('deleteServer throws when server is missing', async () => {

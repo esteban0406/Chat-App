@@ -2,12 +2,15 @@ jest.mock('../../../../src/database/prisma.service', () => ({
   PrismaService: class PrismaService {},
 }));
 
-jest.mock('../../../../src/modules/servers/invites/server-invites.module', () => {
-  const { Module } = require('@nestjs/common');
-  @Module({})
-  class ServerInvitesModule {}
-  return { ServerInvitesModule };
-});
+jest.mock(
+  '../../../../src/modules/servers/invites/server-invites.module',
+  () => {
+    const { Module } = require('@nestjs/common');
+    @Module({})
+    class ServerInvitesModule {}
+    return { ServerInvitesModule };
+  },
+);
 
 jest.mock('../../../../src/modules/servers/roles/roles.module', () => {
   const { Module } = require('@nestjs/common');
@@ -15,7 +18,7 @@ jest.mock('../../../../src/modules/servers/roles/roles.module', () => {
   class RolesModule {}
   return { RolesModule };
 });
-jest.mock('../../../../src/generated/prisma/client', () => ({
+jest.mock('@prisma/client', () => ({
   ServerPermission: {
     DELETE_SERVER: 'DELETE_SERVER',
     REMOVE_MEMBER: 'REMOVE_MEMBER',

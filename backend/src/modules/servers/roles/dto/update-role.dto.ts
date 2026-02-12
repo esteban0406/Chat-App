@@ -6,7 +6,7 @@ import {
   MinLength,
   MaxLength,
 } from 'class-validator';
-import { ServerPermission } from '../../../../generated/prisma/client';
+import { ServerPermission } from '../../../../generated/prisma/client.js';
 
 export class UpdateRoleDto {
   @IsOptional()

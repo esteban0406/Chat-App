@@ -15,7 +15,7 @@ import type { RequestWithUser } from '../auth/types';
 import { CreateServerDto, UpdateServerDto } from './dto';
 import { ServerPermissionGuard } from '../../common/rbac/server-permission.guard';
 import { RequirePermission } from '../../common/rbac/require-permission.decorator';
-import { ServerPermission } from '../../generated/prisma/client';
+import { ServerPermission } from '../../generated/prisma/client.js';
 
 @Controller('servers')
 @UseGuards(JwtAuthGuard)

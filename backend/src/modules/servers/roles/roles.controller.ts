@@ -13,7 +13,7 @@ import { RolesService } from './roles.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { ServerPermissionGuard } from '../../../common/rbac/server-permission.guard';
 import { RequirePermission } from '../../../common/rbac/require-permission.decorator';
-import { ServerPermission } from '../../../generated/prisma/client';
+import { ServerPermission } from '../../../generated/prisma/client.js';
 import type { RequestWithUser } from '../../auth/types';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';

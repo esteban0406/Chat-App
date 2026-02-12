@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../../database/prisma.service';
-import { ServerPermission } from '../../generated/prisma/client';
+import { ServerPermission } from '../../generated/prisma/client.js';
 import type { RequestWithUser } from '../../modules/auth/types';
 import { PERMISSION_KEY } from './require-permission.decorator';
 

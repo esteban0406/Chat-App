@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateServerDto } from './dto/create-server.dto';
-import { ServerPermission } from '../../generated/prisma/client';
+import { ServerPermission } from '../../generated/prisma/client.js';
 
 const ALL_PERMISSIONS = Object.values(ServerPermission);
 
