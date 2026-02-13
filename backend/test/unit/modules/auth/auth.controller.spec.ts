@@ -5,6 +5,7 @@ jest.mock('../../../../src/database/prisma.service', () => ({
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from '../../../../src/modules/auth/auth.controller';
 import { AuthService } from '../../../../src/modules/auth/auth.service';
+import { RequestWithUser } from '../../../../src/modules/auth/types';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -34,21 +35,22 @@ describe('AuthController', () => {
 
   it('login delegates to service', async () => {
     authService.login.mockResolvedValue({ accessToken: 't' });
-    const req = { user: { id: 'u1', email: 'a', username: 'b' } } as any;
+    const user = { id: 'u1', email: 'a', username: 'b' };
+    const req = { user } as unknown as RequestWithUser;
     await expect(controller.login(req)).resolves.toEqual({ accessToken: 't' });
-    expect(authService.login).toHaveBeenCalledWith(req.user);
+    expect(authService.login).toHaveBeenCalledWith(user);
   });
 
   it('logout delegates to service', async () => {
     authService.logout.mockResolvedValue({ message: 'ok' });
-    const req = { user: { id: 'u1' } } as any;
+    const req = { user: { id: 'u1' } } as unknown as RequestWithUser;
     await expect(controller.logout(req)).resolves.toEqual({ message: 'ok' });
     expect(authService.logout).toHaveBeenCalledWith('u1');
   });
 
   it('getProfile delegates to service', async () => {
     authService.getProfile.mockResolvedValue({ id: 'u1' });
-    const req = { user: { id: 'u1' } } as any;
+    const req = { user: { id: 'u1' } } as unknown as RequestWithUser;
     await expect(controller.getProfile(req)).resolves.toEqual({ id: 'u1' });
     expect(authService.getProfile).toHaveBeenCalledWith('u1');
   });

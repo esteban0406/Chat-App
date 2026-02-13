@@ -2,14 +2,19 @@ jest.mock('../../../../src/database/prisma.service', () => ({
   PrismaService: class PrismaService {},
 }));
 
-jest.mock('../../../../src/modules/users/friendships/friendships.module', () => {
-  const { Module } = require('@nestjs/common');
-  @Module({})
-  class FriendshipsModule {}
-  return { FriendshipsModule };
-});
+jest.mock(
+  '../../../../src/modules/users/friendships/friendships.module',
+  () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { Module } = require('@nestjs/common');
+    @Module({})
+    class FriendshipsModule {}
+    return { FriendshipsModule };
+  },
+);
 
 jest.mock('../../../../src/database/cloudinary/cloudinary.module', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Module } = require('@nestjs/common');
   @Module({})
   class CloudinaryModule {}

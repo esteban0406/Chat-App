@@ -3,6 +3,7 @@ jest.mock('../../../../../src/database/prisma.service', () => ({
 }));
 
 jest.mock('../../../../../src/modules/gateway/gateway.module', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Module } = require('@nestjs/common');
   class ChatGateway {}
   @Module({ providers: [ChatGateway], exports: [ChatGateway] })

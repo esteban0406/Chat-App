@@ -3,8 +3,10 @@ jest.mock('../../../../../src/database/prisma.service', () => ({
 }));
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { RequestWithUser } from '../../../../../src/modules/auth/types';
 import { ChatGateway } from '../../../../../src/modules/gateway/chat.gateway';
 import { FriendshipsController } from '../../../../../src/modules/users/friendships/friendships.controller';
+import { SendFriendRequestDto } from '../../../../../src/modules/users/friendships/dto/send-request.dto';
 import { FriendshipsService } from '../../../../../src/modules/users/friendships/friendships.service';
 
 describe('FriendshipsController', () => {
@@ -35,13 +37,18 @@ describe('FriendshipsController', () => {
 
   it('sendFriendRequest delegates and emits event', async () => {
     friendshipsService.sendFriendRequest.mockResolvedValue({ id: 'f1' });
-    const req = { user: { id: 'u1' } } as any;
+    const req = { user: { id: 'u1' } } as unknown as RequestWithUser;
 
     await expect(
-      controller.sendFriendRequest(req, { receiverId: 'u2' } as any),
+      controller.sendFriendRequest(req, {
+        receiverId: 'u2',
+      } as unknown as SendFriendRequestDto),
     ).resolves.toEqual({ id: 'f1' });
 
-    expect(friendshipsService.sendFriendRequest).toHaveBeenCalledWith('u1', 'u2');
+    expect(friendshipsService.sendFriendRequest).toHaveBeenCalledWith(
+      'u1',
+      'u2',
+    );
     expect(chatGateway.emitToUser).toHaveBeenCalled();
   });
 });

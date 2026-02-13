@@ -95,7 +95,12 @@
       "^(\\.{1,2}/.*)\\.js$": "$1"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "src/**/*.(t|j)s",
+      "!src/main.ts",
+      "!src/generated/**",
+      "!src/**/*.module.ts",
+      "!src/**/*.dto.ts",
+      "!src/**/dto/index.ts"
     ],
     "coverageDirectory": "./coverage",
     "testEnvironment": "node"

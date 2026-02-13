@@ -14,8 +14,10 @@ jest.mock('../../../../../src/common/rbac/server-permission.guard', () => ({
 }));
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { RequestWithUser } from '../../../../../src/modules/auth/types';
 import { ChatGateway } from '../../../../../src/modules/gateway/chat.gateway';
 import { ServerInvitesController } from '../../../../../src/modules/servers/invites/server-invites.controller';
+import { SendServerInviteDto } from '../../../../../src/modules/servers/invites/dto/send-invite.dto';
 import { ServerInvitesService } from '../../../../../src/modules/servers/invites/server-invites.service';
 
 describe('ServerInvitesController', () => {
@@ -45,10 +47,12 @@ describe('ServerInvitesController', () => {
 
   it('sendInvite delegates to service and emits event', async () => {
     service.sendInvite.mockResolvedValue({ id: 'i1' });
-    const req = { user: { id: 'u1' } } as any;
+    const req = { user: { id: 'u1' } } as unknown as RequestWithUser;
 
     await expect(
-      controller.sendInvite(req, 's1', { receiverId: 'u2' } as any),
+      controller.sendInvite(req, 's1', {
+        receiverId: 'u2',
+      } as unknown as SendServerInviteDto),
     ).resolves.toEqual({ id: 'i1' });
 
     expect(service.sendInvite).toHaveBeenCalledWith('u1', 'u2', 's1');

@@ -22,14 +22,11 @@ export class PrismaService
 
   async onModuleInit() {
     try {
-      // 1. Establish the connection
       await this.$connect();
 
-      // 2. Perform a 'heartbeat' check.
-      // This ensures the credentials and network path are valid.
       await this.$queryRaw`SELECT 1`;
 
-      console.log('✅ E2E: Conexión a la base de datos establecida');
+      console.log('Conexión a la base de datos establecida');
     } catch (error) {
       console.error('❌ E2E: Error de conexión detectado en PrismaService:');
       console.error(error);

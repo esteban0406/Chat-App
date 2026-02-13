@@ -17,6 +17,8 @@ jest.mock('../../../../src/common/rbac/server-permission.guard', () => ({
 }));
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { RequestWithUser } from '../../../../src/modules/auth/types';
+import { CreateServerDto } from '../../../../src/modules/servers/dto/create-server.dto';
 import { ServersController } from '../../../../src/modules/servers/servers.controller';
 import { ServersService } from '../../../../src/modules/servers/servers.service';
 
@@ -45,8 +47,8 @@ describe('ServersController', () => {
 
   it('create delegates to service', async () => {
     serversService.create.mockResolvedValue({ id: 's1' });
-    const req = { user: { id: 'u1' } } as any;
-    const dto = { name: 'My server' } as any;
+    const req = { user: { id: 'u1' } } as unknown as RequestWithUser;
+    const dto = { name: 'My server' } as unknown as CreateServerDto;
 
     await expect(controller.create(req, dto)).resolves.toEqual({ id: 's1' });
     expect(serversService.create).toHaveBeenCalledWith('u1', dto);
@@ -54,7 +56,7 @@ describe('ServersController', () => {
 
   it('removeMember delegates to service', async () => {
     serversService.removeMember.mockResolvedValue({ id: 's1' });
-    const req = { user: { id: 'u1' } } as any;
+    const req = { user: { id: 'u1' } } as unknown as RequestWithUser;
 
     await expect(controller.removeMember(req, 's1', 'm1')).resolves.toEqual({
       id: 's1',

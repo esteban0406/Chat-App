@@ -17,8 +17,10 @@ jest.mock('../../../../src/common/rbac/server-permission.guard', () => ({
 }));
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { RequestWithUser } from '../../../../src/modules/auth/types';
 import { ChannelsController } from '../../../../src/modules/channels/channels.controller';
 import { ChannelsService } from '../../../../src/modules/channels/channels.service';
+import { CreateChannelDto } from '../../../../src/modules/channels/dto/create-channel.dto';
 
 describe('ChannelsController', () => {
   let controller: ChannelsController;
@@ -41,11 +43,16 @@ describe('ChannelsController', () => {
   });
 
   it('create delegates to service', async () => {
-    const req = { user: { id: 'u1' } } as any;
-    const dto = { name: 'general', type: 'TEXT' } as any;
+    const req = { user: { id: 'u1' } } as unknown as RequestWithUser;
+    const dto = {
+      name: 'general',
+      type: 'TEXT',
+    } as unknown as CreateChannelDto;
     channelsService.create.mockResolvedValue({ id: 'c1' });
 
-    await expect(controller.create(req, 's1', dto)).resolves.toEqual({ id: 'c1' });
+    await expect(controller.create(req, 's1', dto)).resolves.toEqual({
+      id: 'c1',
+    });
     expect(channelsService.create).toHaveBeenCalledWith('u1', 's1', dto);
   });
 });

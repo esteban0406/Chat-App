@@ -36,8 +36,10 @@ services:
       - api_secret=${api_secret}
     volumes:
       - ./backend/src:/app/src
+      - ./backend/prisma:/app/prisma
+      - ./backend/prisma.config.ts:/app/prisma.config.ts
       - ./backend/.env:/app/.env
-    command: npm run start:dev
+    command: sh -c "npx prisma generate && npm run start:dev"
   
   livekit:
     image: livekit/livekit-server

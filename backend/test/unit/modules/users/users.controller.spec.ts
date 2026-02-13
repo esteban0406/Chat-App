@@ -3,6 +3,8 @@ jest.mock('../../../../src/database/prisma.service', () => ({
 }));
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { RequestWithUser } from '../../../../src/modules/auth/types';
+import { SearchUserDto } from '../../../../src/modules/users/dto/search-user.dto';
 import { UsersController } from '../../../../src/modules/users/users.controller';
 import { UsersService } from '../../../../src/modules/users/users.service';
 
@@ -28,15 +30,15 @@ describe('UsersController', () => {
 
   it('search delegates to service', async () => {
     usersService.findByUsername.mockResolvedValue([{ id: 'u1' }]);
-    await expect(controller.search({ username: 'ali' } as any)).resolves.toEqual([
-      { id: 'u1' },
-    ]);
+    await expect(
+      controller.search({ username: 'ali' } as unknown as SearchUserDto),
+    ).resolves.toEqual([{ id: 'u1' }]);
     expect(usersService.findByUsername).toHaveBeenCalledWith('ali');
   });
 
   it('getMe delegates to service', async () => {
     usersService.findOne.mockResolvedValue({ id: 'u1' });
-    const req = { user: { id: 'u1' } } as any;
+    const req = { user: { id: 'u1' } } as unknown as RequestWithUser;
 
     await expect(controller.getMe(req)).resolves.toEqual({ id: 'u1' });
     expect(usersService.findOne).toHaveBeenCalledWith('u1');

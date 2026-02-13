@@ -14,6 +14,7 @@ jest.mock('../../../../../src/common/rbac/server-permission.guard', () => ({
 }));
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { AssignRoleDto } from '../../../../../src/modules/servers/roles/dto/assign-role.dto';
 import { RolesController } from '../../../../../src/modules/servers/roles/roles.controller';
 import { RolesService } from '../../../../../src/modules/servers/roles/roles.service';
 
@@ -41,7 +42,10 @@ describe('RolesController', () => {
     rolesService.assignRole.mockResolvedValue({ id: 'm1' });
 
     await expect(
-      controller.assignRole('s1', { memberId: 'u2', roleId: 'r1' } as any),
+      controller.assignRole('s1', {
+        memberId: 'u2',
+        roleId: 'r1',
+      } as unknown as AssignRoleDto),
     ).resolves.toEqual({ id: 'm1' });
 
     expect(rolesService.assignRole).toHaveBeenCalledWith('s1', 'u2', 'r1');

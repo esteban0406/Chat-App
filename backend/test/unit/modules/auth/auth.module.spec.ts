@@ -3,6 +3,7 @@ jest.mock('../../../../src/database/prisma.service', () => ({
 }));
 
 jest.mock('../../../../src/modules/users/users.module', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Module } = require('@nestjs/common');
   @Module({})
   class UsersModule {}
