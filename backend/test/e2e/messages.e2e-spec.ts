@@ -1,3 +1,4 @@
+import http from 'http';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, closeTestApp } from './helpers/app.helper';
@@ -11,11 +12,12 @@ import { createServerForUser } from './helpers/feature.helper';
 
 describe('Messages Feature (e2e)', () => {
   let app: INestApplication;
-  let httpServer: any;
+  let httpServer: http.Server;
 
   beforeAll(async () => {
     await connectTestDatabase();
     app = await createTestApp();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     httpServer = app.getHttpServer();
   });
 
@@ -31,7 +33,8 @@ describe('Messages Feature (e2e)', () => {
   it('creates a message and lists it by channel', async () => {
     const user = await registerUser(httpServer);
     const server = await createServerForUser(httpServer, user.accessToken);
-    const channelId = server.channels[0].id;
+    const channels = server.channels as { id: string }[];
+    const channelId = channels[0].id;
 
     const created = await request(httpServer)
       .post('/api/messages')
@@ -39,16 +42,18 @@ describe('Messages Feature (e2e)', () => {
       .send({ channelId, content: 'Hello from e2e' })
       .expect(201);
 
-    expect(created.body.id).toBeDefined();
+    const createdBody = created.body as { id: string };
+    expect(createdBody.id).toBeDefined();
 
     const list = await request(httpServer)
       .get(`/api/messages/channel/${channelId}`)
       .set(authHeader(user.accessToken))
       .expect(200);
 
-    expect(Array.isArray(list.body.messages)).toBe(true);
-    expect(
-      list.body.messages.some((msg: any) => msg.id === created.body.id),
-    ).toBe(true);
+    const listBody = list.body as { messages: { id: string }[] };
+    expect(Array.isArray(listBody.messages)).toBe(true);
+    expect(listBody.messages.some((msg) => msg.id === createdBody.id)).toBe(
+      true,
+    );
   });
 });

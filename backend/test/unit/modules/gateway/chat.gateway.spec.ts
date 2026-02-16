@@ -51,7 +51,9 @@ describe('ChatGateway', () => {
       await gateway.handleConnection(client);
 
       expect(jwtService.verify).toHaveBeenCalledWith('valid-token');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(client.data.userId).toBe('u1');
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(client.join).toHaveBeenCalledWith('user:u1');
     });
 
@@ -63,6 +65,7 @@ describe('ChatGateway', () => {
 
       await gateway.handleConnection(client);
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(client.data.userId).toBe('u2');
     });
 
@@ -144,7 +147,9 @@ describe('ChatGateway', () => {
       const client = makeClient();
       const result = await gateway.handleJoinChannel(client, 'c1');
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(client.join).toHaveBeenCalledWith('c1');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(client.data.channelId).toBe('c1');
       expect(result).toBe(true);
     });
@@ -161,7 +166,9 @@ describe('ChatGateway', () => {
       const client = makeClient({ data: { channelId: 'c1' } });
       const result = await gateway.handleLeaveChannel(client, 'c1');
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(client.leave).toHaveBeenCalledWith('c1');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(client.data.channelId).toBeUndefined();
       expect(result).toBe(true);
     });
@@ -170,6 +177,7 @@ describe('ChatGateway', () => {
       const client = makeClient({ data: { channelId: 'c2' } });
       const result = await gateway.handleLeaveChannel(client);
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(client.leave).toHaveBeenCalledWith('c2');
       expect(result).toBe(true);
     });

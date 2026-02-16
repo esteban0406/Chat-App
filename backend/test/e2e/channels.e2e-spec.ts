@@ -1,3 +1,4 @@
+import http from 'http';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, closeTestApp } from './helpers/app.helper';
@@ -14,11 +15,12 @@ import {
 
 describe('Channels Feature (e2e)', () => {
   let app: INestApplication;
-  let httpServer: any;
+  let httpServer: http.Server;
 
   beforeAll(async () => {
     await connectTestDatabase();
     app = await createTestApp();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     httpServer = app.getHttpServer();
   });
 
@@ -38,19 +40,20 @@ describe('Channels Feature (e2e)', () => {
     const createdChannel = await createChannelForServer(
       httpServer,
       owner.accessToken,
-      server.id,
+      server.id as string,
       'engineering',
     );
 
     expect(createdChannel.name).toBe('engineering');
 
     const channels = await request(httpServer)
-      .get(`/api/servers/${server.id}/channels`)
+      .get(`/api/servers/${server.id as string}/channels`)
       .set(authHeader(owner.accessToken))
       .expect(200);
 
+    const channelList = channels.body as { id: string }[];
     expect(
-      channels.body.some((channel: any) => channel.id === createdChannel.id),
+      channelList.some((channel) => channel.id === createdChannel.id),
     ).toBe(true);
   });
 });

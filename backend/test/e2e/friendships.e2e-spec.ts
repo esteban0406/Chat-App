@@ -1,3 +1,4 @@
+import http from 'http';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, closeTestApp } from './helpers/app.helper';
@@ -10,11 +11,12 @@ import { authHeader, registerUser } from './helpers/auth.helper';
 
 describe('Friendships Feature (e2e)', () => {
   let app: INestApplication;
-  let httpServer: any;
+  let httpServer: http.Server;
 
   beforeAll(async () => {
     await connectTestDatabase();
     app = await createTestApp();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     httpServer = app.getHttpServer();
   });
 
@@ -37,21 +39,23 @@ describe('Friendships Feature (e2e)', () => {
       .send({ receiverId: receiver.user.id })
       .expect(201);
 
+    const sentBody = sent.body as { id: string };
+
     const accepted = await request(httpServer)
-      .patch(`/api/friendships/${sent.body.id}`)
+      .patch(`/api/friendships/${sentBody.id}`)
       .set(authHeader(receiver.accessToken))
       .send({ status: 'ACCEPTED' })
       .expect(200);
 
-    expect(accepted.body.status).toBe('ACCEPTED');
+    const acceptedBody = accepted.body as { status: string };
+    expect(acceptedBody.status).toBe('ACCEPTED');
 
     const friends = await request(httpServer)
       .get('/api/friendships')
       .set(authHeader(sender.accessToken))
       .expect(200);
 
-    expect(friends.body.some((user: any) => user.id === receiver.user.id)).toBe(
-      true,
-    );
+    const friendList = friends.body as { id: string }[];
+    expect(friendList.some((user) => user.id === receiver.user.id)).toBe(true);
   });
 });

@@ -74,7 +74,7 @@ describe('ChannelsService', () => {
     const result = await service.create('u1', 's1', {
       name: 'general',
       type: 'TEXT',
-    } as any);
+    } as unknown as CreateChannelDto);
     expect(result).toEqual({ id: 'c1', name: 'general' });
   });
 

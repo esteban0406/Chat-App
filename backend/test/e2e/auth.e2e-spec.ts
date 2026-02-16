@@ -1,3 +1,4 @@
+import http from 'http';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, closeTestApp } from './helpers/app.helper';
@@ -10,11 +11,12 @@ import { authHeader, loginUser, registerUser } from './helpers/auth.helper';
 
 describe('Auth Feature (e2e)', () => {
   let app: INestApplication;
-  let httpServer: any;
+  let httpServer: http.Server;
 
   beforeAll(async () => {
     await connectTestDatabase();
     app = await createTestApp();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     httpServer = app.getHttpServer();
   });
 
@@ -40,7 +42,8 @@ describe('Auth Feature (e2e)', () => {
       .set(authHeader(logged.accessToken))
       .expect(200);
 
-    expect(me.body.id).toBe(logged.user.id);
-    expect(me.body.email).toBe(session.credentials.email);
+    const meBody = me.body as { id: string; email: string };
+    expect(meBody.id).toBe(logged.user.id);
+    expect(meBody.email).toBe(session.credentials.email);
   });
 });

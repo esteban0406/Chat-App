@@ -1,3 +1,4 @@
+import http from 'http';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, closeTestApp } from './helpers/app.helper';
@@ -11,11 +12,12 @@ import { createServerForUser } from './helpers/feature.helper';
 
 describe('Server Invites Feature (e2e)', () => {
   let app: INestApplication;
-  let httpServer: any;
+  let httpServer: http.Server;
 
   beforeAll(async () => {
     await connectTestDatabase();
     app = await createTestApp();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     httpServer = app.getHttpServer();
   });
 
@@ -34,16 +36,19 @@ describe('Server Invites Feature (e2e)', () => {
     const server = await createServerForUser(httpServer, owner.accessToken);
 
     const invite = await request(httpServer)
-      .post(`/api/server-invites/server/${server.id}`)
+      .post(`/api/server-invites/server/${server.id as string}`)
       .set(authHeader(owner.accessToken))
       .send({ receiverId: receiver.user.id })
       .expect(201);
 
+    const inviteBody = invite.body as { id: string };
+
     const accepted = await request(httpServer)
-      .post(`/api/server-invites/${invite.body.id}/accept`)
+      .post(`/api/server-invites/${inviteBody.id}/accept`)
       .set(authHeader(receiver.accessToken))
       .expect(201);
 
-    expect(accepted.body.id).toBe(server.id);
+    const acceptedBody = accepted.body as { id: string };
+    expect(acceptedBody.id).toBe(server.id);
   });
 });

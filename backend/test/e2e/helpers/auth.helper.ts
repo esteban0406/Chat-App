@@ -1,3 +1,4 @@
+import http from 'http';
 import request from 'supertest';
 import { makeCredentials, TestCredentials } from './factory.helper';
 
@@ -18,7 +19,7 @@ export const authHeader = (token: string) => ({
 });
 
 export const registerUser = async (
-  httpServer: any,
+  httpServer: http.Server,
   creds?: Partial<TestCredentials>,
 ): Promise<AuthSession> => {
   const credentials = { ...makeCredentials('auth'), ...(creds ?? {}) };
@@ -28,15 +29,16 @@ export const registerUser = async (
     .send(credentials)
     .expect(201);
 
+  const body = res.body as { user: AuthUser; accessToken: string };
   return {
-    user: res.body.user,
-    accessToken: res.body.accessToken,
+    user: body.user,
+    accessToken: body.accessToken,
     credentials,
   };
 };
 
 export const loginUser = async (
-  httpServer: any,
+  httpServer: http.Server,
   credentials: TestCredentials,
 ): Promise<AuthSession> => {
   const res = await request(httpServer)
@@ -44,9 +46,10 @@ export const loginUser = async (
     .send({ email: credentials.email, password: credentials.password })
     .expect(201);
 
+  const body = res.body as { user: AuthUser; accessToken: string };
   return {
-    user: res.body.user,
-    accessToken: res.body.accessToken,
+    user: body.user,
+    accessToken: body.accessToken,
     credentials,
   };
 };

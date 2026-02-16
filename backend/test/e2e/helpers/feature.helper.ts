@@ -1,8 +1,9 @@
+import http from 'http';
 import request from 'supertest';
 import { authHeader } from './auth.helper';
 
 export const createServerForUser = async (
-  httpServer: any,
+  httpServer: http.Server,
   token: string,
   name = 'Test Server',
 ) => {
@@ -12,11 +13,11 @@ export const createServerForUser = async (
     .send({ name })
     .expect(201);
 
-  return res.body;
+  return res.body as Record<string, unknown>;
 };
 
 export const createChannelForServer = async (
-  httpServer: any,
+  httpServer: http.Server,
   token: string,
   serverId: string,
   name = 'new-channel',
@@ -28,5 +29,5 @@ export const createChannelForServer = async (
     .send({ name, type })
     .expect(201);
 
-  return res.body;
+  return res.body as Record<string, unknown>;
 };

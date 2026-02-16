@@ -1,3 +1,4 @@
+import http from 'http';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, closeTestApp } from './helpers/app.helper';
@@ -10,11 +11,12 @@ import { authHeader, registerUser } from './helpers/auth.helper';
 
 describe('Livekit Feature (e2e)', () => {
   let app: INestApplication;
-  let httpServer: any;
+  let httpServer: http.Server;
 
   beforeAll(async () => {
     await connectTestDatabase();
     app = await createTestApp();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     httpServer = app.getHttpServer();
   });
 
@@ -36,7 +38,8 @@ describe('Livekit Feature (e2e)', () => {
       .send({ identity: session.user.id, room: 'room-e2e' })
       .expect(201);
 
-    expect(res.body.token).toBeDefined();
-    expect(res.body.url).toBeDefined();
+    const body = res.body as { token: string; url: string };
+    expect(body.token).toBeDefined();
+    expect(body.url).toBeDefined();
   });
 });

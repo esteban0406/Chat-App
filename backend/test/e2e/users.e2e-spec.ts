@@ -1,3 +1,4 @@
+import http from 'http';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, closeTestApp } from './helpers/app.helper';
@@ -10,11 +11,12 @@ import { authHeader, registerUser } from './helpers/auth.helper';
 
 describe('Users Feature (e2e)', () => {
   let app: INestApplication;
-  let httpServer: any;
+  let httpServer: http.Server;
 
   beforeAll(async () => {
     await connectTestDatabase();
     app = await createTestApp();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     httpServer = app.getHttpServer();
   });
 
@@ -35,8 +37,9 @@ describe('Users Feature (e2e)', () => {
       .query({ username: session.credentials.username.slice(0, 6) })
       .expect(200);
 
-    expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.length).toBeGreaterThan(0);
+    const body = res.body as unknown[];
+    expect(Array.isArray(body)).toBe(true);
+    expect(body.length).toBeGreaterThan(0);
   });
 
   it('updates own status', async () => {
@@ -48,6 +51,7 @@ describe('Users Feature (e2e)', () => {
       .send({ status: 'OFFLINE' })
       .expect(200);
 
-    expect(res.body.status).toBe('OFFLINE');
+    const body = res.body as { status: string };
+    expect(body.status).toBe('OFFLINE');
   });
 });

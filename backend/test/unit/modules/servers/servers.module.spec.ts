@@ -5,8 +5,9 @@ jest.mock('../../../../src/database/prisma.service', () => ({
 jest.mock(
   '../../../../src/modules/servers/invites/server-invites.module',
   () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
     const { Module } = require('@nestjs/common');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     @Module({})
     class ServerInvitesModule {}
     return { ServerInvitesModule };
@@ -14,8 +15,9 @@ jest.mock(
 );
 
 jest.mock('../../../../src/modules/servers/roles/roles.module', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
   const { Module } = require('@nestjs/common');
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   @Module({})
   class RolesModule {}
   return { RolesModule };
