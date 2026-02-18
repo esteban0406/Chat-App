@@ -1,25 +1,13 @@
-import { PrismaService } from '../../../src/database/prisma.service';
+import request from 'supertest';
+import { getTestApp } from './app.helper';
 
-export const prisma = new PrismaService();
-
-export const connectTestDatabase = async () => {
-  await prisma.$connect();
-};
+export const connectTestDatabase = async () => {};
 
 export const resetTestDatabase = async () => {
-  await prisma.$transaction([
-    prisma.message.deleteMany(),
-    prisma.channel.deleteMany(),
-    prisma.member.deleteMany(),
-    prisma.role.deleteMany(),
-    prisma.serverInvite.deleteMany(),
-    prisma.friendship.deleteMany(),
-    prisma.account.deleteMany(),
-    prisma.server.deleteMany(),
-    prisma.user.deleteMany(),
-  ]);
+  const app = getTestApp();
+  if (!app)
+    throw new Error('Test app is not initialized. Call createTestApp() first.');
+  await request(app.getHttpServer()).post('/api/test/reset').expect(200);
 };
 
-export const disconnectTestDatabase = async () => {
-  await prisma.$disconnect();
-};
+export const disconnectTestDatabase = async () => {};

@@ -9,6 +9,5 @@
   "moduleNameMapper": {
     "^(\\.{1,2}/.*)\\.js$": "$1"
   },
-  "setupFiles": ["./e2e/helpers/setup-env.ts"],
   "setupFilesAfterEnv": ["./e2e/helpers/setup-tests.ts"]
 }

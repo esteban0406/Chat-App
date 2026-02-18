@@ -104,6 +104,24 @@ describe('EditNameModal', () => {
     });
   });
 
+  it('shows duplicate username error from server', async () => {
+    const user = userEvent.setup();
+    mockUpdateUser.mockRejectedValueOnce(new Error('El nombre de usuario ya está en uso'));
+
+    render(<EditNameModal {...defaultProps} />);
+
+    const input = screen.getByDisplayValue(mockUser.username);
+    await user.clear(input);
+    await user.type(input, 'takenname');
+
+    const submitButton = screen.getByRole('button', { name: 'Guardar' });
+    await user.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('El nombre de usuario ya está en uso')).toBeInTheDocument();
+    });
+  });
+
   it('cancel button calls onClose', async () => {
     const user = userEvent.setup();
 

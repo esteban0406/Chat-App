@@ -11,7 +11,6 @@ import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { MessagesService } from '../messages/messages.service';
 import { MessageDto } from './dto';
-import 'dotenv/config';
 
 interface SocketWithData extends Socket {
   data: {

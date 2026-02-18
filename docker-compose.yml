@@ -6,20 +6,15 @@ services:
     depends_on:
       - backend
     environment:
-      - BACKEND_URL=${BACKEND_URL}
       - NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
     volumes:
       - ./frontend:/app    
-
     command: npm run dev
 
   backend:
     build: ./backend
     ports:
       - "4000:4000"
-    dns:
-      - 1.1.1.1
-      - 8.8.8.8
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
@@ -36,10 +31,7 @@ services:
       - api_secret=${api_secret}
     volumes:
       - ./backend/src:/app/src
-      - ./backend/prisma:/app/prisma
-      - ./backend/prisma.config.ts:/app/prisma.config.ts
-      - ./backend/.env:/app/.env
-    command: sh -c "npx prisma generate && npm run start:dev"
+    command: npm run start:dev
   
   livekit:
     image: livekit/livekit-server

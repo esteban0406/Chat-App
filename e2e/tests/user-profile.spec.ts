@@ -31,12 +31,13 @@ test.describe.serial('User profile', () => {
     // Fill new name in the modal input (not the sidebar search)
     const dialog = page.locator('[role="dialog"], [class*="modal"], .fixed');
     const nameInput = dialog.locator('input').first();
+    const newName = `Nuevo_${Date.now()}`;
     await nameInput.clear();
-    await nameInput.fill('NuevoNombre');
+    await nameInput.fill(newName);
     await page.getByRole('button', { name: 'Guardar' }).click();
 
     await page.waitForTimeout(1000);
-    await expect(page.getByText('NuevoNombre').first()).toBeVisible();
+    await expect(page.getByText(newName).first()).toBeVisible();
   });
 
   test('Edit username validation - empty name', async ({ page }) => {

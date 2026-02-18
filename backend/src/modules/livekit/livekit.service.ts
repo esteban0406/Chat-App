@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { AccessToken } from 'livekit-server-sdk';
-import 'dotenv/config';
 
 @Injectable()
 export class LivekitService {

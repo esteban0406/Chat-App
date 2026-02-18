@@ -3,6 +3,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../../../src/app.module';
 import { PrismaService } from '../../../src/database/prisma.service';
 
+let currentApp: INestApplication | null = null;
+
+export const getTestApp = () => currentApp;
+
 export const createTestApp = async (): Promise<INestApplication> => {
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],
@@ -18,6 +22,7 @@ export const createTestApp = async (): Promise<INestApplication> => {
   );
 
   await app.init();
+  currentApp = app;
   return app;
 };
 
@@ -34,4 +39,5 @@ export const closeTestApp = async (app?: INestApplication) => {
     // Best effort shutdown for e2e teardown.
   }
   await app.close();
+  currentApp = null;
 };

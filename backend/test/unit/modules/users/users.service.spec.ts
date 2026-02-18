@@ -2,7 +2,7 @@ jest.mock('../../../../src/database/prisma.service', () => ({
   PrismaService: class PrismaService {},
 }));
 
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, ConflictException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CloudinaryService } from '../../../../src/database/cloudinary/cloudinary.service';
 import { PrismaService } from '../../../../src/database/prisma.service';
@@ -80,6 +80,17 @@ describe('UsersService', () => {
     const result = await service.update('u1', { username: 'new' });
     expect(prisma.user.update).toHaveBeenCalled();
     expect(result.username).toBe('new');
+  });
+
+  it('update throws ConflictException on duplicate username', async () => {
+    prisma.user.findUnique.mockResolvedValue({ id: 'u1' });
+    const error = new Error('Unique constraint failed');
+    (error as any).code = 'P2002';
+    prisma.user.update.mockRejectedValue(error);
+
+    await expect(service.update('u1', { username: 'taken' })).rejects.toThrow(
+      ConflictException,
+    );
   });
 
   it('update uploads avatar and cleans up old one', async () => {

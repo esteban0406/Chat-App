@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CloudinaryService } from '../../database/cloudinary/cloudinary.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -103,19 +103,26 @@ export class UsersService {
       }
     }
 
-    return this.prisma.user.update({
-      where: { id },
-      data,
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        avatarUrl: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    try {
+      return await this.prisma.user.update({
+        where: { id },
+        data,
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          avatarUrl: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+    } catch (error) {
+      if ((error as any).code === 'P2002') {
+        throw new ConflictException('El nombre de usuario ya está en uso');
+      }
+      throw error;
+    }
   }
 
   async updateStatus(id: string, status: 'ONLINE' | 'OFFLINE') {
