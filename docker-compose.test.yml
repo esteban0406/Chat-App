@@ -1,5 +1,7 @@
 services:
   backend:
     env_file:
-      - ./backend/.env.test 
+      - ./backend/.env.test
+    volumes:
+      - ./backend/.env.test:/app/.env.test:ro
     command: npm run start:test
