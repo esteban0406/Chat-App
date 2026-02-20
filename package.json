@@ -1,0 +1,14 @@
+{
+  "name": "Chat-App",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "docker:up": "docker compose -f docker-compose.yml up --build",
+    "docker:test": "docker compose -f docker-compose.yml -f docker-compose.test.yml up --build --exit-code-from e2e"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.29.3"
+}

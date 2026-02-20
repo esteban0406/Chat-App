@@ -54,7 +54,7 @@ export default function RoleDetailPanel({
     }
     setError(null);
     setConfirmDelete(false);
-  }, [role?.id, isCreating]);
+  }, [role, isCreating]);
 
   function togglePermission(perm: ServerPermission) {
     setFormPermissions((prev) =>

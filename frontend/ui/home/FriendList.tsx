@@ -1,6 +1,7 @@
 "use client";
 
 import { useFriends } from "@/lib/FriendsContext";
+import Image from "next/image"; // 1. Import the component
 
 export default function FriendList() {
   const { friends, loading, error } = useFriends();
@@ -26,15 +27,14 @@ export default function FriendList() {
             className="flex items-center justify-between rounded-lg border border-border bg-surface/40 px-4 py-3 text-sm"
           >
             <div className="flex items-center gap-3 truncate">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface text-xs font-semibold text-text-primary overflow-hidden border border-border/50">
+              <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface text-xs font-semibold text-text-primary overflow-hidden border border-border/50">
                 {friend.avatarUrl ? (
-                  <img
+                  <Image
                     src={friend.avatarUrl}
                     alt={friend.username}
-                    className="h-full w-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.classList.add("hidden");
-                    }}
+                    fill 
+                    sizes="32px" 
+                    className="object-cover"
                   />
                 ) : (
                   <span>{friend.username?.[0]?.toUpperCase() ?? "?"}</span>

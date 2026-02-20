@@ -1,6 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
-import dotenv from "dotenv";
 import path from "path";
+
+const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:4000";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3000";
 
 export default defineConfig({
   testDir: "./tests",
@@ -14,7 +16,7 @@ export default defineConfig({
   outputDir: "./test-results",
 
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: BASE_URL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
@@ -28,24 +30,26 @@ export default defineConfig({
     },
   ],
 
-  webServer: [
-    {
-      command: "pnpm run start:test",
-      cwd: path.resolve(__dirname, "../backend"),
-      url: "http://localhost:4000/api/health",
-      reuseExistingServer: !process.env.CI,
-      timeout: 120000,
-      stdout: 'pipe',
-    },
-    {
-      command: process.env.CI
-        ? "pnpm run build && pnpm run start"
-        : "pnpm run dev",
-      cwd: path.resolve(__dirname, "../frontend"),
-      url: "http://localhost:3000/login",
-      reuseExistingServer: !process.env.CI,
-      timeout: 120000,
-      stdout: 'pipe',
-    },
-  ],
+  webServer: process.env.DOCKER
+    ? undefined
+    : [
+        {
+          command: "pnpm run start:test",
+          cwd: path.resolve(__dirname, "../backend"),
+          url: `${BACKEND_URL}/api/health`,
+          reuseExistingServer: !process.env.CI,
+          timeout: 120000,
+          stdout: "pipe",
+        },
+        {
+          command: process.env.CI
+            ? "pnpm run build && pnpm run start"
+            : "pnpm run dev",
+          cwd: path.resolve(__dirname, "../frontend"),
+          url: `${BASE_URL}/login`,
+          reuseExistingServer: !process.env.CI,
+          timeout: 120000,
+          stdout: "pipe",
+        },
+      ],
 });

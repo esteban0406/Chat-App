@@ -35,8 +35,11 @@ export function CurrentUserProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    refreshUser();
-  }, [refreshUser]);
+    getMe().then((user) => {
+      setCurrentUser(user);
+      setLoading(false);
+    });
+  }, []);
 
   return (
     <CurrentUserContext.Provider value={{ currentUser, loading, refreshUser }}>

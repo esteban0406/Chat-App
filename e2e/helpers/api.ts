@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:4000';
+const API_URL = process.env.BACKEND_URL ?? 'http://localhost:4000';
 
 function authHeaders(token: string) {
   return {
@@ -124,6 +124,14 @@ export async function createRole(
   });
   if (!res.ok) throw new Error(`createRole failed: ${res.status}`);
   return (await res.json()) as { id: string; name: string };
+}
+
+export async function deleteRole(token: string, serverId: string, roleId: string) {
+  const res = await fetch(`${API_URL}/api/servers/${serverId}/roles/${roleId}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  });
+  if (!res.ok) throw new Error(`deleteRole failed: ${res.status}`);
 }
 
 export async function getRoles(token: string, serverId: string) {

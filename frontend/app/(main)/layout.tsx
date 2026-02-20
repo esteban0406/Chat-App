@@ -23,8 +23,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     if (!isAuthenticated()) {
       router.replace("/login");
     } else {
-      setIsChecking(false);
       connectSocket();
+      setIsChecking(false); // eslint-disable-line react-hooks/set-state-in-effect
     }
     return () => {
       disconnectSocket();

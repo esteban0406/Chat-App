@@ -10,6 +10,23 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '4000',
+      },
+      {
+        protocol: 'https',
+        hostname: process.env.NEXT_PUBLIC_BACKEND_URL || 'placeholder.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn-icons-png.flaticon.com',
+      },
+    ],
+  },
 };
 
 export default nextConfig;

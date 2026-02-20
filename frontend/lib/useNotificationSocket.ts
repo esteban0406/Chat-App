@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { getSocket } from "./socket";
 import type { Friendship, ServerInvite } from "./definitions";
 
@@ -28,7 +28,9 @@ const EVENT_MAP: Record<string, keyof NotificationCallbacks> = {
 
 export function useNotificationSocket(callbacks: NotificationCallbacks) {
   const callbacksRef = useRef(callbacks);
-  callbacksRef.current = callbacks;
+  useLayoutEffect(() => {
+    callbacksRef.current = callbacks;
+  });
 
   useEffect(() => {
     const socket = getSocket();

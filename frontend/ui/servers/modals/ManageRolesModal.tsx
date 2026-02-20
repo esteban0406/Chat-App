@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Server, Role } from "@/lib/definitions";
 import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 import { useServerPermissions } from "@/lib/useServerPermissions";
@@ -21,11 +21,12 @@ export default function ManageRolesModal({ server, onClose }: Props) {
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
-  useEffect(() => {
-    loadRoles();
-  }, [server.id]);
+  const isCreatingRef = useRef(isCreating);
+  useLayoutEffect(() => {
+    isCreatingRef.current = isCreating;
+  });
 
-  async function loadRoles() {
+  const loadRoles = useCallback(async () => {
     try {
       setLoading(true);
       const res = await backendFetch(`/api/servers/${server.id}/roles`);
@@ -39,9 +40,11 @@ export default function ManageRolesModal({ server, onClose }: Props) {
       setRoles(rolesList);
 
       // Auto-select first role if none selected
-      if (!selectedRoleId && !isCreating && rolesList.length > 0) {
-        setSelectedRoleId(rolesList[0].id);
-      }
+      setSelectedRoleId((prev) =>
+        !prev && !isCreatingRef.current && rolesList.length > 0
+          ? rolesList[0].id
+          : prev,
+      );
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "No se pudieron cargar los roles",
@@ -49,7 +52,11 @@ export default function ManageRolesModal({ server, onClose }: Props) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [server.id]);
+
+  useEffect(() => {
+    void loadRoles();
+  }, [loadRoles]);
 
   function handleSelectRole(roleId: string) {
     setSelectedRoleId(roleId);
@@ -62,7 +69,7 @@ export default function ManageRolesModal({ server, onClose }: Props) {
   }
 
   function handleSaved() {
-    loadRoles();
+    void loadRoles();
     if (isCreating) {
       setIsCreating(false);
     }
@@ -70,7 +77,7 @@ export default function ManageRolesModal({ server, onClose }: Props) {
 
   function handleDeleted() {
     setSelectedRoleId(null);
-    loadRoles();
+    void loadRoles();
   }
 
   const selectedRole = roles.find((r) => r.id === selectedRoleId) ?? null;

@@ -9,8 +9,11 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   // Enable CORS
+  const corsOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+    : ['http://localhost:3000', 'https://chat-app-koob.onrender.com'];
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://chat-app-koob.onrender.com'],
+    origin: corsOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
@@ -25,4 +28,4 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 4000);
 }
-bootstrap();
+void bootstrap();

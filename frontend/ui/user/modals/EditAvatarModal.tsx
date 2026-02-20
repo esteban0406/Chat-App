@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
+import Image from "next/image";
 
 type Props = {
   onClose: () => void;
@@ -13,6 +14,14 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    return () => {
+      if (preview && preview.startsWith("blob:")) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
 
   const resetState = () => {
     setPreview("");
@@ -40,13 +49,12 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
       return;
     }
 
+    if (preview) URL.revokeObjectURL(preview);
+
     setFile(selected);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result as string);
-      setError("");
-    };
-    reader.readAsDataURL(selected);
+    const objectUrl = URL.createObjectURL(selected);
+    setPreview(objectUrl);
+    setError("");
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -70,13 +78,15 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
       });
 
       if (!res.ok) {
-        const msg = await extractErrorMessage(res, "No se pudo actualizar el avatar");
+        const msg = await extractErrorMessage(
+          res,
+          "No se pudo actualizar el avatar",
+        );
         throw new Error(msg);
       }
 
       onUpdated?.();
-      resetState();
-      onClose();
+      closeModal();
     } catch (err: unknown) {
       console.error(err);
       setError(err instanceof Error ? err.message : "Error al subir imagen");
@@ -101,11 +111,15 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
 
           {preview && (
             <div className="flex justify-center">
-              <img
-                src={preview}
-                alt="Vista previa del avatar"
-                className="h-24 w-24 rounded-full object-cover ring-2 ring-gold"
-              />
+              <div className="relative h-24 w-24">
+                <Image
+                  src={preview}
+                  alt="Vista previa del avatar"
+                  fill
+                  unoptimized
+                  className="rounded-full object-cover ring-2 ring-gold"
+                />
+              </div>
             </div>
           )}
 

@@ -9,6 +9,7 @@ import { logout } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { toBackendURL } from "@/lib/backend-client";
 import { useCurrentUser } from "@/lib/CurrentUserContext";
+import Image from "next/image"; 
 
 export default function UserProfileBar() {
   const router = useRouter();
@@ -17,8 +18,9 @@ export default function UserProfileBar() {
   const [openNameModal, setOpenNameModal] = useState(false);
   const [openAvatarModal, setOpenAvatarModal] = useState(false);
 
-  const fallbackAvatar =
-    "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+  const fallbackAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+  
+  const [imgSrc, setImgSrc] = useState<string | null>(null);
 
   async function handleLogout() {
     await logout();
@@ -27,25 +29,27 @@ export default function UserProfileBar() {
 
   if (!user) return null;
 
-  const avatarSrc = user?.id
+  const avatarSrc = imgSrc || (user?.id
     ? toBackendURL(
         `/api/users/${user.id}/avatar?${encodeURIComponent(
           user.updatedAt?.toString?.() ?? "",
         )}`
       )
-    : fallbackAvatar;
+    : fallbackAvatar);
 
   return (
     <div className="flex h-[var(--footer-height)] items-center gap-3 border-t border-border bg-deep px-3">
-      <img
-        key={avatarSrc}
-        src={avatarSrc}
-        alt={user.username}
-        className="h-10 w-10 rounded-full ring-2 ring-gold"
-        onError={(e) => {
-          e.currentTarget.src = fallbackAvatar;
-        }}
-      />
+      <div className="relative h-10 w-10 shrink-0">
+        <Image
+          src={avatarSrc}
+          alt={user.username || "User avatar"}
+          fill
+          unoptimized={process.env.NODE_ENV === 'development'}
+          sizes="40px"
+          className="rounded-full object-cover ring-2 ring-gold"
+          onError={() => setImgSrc(fallbackAvatar)}
+        />
+      </div>
 
       <div className="flex-1 truncate">
         <p className="truncate text-sm font-semibold text-text-primary">{user.username}</p>

@@ -1,4 +1,4 @@
-const BACKEND_URL = 'http://localhost:4000';
+const BACKEND_URL = process.env.BACKEND_URL ?? 'http://localhost:4000';
 
 export async function resetDB(): Promise<void> {
   const res = await fetch(`${BACKEND_URL}/api/test/reset`, { method: 'POST' });

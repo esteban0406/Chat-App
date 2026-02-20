@@ -40,8 +40,8 @@ export default function EditChannelModal({
         throw new Error(msg);
       }
 
-      const updated = await res.json();
-      onUpdated?.(updated);
+      const body = await res.json();
+      onUpdated?.(body.data.channel);
       onClose();
     } catch (err) {
       console.error(err);

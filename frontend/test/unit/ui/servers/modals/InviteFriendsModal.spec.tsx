@@ -8,13 +8,12 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import InviteFriendsModal from '@/ui/servers/modals/InviteFriendsModal';
-import { backendFetch, unwrapList, extractErrorMessage } from '@/lib/backend-client';
+import { backendFetch, unwrapList } from '@/lib/backend-client';
 import { mockServer, mockUser2 } from '../../../../helpers/fixtures';
 import type { User } from '@/lib/auth';
 
 const mockBackendFetch = backendFetch as jest.MockedFunction<typeof backendFetch>;
 const mockUnwrapList = unwrapList as jest.MockedFunction<typeof unwrapList>;
-const mockExtractErrorMessage = extractErrorMessage as jest.MockedFunction<typeof extractErrorMessage>;
 
 beforeEach(() => {
   jest.clearAllMocks();

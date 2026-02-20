@@ -8,7 +8,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import EditServerModal from '@/ui/servers/modals/EditServerModal';
 import { backendFetch, extractErrorMessage } from '@/lib/backend-client';
-import { mockServer, mockUser, mockUser2, mockMember, mockRole } from '../../../../helpers/fixtures';
+import { mockServer, mockUser2, mockMember, mockRole } from '../../../../helpers/fixtures';
 import type { Server, Member } from '@/lib/definitions';
 
 const mockBackendFetch = backendFetch as jest.MockedFunction<typeof backendFetch>;

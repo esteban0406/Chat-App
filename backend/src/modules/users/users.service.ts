@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CloudinaryService } from '../../database/cloudinary/cloudinary.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -117,8 +121,12 @@ export class UsersService {
           updatedAt: true,
         },
       });
-    } catch (error) {
-      if ((error as any).code === 'P2002') {
+    } catch (error: unknown) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        (error as { code?: string }).code === 'P2002'
+      ) {
         throw new ConflictException('El nombre de usuario ya está en uso');
       }
       throw error;

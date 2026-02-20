@@ -53,7 +53,7 @@ describe('useNotificationSocket', () => {
 
     // Capture the handlers that were registered
     const registeredHandlers = mockSocket.on.mock.calls.map(
-      ([event, handler]: [string, Function]) => [event, handler],
+      ([event, handler]: [string, (data: unknown) => void]) => [event, handler],
     );
 
     unmount();

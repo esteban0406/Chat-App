@@ -3,6 +3,7 @@ import { registerUser } from '../helpers/auth';
 import {
   createServer,
   createRole,
+  deleteRole,
   getRoles,
   sendFriendRequest,
   acceptFriendRequest,
@@ -112,11 +113,7 @@ test.describe.serial('Role management', () => {
     expect(customRole).toBeTruthy();
 
     // Delete via API
-    const res = await fetch(`http://localhost:4000/api/servers/${serverId}/roles/${customRole!.id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${ownerToken}` },
-    });
-    expect(res.ok).toBe(true);
+    await deleteRole(ownerToken, serverId, customRole!.id);
 
     // Verify in UI that role is gone
     await page.goto(`/servers/${serverId}`);

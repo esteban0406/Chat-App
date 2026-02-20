@@ -29,8 +29,7 @@ function getAvatarColor(userId: string) {
 export default function ChatMessages({
   messages,
   loading,
-  error,
-  currentUserId,
+  error
 }: Props) {
   if (loading) {
     return <p className="p-4 text-sm text-text-muted">Cargando mensajes...</p>;

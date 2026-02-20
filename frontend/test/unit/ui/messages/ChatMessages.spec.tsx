@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import ChatMessages from '@/ui/messages/ChatMessages';
-import { mockMessage, mockUser, mockUser2 } from '../../../helpers/fixtures';
+import { mockMessage, mockUser2 } from '../../../helpers/fixtures';
 import type { Message } from '@/lib/definitions';
 
 describe('ChatMessages', () => {
