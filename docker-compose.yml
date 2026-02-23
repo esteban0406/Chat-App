@@ -10,7 +10,7 @@ services:
     volumes:
     - ./frontend:/app
     - /app/node_modules
-    command: npm run dev
+    command: npx prisma generate && npm run dev
 
   backend:
     build: ./backend
