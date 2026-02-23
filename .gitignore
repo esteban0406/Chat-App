@@ -15,3 +15,8 @@ data/
 .vscode/
 
 .claude/
+
+# prisma migrations and generated client
+
+prisma/migrations/
+src/generated/
