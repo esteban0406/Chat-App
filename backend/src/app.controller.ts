@@ -8,6 +8,9 @@ export class AppController {
 
   @Get('/')
   getRoot() {
-    return { message: 'Welcome to the Chat-App backend!' };
+    return {
+      message: 'Welcome to the Chat-App backend!',
+      timestamp: new Date().toISOString(),
+    };
   }
 }
