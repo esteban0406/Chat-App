@@ -19,7 +19,8 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: process.env.NEXT_PUBLIC_BACKEND_URL || 'placeholder.com',
+        hostname: (process.env.NEXT_PUBLIC_BACKEND_URL ?? 'https://placeholder.com')
+          .replace(/^https?:\/\//, ''),
       },
       {
         protocol: 'https',
