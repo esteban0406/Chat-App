@@ -239,6 +239,11 @@ jobs:
         run: |
           echo "NEXT_PUBLIC_BACKEND_URL=http://backend:4000" > frontend/.env
 
+      # backend/.env is declared in docker-compose.yml env_file; it must exist
+      # even though the real test values come from backend/.env.test (override).
+      - name: Create backend/.env (placeholder)
+        run: touch backend/.env
+
       # The root .env is read by the livekit service via env_file in docker-compose.yml.
       # Docker Compose errors if the file is absent, even when livekit runs in --dev mode.
       - name: Create root .env
