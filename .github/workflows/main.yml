@@ -1,8 +1,28 @@
+# ══════════════════════════════════════════════════════════════
+# REPO SETUP CHECKLIST (do once in GitHub → Settings):
+#
+# 1. Auto-Merge:
+#    Settings → General → ✅ Allow auto-merge
+#
+# 2. Branch Protection Rules for `main`:
+#    Settings → Branches → Add rule → Branch name pattern: main
+#      ✅ Require a pull request before merging
+#      ✅ Require status checks to pass before merging
+#         → Add required checks:
+#              Quality · Backend
+#              Quality · Frontend
+#              Unit Tests · Backend
+#              Unit Tests · Frontend
+#              Integration Tests · Backend
+#              E2E Tests · Playwright
+#      ✅ Require branches to be up to date before merging
+#      ✅ Do not allow bypassing the above settings
+# ══════════════════════════════════════════════════════════════
 name: CI/CD Pipeline
 
 on:
   push:
-    branches: ["**"]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -292,6 +312,7 @@ jobs:
     name: "Build · Production Images"
     runs-on: ubuntu-latest
     needs: [integration-backend, e2e]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
 
