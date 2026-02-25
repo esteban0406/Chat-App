@@ -1,28 +1,83 @@
+# Override file — run with:
+#   docker compose -f docker-compose.yml -f docker-compose.test.yml up --build --exit-code-from e2e
+
 services:
+  # ── Test database ─────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: chatapp_test
+      POSTGRES_PASSWORD: chatapp_test_pass
+      POSTGRES_DB: chatapp_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chatapp_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # ── Backend (test mode) ───────────────────────────────────────
   backend:
     env_file:
       - ./backend/.env.test
     volumes:
       - ./backend/.env.test:/app/.env.test:ro
-    command: npm run start:test
+    # Apply all pending migrations before starting the server.
+    command: >
+      sh -c "pnpm prisma migrate deploy &&
+             pnpm run start:test"
     environment:
-      - CORS_ORIGIN=http://localhost:3000,http://frontend:3000,https://chat-app-koob.onrender.com
+      # Override DATABASE_URL so the backend always reaches the
+      # compose-managed postgres service regardless of .env.test content.
+      DATABASE_URL: postgresql://chatapp_test:chatapp_test_pass@postgres:5432/chatapp_test
+      CORS_ORIGIN: "http://localhost:3000,http://frontend:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').createConnection(4000,'localhost').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
 
+  # ── Frontend (test mode) ──────────────────────────────────────
   frontend:
     environment:
-      - NEXT_PUBLIC_BACKEND_URL=http://backend:4000
+      NEXT_PUBLIC_BACKEND_URL: http://backend:4000
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000',(r)=>process.exit(r.statusCode<400?0:1)).on('error',()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 60s
 
+  # ── Playwright E2E runner ─────────────────────────────────────
   e2e:
     build:
       context: ./e2e
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     environment:
-      - DOCKER=true
-      - BACKEND_URL=http://backend:4000
-      - BASE_URL=http://frontend:3000
+      DOCKER: "true"
+      BACKEND_URL: http://backend:4000
+      BASE_URL: http://frontend:3000
     depends_on:
-      - backend
-      - frontend
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
     volumes:
       - ./e2e/test-results:/app/test-results
       - ./e2e/playwright-report:/app/playwright-report

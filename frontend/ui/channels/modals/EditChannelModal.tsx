@@ -41,7 +41,7 @@ export default function EditChannelModal({
       }
 
       const body = await res.json();
-      onUpdated?.(body.data.channel);
+      onUpdated?.(body);
       onClose();
     } catch (err) {
       console.error(err);

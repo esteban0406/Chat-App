@@ -167,7 +167,7 @@ export default function InviteForm() {
         </ul>
       )}
 
-      {status && <p className="text-sm text-text-secondary">{status}</p>}
+      {status ? <p className="text-sm text-text-secondary">{status}</p> : null}
     </div>
   );
 }

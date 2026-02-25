@@ -1,6 +1,25 @@
 services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "4000:4000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      # Bind-mount only the source tree — the container's node_modules
+      # (built for Linux inside the image) are never overwritten by the host.
+      - ./backend/src:/app/src
+      - ./backend/prisma:/app/prisma
+    command: pnpm run start:dev
+
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
     ports:
       - "3000:3000"
     depends_on:
@@ -8,20 +27,14 @@ services:
     env_file:
       - ./frontend/.env
     volumes:
-    - ./frontend:/app
-    - /app/node_modules
-    command: npx prisma generate && npm run dev
+      # Full bind-mount for HMR.
+      # The two anonymous volumes below shadow the host directories so the
+      # container's node_modules and .next cache are preserved across restarts.
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    command: pnpm run dev
 
-  backend:
-    build: ./backend
-    ports:
-      - "4000:4000"
-    env_file:
-      - ./backend/.env
-    volumes:
-      - ./backend/src:/app/src
-    command: npm run start:dev
-  
   livekit:
     image: livekit/livekit-server
     container_name: livekit

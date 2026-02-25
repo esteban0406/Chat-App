@@ -1,5 +1,27 @@
+# Dependencies — rebuilt inside the container
 node_modules
-npm-debug.log
-pnpm-lock.yaml
-coverage
+
+# Compiled output
 dist
+
+# Test artifacts
+coverage
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Env files — injected at runtime via docker-compose
+.env
+.env.*
+
+# Git & editor
+.git
+.gitignore
+.DS_Store
+.vscode
+.idea
+
+# TypeScript incremental cache
+*.tsbuildinfo

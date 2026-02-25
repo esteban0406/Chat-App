@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "devops-engineer": {
+      "source": "jeffallan/claude-skills",
+      "sourceType": "github",
+      "computedHash": "efd7d477e1964f2288214c44e6b52c1576cd690080738e6e6525a37668220047"
+    },
+    "docker-expert": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "3af17640f2b6b301afc9331cf8843ec723ff12d7b13c050a605e0723d0a585ca"
+    }
+  }
+}

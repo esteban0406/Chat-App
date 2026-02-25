@@ -59,7 +59,7 @@ export default function LoginPage() {
           {loading ? "Ingresando..." : "Login"}
         </button>
 
-        {error && <p className="text-ruby text-sm">{error}</p>}
+        {error ? <p className="text-ruby text-sm">{error}</p> : null}
       </form>
 
       <div className="flex items-center my-4">

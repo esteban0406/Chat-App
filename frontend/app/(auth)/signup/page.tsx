@@ -68,7 +68,7 @@ export default function SignUpPage() {
           {loading ? "Registrando..." : "Registrarse"}
         </button>
 
-        {error && <p className="text-ruby text-center text-sm">{error}</p>}
+        {error ? <p className="text-ruby text-center text-sm">{error}</p> : null}
       </form>
 
       <div className="flex items-center my-4">
