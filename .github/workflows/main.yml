@@ -182,11 +182,9 @@ jobs:
       - name: Generate Prisma client
         run: pnpm prisma generate
 
-      # Create the .env.test file from secrets.
-      # Add any additional variables your app requires as new lines.
       - name: Create .env.test
         run: |
-          cat > .env.test << 'EOF'
+          cat > .env.test << EOF
           NODE_ENV=test
           PORT=4000
           DATABASE_URL=postgresql://chatapp_test:chatapp_test_pass@localhost:5432/chatapp_test
@@ -195,6 +193,9 @@ jobs:
           CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
           CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
           CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
+          LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }}
+          LIVEKIT_URL=ws://localhost:7880
           EOF
 
       - name: Run migrations
@@ -218,11 +219,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Create the env files that the compose stack reads.
-      # Adjust the variable list to match your full .env.test.
       - name: Create backend/.env.test
         run: |
-          cat > backend/.env.test << 'EOF'
+          cat > backend/.env.test << EOF
           NODE_ENV=test
           PORT=4000
           DATABASE_URL=postgresql://chatapp_test:chatapp_test_pass@postgres:5432/chatapp_test
@@ -231,6 +230,9 @@ jobs:
           CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
           CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
           CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
+          LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }}
+          LIVEKIT_URL=ws://livekit:7880
           EOF
 
       - name: Create frontend/.env
