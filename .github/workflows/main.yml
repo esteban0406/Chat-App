@@ -239,6 +239,15 @@ jobs:
         run: |
           echo "NEXT_PUBLIC_BACKEND_URL=http://backend:4000" > frontend/.env
 
+      # The root .env is read by the livekit service via env_file in docker-compose.yml.
+      # Docker Compose errors if the file is absent, even when livekit runs in --dev mode.
+      - name: Create root .env
+        run: |
+          cat > .env << EOF
+          LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }}
+          EOF
+
       - name: Boot full stack and run E2E suite
         run: |
           docker compose \
