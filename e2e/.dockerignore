@@ -1,0 +1,12 @@
+# Dependencies — rebuilt inside the container
+node_modules
+
+# Playwright output artifacts
+test-results
+playwright-report
+blob-report
+playwright/.cache
+playwright/.auth
+
+# Logs
+*.log

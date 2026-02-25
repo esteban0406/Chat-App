@@ -125,6 +125,8 @@ describe('ChatGateway', () => {
     });
 
     it('returns early when fields are missing', async () => {
+      // Intentionally sending invalid payload to test validation path
+      // @ts-expect-error missing senderId and text on purpose
       await gateway.handleMessage({ channelId: 'c1' });
       expect(messagesService.create).not.toHaveBeenCalled();
     });

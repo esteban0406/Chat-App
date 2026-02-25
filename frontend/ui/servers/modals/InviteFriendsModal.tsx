@@ -156,7 +156,7 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
           </ul>
         )}
 
-        {status && <p className="mt-3 text-sm text-text-muted">{status}</p>}
+        {status ? <p className="mt-3 text-sm text-text-muted">{status}</p> : null}
       </div>
     </div>
   );

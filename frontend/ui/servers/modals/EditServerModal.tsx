@@ -84,7 +84,7 @@ export default function EditServerModal({
           )}
         </div>
 
-        {error && <p className="mt-3 text-sm text-ruby">{error}</p>}
+        {error ? <p className="mt-3 text-sm text-ruby">{error}</p> : null}
 
         <div className="mt-4 text-right">
           <button

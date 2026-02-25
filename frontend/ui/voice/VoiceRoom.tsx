@@ -22,6 +22,37 @@ type VoiceRoomProps = {
   enableVideo?: boolean;
 };
 
+function LocalParticipantNameSync({ name }: { name?: string }) {
+  const room = useRoomContext();
+
+  useEffect(() => {
+    const trimmed = name?.trim();
+    if (!room || !trimmed) return;
+
+    const updateName = () => {
+      const participant = room.localParticipant;
+      if (!participant || participant.name === trimmed) return;
+      participant.setName(trimmed).catch((err) => {
+        console.warn(
+          "No se pudo actualizar el nombre del participante:",
+          err
+        );
+      });
+    };
+
+    if (room.state === "connected") {
+      updateName();
+    }
+
+    room.on(RoomEvent.Connected, updateName);
+    return () => {
+      room.off(RoomEvent.Connected, updateName);
+    };
+  }, [room, name]);
+
+  return null;
+}
+
 export default function VoiceRoom({
   channelId,
   userId,
@@ -33,7 +64,7 @@ export default function VoiceRoom({
   const [error, setError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
 
-  const roomName = useMemo(() => `channel-${channelId}`, [channelId]);
+  const roomName = `channel-${channelId}`;
   const resolvedDisplayName = useMemo(
     () => displayName?.trim() || undefined,
     [displayName]
@@ -69,37 +100,6 @@ export default function VoiceRoom({
         setError(message);
       });
   }, [channelId, userId, resolvedDisplayName, roomName, retryKey]);
-
-  function LocalParticipantNameSync({ name }: { name?: string }) {
-    const room = useRoomContext();
-
-    useEffect(() => {
-      const trimmed = name?.trim();
-      if (!room || !trimmed) return;
-
-      const updateName = () => {
-        const participant = room.localParticipant;
-        if (!participant || participant.name === trimmed) return;
-        participant.setName(trimmed).catch((err) => {
-          console.warn(
-            "No se pudo actualizar el nombre del participante:",
-            err
-          );
-        });
-      };
-
-      if (room.state === "connected") {
-        updateName();
-      }
-
-      room.on(RoomEvent.Connected, updateName);
-      return () => {
-        room.off(RoomEvent.Connected, updateName);
-      };
-    }, [room, name]);
-
-    return null;
-  }
 
   if (error) {
     return (

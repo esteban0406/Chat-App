@@ -6,6 +6,7 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -16,11 +17,23 @@ import type { RequestWithUser } from './types';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Throttle({
+    default: {
+      ttl: 60_000,
+      limit: process.env.NODE_ENV === 'test' ? 1000 : 10,
+    },
+  })
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
 
+  @Throttle({
+    default: {
+      ttl: 60_000,
+      limit: process.env.NODE_ENV === 'test' ? 1000 : 10,
+    },
+  })
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Request() req: RequestWithUser) {

@@ -55,11 +55,13 @@ pids
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
-# prisma migrations and generated client
+# prisma generated client
 
-prisma/migrations/
-src/generated/
+/src/generated/
 
-# TS build info 
+# typescript
 *.tsbuildinfo
+next-env.d.ts
 
+#skills 
+.agents/

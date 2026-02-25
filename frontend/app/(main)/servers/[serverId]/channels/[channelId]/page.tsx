@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
 import { useParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import {
   Menu,
   Hash,
@@ -12,20 +12,17 @@ import ChatMessages from "@/ui/messages/ChatMessages";
 import ChatInput from "@/ui/messages/ChatInput";
 import { useMessages } from "@/ui/messages/useMessages";
 import { useLayoutContext } from "@/ui/layout/LayoutContext";
-import VoiceRoom from "@/ui/voice/VoiceRoom";
 import { useServers } from "@/lib/ServersContext";
 import { useCurrentUser } from "@/lib/CurrentUserContext";
 
+const VoiceRoom = dynamic(() => import("@/ui/voice/VoiceRoom"), { ssr: false });
+
 export default function ChannelPage() {
   const params = useParams();
-  const serverId = useMemo(() => {
-    const raw = params?.serverId;
-    return Array.isArray(raw) ? raw[0] : raw;
-  }, [params]);
-  const channelId = useMemo(() => {
-    const raw = params?.channelId;
-    return Array.isArray(raw) ? raw[0] : raw;
-  }, [params]);
+  const rawServerId = params?.serverId;
+  const serverId = Array.isArray(rawServerId) ? rawServerId[0] : rawServerId;
+  const rawChannelId = params?.channelId;
+  const channelId = Array.isArray(rawChannelId) ? rawChannelId[0] : rawChannelId;
 
   const { openServerDrawer, openSectionSidebar, openProfileDrawer } =
     useLayoutContext();
@@ -103,7 +100,7 @@ export default function ChannelPage() {
         <ChatInput
           channelId={channelId ?? ""}
           senderId={currentUser?.id}
-          onError={() => refresh()}
+          onError={refresh}
         />
       </div>
     </div>

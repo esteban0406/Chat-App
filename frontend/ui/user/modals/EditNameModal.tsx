@@ -69,7 +69,7 @@ export default function EditNameModal({ user, onClose, onUpdated }: Props) {
             placeholder="Nuevo nombre de usuario"
           />
 
-          {error && <p className="text-sm text-ruby">{error}</p>}
+          {error ? <p className="text-sm text-ruby">{error}</p> : null}
 
           <div className="flex justify-end gap-2">
             <button

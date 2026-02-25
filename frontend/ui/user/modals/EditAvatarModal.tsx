@@ -123,7 +123,7 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
             </div>
           )}
 
-          {error && <p className="text-sm text-ruby">{error}</p>}
+          {error ? <p className="text-sm text-ruby">{error}</p> : null}
 
           <div className="flex justify-end gap-2">
             <button

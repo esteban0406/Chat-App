@@ -84,7 +84,9 @@ describe('UsersService', () => {
 
   it('update throws ConflictException on duplicate username', async () => {
     prisma.user.findUnique.mockResolvedValue({ id: 'u1' });
-    const error = Object.assign(new Error('Unique constraint failed'), { code: 'P2002' });
+    const error = Object.assign(new Error('Unique constraint failed'), {
+      code: 'P2002',
+    });
     prisma.user.update.mockRejectedValue(error);
 
     await expect(service.update('u1', { username: 'taken' })).rejects.toThrow(

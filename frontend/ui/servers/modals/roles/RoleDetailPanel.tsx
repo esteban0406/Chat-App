@@ -282,7 +282,7 @@ export default function RoleDetailPanel({
           </>
         )}
 
-        {error && <p className="text-sm text-ruby">{error}</p>}
+        {error ? <p className="text-sm text-ruby">{error}</p> : null}
       </div>
 
       {/* Footer */}

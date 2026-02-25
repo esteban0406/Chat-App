@@ -55,7 +55,7 @@ export default function ChatInput({ channelId, senderId, disabled, onError }: Pr
       >
         <SendHorizontal className="h-4 w-4" />
       </button>
-      {error && <span className="text-xs text-ruby">{error}</span>}
+      {error ? <span className="text-xs text-ruby">{error}</span> : null}
     </form>
   );
 }

@@ -42,7 +42,7 @@ describe('EditChannelModal', () => {
     const updatedChannel = { ...mockChannel, name: 'updated-name' };
     const mockRes = {
       ok: true,
-      json: jest.fn().mockResolvedValue({ data: { channel: updatedChannel } }),
+      json: jest.fn().mockResolvedValue(updatedChannel),
     } as unknown as Response;
     mockBackendFetch.mockResolvedValue(mockRes);
 

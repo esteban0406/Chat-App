@@ -120,7 +120,7 @@ describe("ChannelPage", () => {
     expect(screen.queryByTestId("voice-room")).not.toBeInTheDocument();
   });
 
-  it("shows VoiceRoom for a VOICE channel", () => {
+  it("shows VoiceRoom for a VOICE channel", async () => {
     mockUseParams.mockReturnValue({
       serverId: mockServer.id,
       channelId: mockVoiceChannel.id,
@@ -128,7 +128,7 @@ describe("ChannelPage", () => {
 
     render(<ChannelPage />);
 
-    expect(screen.getByTestId("voice-room")).toBeInTheDocument();
+    expect(await screen.findByTestId("voice-room")).toBeInTheDocument();
     expect(screen.queryByTestId("chat-messages")).not.toBeInTheDocument();
     expect(screen.queryByTestId("chat-input")).not.toBeInTheDocument();
   });

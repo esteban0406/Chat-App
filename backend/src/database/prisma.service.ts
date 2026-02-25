@@ -25,9 +25,15 @@ export class PrismaService
 
       await this.$queryRaw`SELECT 1`;
 
-      console.log('Conexión a la base de datos establecida');
+      if (process.env.NODE_ENV === 'test') {
+        console.log(
+          'Conexión a la base de datos establecida en test environment',
+        );
+      } else {
+        console.log('Conexión a la base de datos establecida');
+      }
     } catch (error: unknown) {
-      console.error('❌ E2E: Error de conexión detectado en PrismaService:');
+      console.error('Error de conexión detectado en PrismaService:');
       console.error(error);
 
       throw new Error(
