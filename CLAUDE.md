@@ -76,12 +76,40 @@ Frontend reads `frontend/.env.local` (Next.js convention).
 
 ## CI/CD (`.github/workflows/main.yml`)
 
-Pipeline stages (GitHub Actions):
-1. **Quality** — ESLint + TypeScript type-check for backend and frontend (parallel, Node 24 / Node 20)
-2. **Unit Tests** — Jest for both apps (after quality gate)
-3. **Integration Tests** — Backend NestJS e2e against a real Postgres service container
-4. **E2E Tests** — Full Playwright suite via docker-compose
-5. **Build Verification** — Production Docker images built and layer-cached
+### Workflow Model: Gated PR → main
+
+The pipeline uses a **gated** model. No one pushes directly to `main`; all changes go through a PR. The pipeline triggers on:
+- `pull_request` targeting `main` — runs all quality and test jobs as required status checks.
+- `push` to `main` (i.e. after a PR merges) — runs all quality and test jobs **plus** the build-images job.
+
+A concurrency group cancels any in-progress run for the same branch/PR when a new commit is pushed, avoiding wasted runner time.
+
+### Job Stages
+
+```
+[quality-backend]──┐                          (parallel, Node 24 / Node 20)
+                   ├──[unit-backend]──[integration-backend]──┐
+[quality-frontend]─┘                                         ├──[build-images] ← push to main only
+                   └──[unit-frontend]──────────────────────[e2e]
+```
+
+| # | Job | Runs on | Notes |
+|---|-----|---------|-------|
+| 1 | **Quality · Backend** | PR + push to main | ESLint + `tsc --noEmit`, Node 24 |
+| 1 | **Quality · Frontend** | PR + push to main | ESLint + `tsc --noEmit`, Node 20 |
+| 2 | **Unit Tests · Backend** | PR + push to main | Jest, needs quality-backend |
+| 2 | **Unit Tests · Frontend** | PR + push to main | Jest, needs quality-frontend |
+| 3a | **Integration Tests · Backend** | PR + push to main | NestJS e2e suite against a real Postgres service container, needs unit-backend |
+| 3b | **E2E Tests · Playwright** | PR + push to main | Full stack via docker-compose, needs unit-backend + unit-frontend |
+| 4 | **Build · Production Images** | **push to main only** | Docker BuildKit with GHA layer cache, needs integration-backend + e2e |
+
+### Branch Protection (GitHub Settings)
+
+`main` is protected with rules that enforce this flow:
+- PRs required before merging.
+- The following status checks must pass: `Quality · Backend`, `Quality · Frontend`, `Unit Tests · Backend`, `Unit Tests · Frontend`, `Integration Tests · Backend`, `E2E Tests · Playwright`.
+- Branch must be up to date before merging.
+- Auto-merge is enabled (Settings → General) so a PR auto-merges once all checks go green.
 
 ## Monorepo Layout
 
