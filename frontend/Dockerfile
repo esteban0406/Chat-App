@@ -67,9 +67,9 @@ RUN pnpm install --offline --frozen-lockfile --prod
 # =============================================================
 # Stage: production — minimal Alpine image, non-root user
 #
-# TIP: Add `output: 'standalone'` to next.config.ts for a
-# significantly smaller image (no node_modules copy needed).
-# See: https://nextjs.org/docs/app/api-reference/config/next-config-js/output
+# Requires `output: 'standalone'` in next.config.ts.
+# The standalone bundle includes its own minimal node_modules;
+# no separate prod-deps copy is needed.
 # =============================================================
 FROM node:20-alpine AS production
 
@@ -77,13 +77,17 @@ RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001 -G nodejs
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
 WORKDIR /app
 
-COPY --from=prod-deps --chown=nextjs:nodejs /app/node_modules ./node_modules
-COPY --from=build     --chown=nextjs:nodejs /app/.next        ./.next
-COPY --from=build     --chown=nextjs:nodejs /app/public       ./public
-COPY --from=build     --chown=nextjs:nodejs /app/package.json ./package.json
+# standalone bundle: includes server.js + trimmed node_modules
+COPY --from=build --chown=nextjs:nodejs /app/.next/standalone ./
+# static assets must be at .next/static relative to server.js
+COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
+# public dir must sit alongside server.js
+COPY --from=build --chown=nextjs:nodejs /app/public ./public
 
 USER nextjs
 
@@ -92,4 +96,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000',(r)=>process.exit(r.statusCode<400?0:1)).on('error',()=>process.exit(1))"
 
-CMD ["node_modules/.bin/next", "start"]
+CMD ["node", "server.js"]
