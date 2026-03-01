@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { House, Plus } from "lucide-react";
 import CreateServerModal from "./modals/CreateServerModal";
-import { useNotifications } from "@/lib/NotificationContext";
-import { useServers } from "@/lib/ServersContext";
+import { useNotifications } from "@/lib/context/NotificationContext";
+import { useServers } from "@/lib/context/ServersContext";
 
 export default function ServerSidebar({ onClose }: { onClose?: () => void }) {
   const [showCreate, setShowCreate] = useState(false);

@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, act, waitFor } from "@testing-library/react";
-import { ServersProvider, useServers } from "@/lib/ServersContext";
+import { ServersProvider, useServers } from "@/lib/context/ServersContext";
 import { Server } from "@/lib/definitions";
 
 const mockBackendFetch = jest.fn<Promise<unknown>, [string, ...unknown[]]>();

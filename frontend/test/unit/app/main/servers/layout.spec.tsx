@@ -50,7 +50,7 @@ jest.mock("@/ui/layout/LayoutContext", () => ({
   }),
 }));
 
-jest.mock("@/lib/ServersContext", () => ({
+jest.mock("@/lib/context/ServersContext", () => ({
   useServers: () => ({
     servers: [],
     loading: false,

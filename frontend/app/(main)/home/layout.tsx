@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import SectionShell from "@/ui/layout/SectionShell";
 import FriendsSidebar from "@/ui/home/FriendsSidebar";
 import { useLayoutContext } from "@/ui/layout/LayoutContext";
-import { FriendsProvider } from "@/lib/FriendsContext";
+import { FriendsProvider } from "@/lib/context/FriendsContext";
 import { Menu, Users, CircleUser } from "lucide-react";
-import { useNotifications } from "@/lib/NotificationContext";
+import { useNotifications } from "@/lib/context/NotificationContext";
 import { useEffect } from "react";
 
 const tabs = [

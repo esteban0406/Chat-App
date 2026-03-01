@@ -1,9 +1,9 @@
-jest.mock('@/lib/CurrentUserContext', () => ({
+jest.mock('@/lib/context/CurrentUserContext', () => ({
   useCurrentUser: jest.fn(),
 }));
 
 import { renderHook } from '@testing-library/react';
-import { useCurrentUser } from '@/lib/CurrentUserContext';
+import { useCurrentUser } from '@/lib/context/CurrentUserContext';
 import { useServerPermissions } from '@/lib/useServerPermissions';
 import { mockUser, mockUser2, mockServer, mockMember, mockRole } from '@/test/helpers/fixtures';
 import type { Server, Member } from '@/lib/definitions';

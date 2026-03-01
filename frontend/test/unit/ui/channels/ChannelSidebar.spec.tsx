@@ -6,7 +6,7 @@ import {
 } from '../../../helpers/fixtures';
 import type { Server } from '@/lib/definitions';
 
-jest.mock('@/lib/ServersContext', () => ({
+jest.mock('@/lib/context/ServersContext', () => ({
   useServers: jest.fn(),
 }));
 
@@ -82,8 +82,13 @@ jest.mock('@/ui/servers/modals/ManageRolesModal', () => {
     return <div data-testid="manage-roles-modal" />;
   };
 });
+jest.mock('@/ui/servers/modals/RenameServerModal', () => {
+  return function MockModal() {
+    return <div data-testid="rename-server-modal" />;
+  };
+});
 
-import { useServers } from '@/lib/ServersContext';
+import { useServers } from '@/lib/context/ServersContext';
 import { useServerPermissions } from '@/lib/useServerPermissions';
 import { useParams } from 'next/navigation';
 

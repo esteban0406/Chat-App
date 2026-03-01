@@ -242,7 +242,6 @@ export class ServersService {
 
   async updateServer(
     serverId: string,
-    userId: string,
     data: { name?: string; iconUrl?: string },
   ) {
     const server = await this.prisma.server.findUnique({
@@ -251,10 +250,6 @@ export class ServersService {
 
     if (!server) {
       throw new NotFoundException('Server not found');
-    }
-
-    if (server.ownerId !== userId) {
-      throw new ForbiddenException('Only the owner can update the server');
     }
 
     return this.prisma.server.update({

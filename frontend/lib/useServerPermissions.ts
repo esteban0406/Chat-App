@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { useCurrentUser } from "@/lib/CurrentUserContext";
+import { useCurrentUser } from "@/lib/context/CurrentUserContext";
 import { Server, ServerPermission } from "@/lib/definitions";
 
 export function useServerPermissions(server: Server | undefined) {

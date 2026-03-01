@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { User } from "@/lib/auth";
 import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
-import { useCurrentUser } from "@/lib/CurrentUserContext";
+import { useCurrentUser } from "@/lib/context/CurrentUserContext";
 
 export default function InviteForm() {
   const [query, setQuery] = useState("");

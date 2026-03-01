@@ -1,6 +1,6 @@
 "use client";
 
-import { useFriends } from "@/lib/FriendsContext";
+import { useFriends } from "@/lib/context/FriendsContext";
 import Image from "next/image"; // 1. Import the component
 
 export default function FriendList() {

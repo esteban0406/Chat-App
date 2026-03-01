@@ -36,7 +36,7 @@ jest.mock("next/link", () => {
   };
 });
 
-jest.mock("@/lib/FriendsContext", () => ({
+jest.mock("@/lib/context/FriendsContext", () => ({
   FriendsProvider: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
   ),
@@ -48,7 +48,7 @@ jest.mock("@/lib/FriendsContext", () => ({
   }),
 }));
 
-jest.mock("@/lib/NotificationContext", () => ({
+jest.mock("@/lib/context/NotificationContext", () => ({
   useNotifications: () => ({
     hasNewFriendRequests: mockHasNewFriendRequests(),
     hasNewServerInvites: mockHasNewServerInvites(),

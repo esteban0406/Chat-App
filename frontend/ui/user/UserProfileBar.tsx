@@ -8,7 +8,7 @@ import EditAvatarModal from "./modals/EditAvatarModal";
 import { logout } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { toBackendURL } from "@/lib/backend-client";
-import { useCurrentUser } from "@/lib/CurrentUserContext";
+import { useCurrentUser } from "@/lib/context/CurrentUserContext";
 import Image from "next/image"; 
 
 export default function UserProfileBar() {

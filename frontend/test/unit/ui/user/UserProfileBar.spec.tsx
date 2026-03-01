@@ -10,7 +10,7 @@ jest.mock('next/navigation', () => ({
   useRouter: jest.fn(() => ({ push: mockPush })),
 }));
 
-jest.mock('@/lib/CurrentUserContext', () => ({
+jest.mock('@/lib/context/CurrentUserContext', () => ({
   useCurrentUser: jest.fn(),
 }));
 
@@ -44,7 +44,7 @@ jest.mock('@/ui/user/modals/EditAvatarModal', () => {
   };
 });
 
-import { useCurrentUser } from '@/lib/CurrentUserContext';
+import { useCurrentUser } from '@/lib/context/CurrentUserContext';
 import { logout } from '@/lib/auth';
 
 const mockUseCurrentUser = useCurrentUser as jest.MockedFunction<

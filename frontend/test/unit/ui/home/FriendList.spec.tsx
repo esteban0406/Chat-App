@@ -3,11 +3,11 @@ import { render, screen } from '@testing-library/react';
 import FriendList from '@/ui/home/FriendList';
 import { mockUser, mockUser2 } from '../../../helpers/fixtures';
 
-jest.mock('@/lib/FriendsContext', () => ({
+jest.mock('@/lib/context/FriendsContext', () => ({
   useFriends: jest.fn(),
 }));
 
-import { useFriends } from '@/lib/FriendsContext';
+import { useFriends } from '@/lib/context/FriendsContext';
 
 const mockUseFriends = useFriends as jest.MockedFunction<typeof useFriends>;
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Search } from "lucide-react";
-import { useFriends } from "@/lib/FriendsContext";
+import { useFriends } from "@/lib/context/FriendsContext";
 import Image from "next/image"; // 1. Import the component
 
 type Props = {

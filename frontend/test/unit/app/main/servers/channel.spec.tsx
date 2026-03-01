@@ -26,11 +26,11 @@ jest.mock("next/link", () => {
   };
 });
 
-jest.mock("@/lib/ServersContext", () => ({
+jest.mock("@/lib/context/ServersContext", () => ({
   useServers: () => mockUseServers(),
 }));
 
-jest.mock("@/lib/CurrentUserContext", () => ({
+jest.mock("@/lib/context/CurrentUserContext", () => ({
   useCurrentUser: () => mockUseCurrentUser(),
 }));
 

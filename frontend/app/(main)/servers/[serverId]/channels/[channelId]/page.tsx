@@ -12,8 +12,8 @@ import ChatMessages from "@/ui/messages/ChatMessages";
 import ChatInput from "@/ui/messages/ChatInput";
 import { useMessages } from "@/ui/messages/useMessages";
 import { useLayoutContext } from "@/ui/layout/LayoutContext";
-import { useServers } from "@/lib/ServersContext";
-import { useCurrentUser } from "@/lib/CurrentUserContext";
+import { useServers } from "@/lib/context/ServersContext";
+import { useCurrentUser } from "@/lib/context/CurrentUserContext";
 
 const VoiceRoom = dynamic(() => import("@/ui/voice/VoiceRoom"), { ssr: false });
 

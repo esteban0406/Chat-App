@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Channel, Server } from "@/lib/definitions";
 import { useServerPermissions } from "@/lib/useServerPermissions";
-import { useServers } from "@/lib/ServersContext";
+import { useServers } from "@/lib/context/ServersContext";
 import CreateChannelModal from "./modals/CreateChannelModal";
 import EditChannelModal from "./modals/EditChannelModal";
 import DeleteChannelModal from "./modals/DeleteChannelModal";
@@ -22,6 +22,7 @@ import InviteFriendsModal from "@/ui/servers/modals/InviteFriendsModal";
 import EditServerModal from "@/ui/servers/modals/EditServerModal";
 import DeleteServerModal from "@/ui/servers/modals/DeleteServerModal";
 import ManageRolesModal from "@/ui/servers/modals/ManageRolesModal";
+import RenameServerModal from "@/ui/servers/modals/RenameServerModal";
 
 export default function ChannelSidebar({
   sidebarControls,
@@ -44,6 +45,7 @@ export default function ChannelSidebar({
   const [showEditServerModal, setShowEditServerModal] = useState(false);
   const [showDeleteServerModal, setShowDeleteServerModal] = useState(false);
   const [showRolesModal, setShowRolesModal] = useState(false);
+  const [showRenameServerModal, setShowRenameServerModal] = useState(false);
 
   const { hasPermission } = useServerPermissions(server);
 
@@ -115,6 +117,21 @@ export default function ChannelSidebar({
                       }`}
                     >
                       Gestionar roles
+                    </button>
+                  )}
+                </Menu.Item>
+              )}
+              {hasPermission("RENAME_SERVER") && (
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      type="button"
+                      onClick={() => setShowRenameServerModal(true)}
+                      className={`block w-full px-3 py-2 text-left ${
+                        active ? "bg-surface/80 text-white" : "text-text-secondary"
+                      }`}
+                    >
+                      Cambiar nombre del servidor
                     </button>
                   )}
                 </Menu.Item>
@@ -230,6 +247,14 @@ export default function ChannelSidebar({
         <ManageRolesModal
           server={server as Server}
           onClose={() => setShowRolesModal(false)}
+        />
+      )}
+
+      {showRenameServerModal && (
+        <RenameServerModal
+          server={server as Server}
+          onClose={() => setShowRenameServerModal(false)}
+          onRenamed={refreshServers}
         />
       )}
     </>

@@ -44,16 +44,13 @@ export class ServersController {
   }
 
   @Patch(':serverId')
+  @UseGuards(ServerPermissionGuard)
+  @RequirePermission(ServerPermission.RENAME_SERVER)
   async update(
-    @Request() req: RequestWithUser,
     @Param('serverId') serverId: string,
     @Body() updateServerDto: UpdateServerDto,
   ) {
-    return this.serversService.updateServer(
-      serverId,
-      req.user.id,
-      updateServerDto,
-    );
+    return this.serversService.updateServer(serverId, updateServerDto);
   }
 
   @Delete(':serverId')
