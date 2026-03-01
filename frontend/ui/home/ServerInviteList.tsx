@@ -6,9 +6,11 @@ import { Check, X } from "lucide-react";
 import { ServerInvite, Server } from "@/lib/definitions";
 import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
 import { useNotificationSocket } from "@/lib/useNotificationSocket";
+import { useServers } from "@/lib/ServersContext";
 
 export default function ServerInviteList() {
   const router = useRouter();
+  const { refreshServers } = useServers();
   const [invites, setInvites] = useState<ServerInvite[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,6 +79,7 @@ export default function ServerInviteList() {
             ? invite.server
             : invite.server?.id;
         if (serverId) {
+          await refreshServers();
           router.push(`/servers/${serverId}`);
         }
       }

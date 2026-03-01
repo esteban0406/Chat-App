@@ -7,13 +7,13 @@ import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-cli
 type ServersState = {
   servers: Server[];
   loading: boolean;
-  refreshServers: () => void;
+  refreshServers: () => Promise<void>;
 };
 
 const ServersContext = createContext<ServersState>({
   servers: [],
   loading: true,
-  refreshServers: () => {},
+  refreshServers: () => Promise.resolve(),
 });
 
 export function ServersProvider({ children }: { children: ReactNode }) {

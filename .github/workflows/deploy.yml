@@ -1,0 +1,36 @@
+name: Deploy to VPS
+
+on:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types: [completed]
+    branches: [main]
+
+# Queue deploys; never kill a running one mid-flight.
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: "Deploy · VPS"
+    runs-on: ubuntu-latest
+    # Only deploy when CI succeeded AND was triggered by a push to main.
+    # PRs also complete with 'success' but skip build-images, so we filter
+    # by workflow_run.event == 'push' to avoid deploying stale images.
+    if: >-
+      ${{ github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.event == 'push' }}
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: esteban
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/apps/discord-clone
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker image prune -f

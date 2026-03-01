@@ -29,7 +29,8 @@ function getAvatarColor(userId: string) {
 export default function ChatMessages({
   messages,
   loading,
-  error
+  error,
+  currentUserId,
 }: Props) {
   if (loading) {
     return <p className="p-4 text-sm text-text-muted">Cargando mensajes...</p>;
@@ -53,20 +54,23 @@ export default function ChatMessages({
         const authorName = message.author?.username ?? "Usuario";
         const authorId = message.authorId ?? "unknown";
         const avatarColor = getAvatarColor(authorId);
+        const isOwn = message.authorId === currentUserId;
 
         return (
-          <div key={message.id} className="flex items-start gap-3">
+          <div key={message.id} className={`flex items-start gap-3 ${isOwn ? "flex-row-reverse" : ""}`}>
             <div
               className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-sm font-semibold text-white ${avatarColor}`}
             >
               {authorName[0]?.toUpperCase() ?? "?"}
             </div>
 
-            <div className="min-w-0 flex-1">
-              <div className="flex items-baseline gap-2">
-                <span className="text-sm font-semibold text-gold">
-                  {authorName}
-                </span>
+            <div className={`min-w-0 flex-1 ${isOwn ? "flex flex-col items-end" : ""}`}>
+              <div className={`flex items-baseline gap-2 ${isOwn ? "flex-row-reverse" : ""}`}>
+                {!isOwn && (
+                  <span className="text-sm font-semibold text-gold">
+                    {authorName}
+                  </span>
+                )}
                 <span className="text-xs text-text-muted">
                   {message.createdAt
                     ? new Date(message.createdAt).toLocaleTimeString()

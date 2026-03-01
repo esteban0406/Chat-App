@@ -54,7 +54,7 @@ describe('ChatMessages', () => {
       />,
     );
 
-    expect(screen.getByText('testuser')).toBeInTheDocument();
+    expect(screen.queryByText('testuser')).not.toBeInTheDocument();
     expect(screen.getByText('Hello world')).toBeInTheDocument();
     expect(screen.getByText('otheruser')).toBeInTheDocument();
     expect(screen.getByText('Second message')).toBeInTheDocument();

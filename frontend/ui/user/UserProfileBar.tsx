@@ -20,7 +20,7 @@ export default function UserProfileBar() {
 
   const fallbackAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
   
-  const [imgSrc, setImgSrc] = useState<string | null>(null);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
 
   async function handleLogout() {
     await logout();
@@ -29,13 +29,10 @@ export default function UserProfileBar() {
 
   if (!user) return null;
 
-  const avatarSrc = imgSrc || (user?.id
-    ? toBackendURL(
-        `/api/users/${user.id}/avatar?${encodeURIComponent(
-          user.updatedAt?.toString?.() ?? "",
-        )}`
-      )
-    : fallbackAvatar);
+  const dynamicUrl = toBackendURL(
+    `/api/users/${user.id}/avatar?${encodeURIComponent(user.updatedAt?.toString?.() ?? "")}`
+  );
+  const avatarSrc = failedUrl === dynamicUrl ? fallbackAvatar : dynamicUrl;
 
   return (
     <div className="flex h-[var(--footer-height)] items-center gap-3 border-t border-border bg-deep px-3">
@@ -47,7 +44,7 @@ export default function UserProfileBar() {
           unoptimized={process.env.NODE_ENV === 'development'}
           sizes="40px"
           className="rounded-full object-cover ring-2 ring-gold"
-          onError={() => setImgSrc(fallbackAvatar)}
+          onError={() => setFailedUrl(dynamicUrl)}
         />
       </div>
 
