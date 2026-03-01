@@ -14,51 +14,39 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
   const [pendingInvites, setPendingInvites] = useState<ServerInvite[]>([]);
   const [invitingId, setInvitingId] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadFriends() {
+    async function loadData() {
       try {
-        const res = await backendFetch("/api/friendships", {
-          cache: "no-store",
-        });
-        if (!res.ok) {
-          const msg = await extractErrorMessage(res, "Failed to load friends");
+        const [friendsRes, invitesRes] = await Promise.all([
+          backendFetch("/api/friendships", { cache: "no-store" }),
+          backendFetch("/api/server-invites/sent", { cache: "no-store" }),
+        ]);
+
+        if (!friendsRes.ok) {
+          const msg = await extractErrorMessage(friendsRes, "Failed to load friends");
           throw new Error(msg);
         }
-        const body = await res.json();
-        const list = unwrapList<User>(body, "friends");
-        setFriends(list);
+        if (!invitesRes.ok) {
+          const msg = await extractErrorMessage(invitesRes, "Failed to load pending invites");
+          throw new Error(msg);
+        }
+
+        const friendsBody = await friendsRes.json();
+        setFriends(unwrapList<User>(friendsBody, "friends"));
+
+        const invitesData = await invitesRes.json();
+        const allInvites = unwrapList<ServerInvite>(invitesData, "invites");
+        setPendingInvites(allInvites.filter((i) => i.serverId === server.id));
       } catch (err) {
         console.error(err);
         setFriends([]);
+      } finally {
+        setLoading(false);
       }
     }
-    loadFriends();
-  }, []);
-
-  useEffect(() => {
-    async function loadPending() {
-      try {
-        const res = await backendFetch("/api/server-invites/sent", {
-          cache: "no-store",
-        });
-        if (!res.ok) {
-          const msg = await extractErrorMessage(res, "Failed to load pending invites");
-          throw new Error(msg);
-        }
-        const data = await res.json();
-        const invites = unwrapList<ServerInvite>(data, "invites");
-        // Filter to only invites for this server
-        const serverInvites = invites.filter(
-          (invite) => invite.serverId === server.id
-        );
-        setPendingInvites(serverInvites);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    loadPending();
+    loadData();
   }, [server?.id]);
 
   const memberIds = useMemo(() => {
@@ -128,7 +116,9 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
           </button>
         </div>
 
-        {eligibleFriends.length === 0 ? (
+        {loading ? (
+          <p className="text-sm text-text-muted">Cargando amigos...</p>
+        ) : eligibleFriends.length === 0 ? (
           <p className="text-sm text-text-muted">
             No hay amigos disponibles para invitar.
           </p>
