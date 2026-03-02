@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, ReactNode } from "react";
-import { useNotificationSocket } from "./useNotificationSocket";
+import { useNotificationSocket } from "../useNotificationSocket";
 
 type NotificationState = {
   hasNewFriendRequests: boolean;

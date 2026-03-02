@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, act, waitFor } from "@testing-library/react";
-import { FriendsProvider, useFriends } from "@/lib/FriendsContext";
+import { FriendsProvider, useFriends } from "@/lib/context/FriendsContext";
 import { User } from "@/lib/definitions";
 
 const mockBackendFetch = jest.fn<Promise<unknown>, [string, ...unknown[]]>();

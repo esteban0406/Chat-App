@@ -1,6 +1,12 @@
 import { test, expect, loginWithToken } from '../helpers/fixtures';
 import { registerUser } from '../helpers/auth';
-import { createServer } from '../helpers/api';
+import {
+  createServer,
+  sendFriendRequest,
+  acceptFriendRequest,
+  sendServerInvite,
+  acceptServerInvite,
+} from '../helpers/api';
 import { resetDB } from '../helpers/db';
 
 test.describe.serial('Server management', () => {
@@ -101,5 +107,58 @@ test.describe.serial('Server management', () => {
       const count = await serverLinks.count();
       expect(count).toBeGreaterThanOrEqual(3);
     }).toPass({ timeout: 5000 });
+  });
+
+  test('Rename server via UI', async ({ page }) => {
+    const server = await createServer(token, 'Old Name');
+    await loginWithToken(page, token);
+    await page.goto(`/servers/${server.id}`);
+    await page.waitForTimeout(1000);
+
+    // Open server dropdown
+    const chevronBtn = page.locator('button').filter({ has: page.locator('svg.lucide-chevron-down') });
+    await chevronBtn.click();
+    await page.waitForTimeout(300);
+
+    await page.getByText('Cambiar nombre del servidor').click();
+    await page.waitForTimeout(500);
+
+    // Update name in modal (same pattern as 'Edit channel name' in channels.spec.ts)
+    const modal = page.locator('.fixed');
+    const nameInput = modal.locator('input').first();
+    await nameInput.clear();
+    await nameInput.fill('Nuevo Nombre');
+
+    await page.getByRole('button', { name: 'Guardar' }).click();
+    await page.waitForTimeout(1000);
+
+    // New name should appear in the sidebar header
+    await expect(page.getByText('Nuevo Nombre').first()).toBeVisible();
+  });
+
+  test('"Cambiar nombre del servidor" not visible to non-owner member', async ({ page }) => {
+    // Fresh users — same self-contained pattern as 'Assign member to role' in roles.spec.ts
+    const owner = await registerUser();
+    const member = await registerUser();
+    const server = await createServer(owner.accessToken, 'RBAC Rename Server');
+
+    // Invite member (requires friendship first)
+    const friendship = await sendFriendRequest(owner.accessToken, member.user.id);
+    await acceptFriendRequest(member.accessToken, friendship.id);
+    const invite = await sendServerInvite(owner.accessToken, server.id, member.user.id);
+    await acceptServerInvite(member.accessToken, invite.id);
+
+    // Log in as the non-owner member (default Member role = no RENAME_SERVER permission)
+    await loginWithToken(page, member.accessToken);
+    await page.goto(`/servers/${server.id}`);
+    await page.waitForTimeout(1000);
+
+    // Since the member has no management permissions, the dropdown button itself
+    // must not be rendered at all (entire menu is hidden for unprivileged users)
+    const chevronBtn = page.locator('button').filter({ has: page.locator('svg.lucide-chevron-down') });
+    await expect(chevronBtn).toHaveCount(0);
+
+    // Rename option must also not appear anywhere on the page
+    await expect(page.getByText('Cambiar nombre del servidor')).toHaveCount(0);
   });
 });

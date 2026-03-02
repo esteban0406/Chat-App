@@ -4,7 +4,7 @@ jest.mock('@/lib/backend-client', () => ({
   extractErrorMessage: jest.fn(),
 }));
 
-jest.mock('@/lib/CurrentUserContext', () => ({
+jest.mock('@/lib/context/CurrentUserContext', () => ({
   useCurrentUser: jest.fn(),
 }));
 
@@ -13,7 +13,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import InviteForm from '@/ui/home/InviteForm';
 import { backendFetch, unwrapList, extractErrorMessage } from '@/lib/backend-client';
-import { useCurrentUser } from '@/lib/CurrentUserContext';
+import { useCurrentUser } from '@/lib/context/CurrentUserContext';
 import { mockUser, mockUser2 } from '../../../helpers/fixtures';
 import type { User } from '@/lib/auth';
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, act, waitFor } from "@testing-library/react";
-import { CurrentUserProvider, useCurrentUser } from "@/lib/CurrentUserContext";
+import { CurrentUserProvider, useCurrentUser } from "@/lib/context/CurrentUserContext";
 import { User } from "@/lib/auth";
 
 const mockGetMe = jest.fn<Promise<User | null>, []>();

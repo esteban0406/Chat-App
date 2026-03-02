@@ -74,34 +74,42 @@ LIVEKIT_API_SECRET=...
 Backend reads its own `backend/.env` (or `backend/.env.test` in test mode).
 Frontend reads `frontend/.env.local` (Next.js convention).
 
-## CI/CD (`.github/workflows/main.yml`)
+## CI/CD (`.github/workflows/`)
 
 ### Workflow Model: Gated PR → main
 
-The pipeline uses a **gated** model. No one pushes directly to `main`; all changes go through a PR. The pipeline triggers on:
-- `pull_request` targeting `main` — runs all quality and test jobs as required status checks.
-- `push` to `main` (i.e. after a PR merges) — runs all quality and test jobs **plus** the build-images job.
+The pipeline uses a **gated** model. No one pushes directly to `main`; all changes go through a PR. Two separate workflows handle CI and CD:
 
-A concurrency group cancels any in-progress run for the same branch/PR when a new commit is pushed, avoiding wasted runner time.
+- **`main.yml`** — triggers on `pull_request` targeting `main`. Runs all quality and test jobs as required status checks. Never runs on push to main.
+- **`deploy.yml`** — triggers on `push` to `main` (i.e. after a PR merges). Builds production images and deploys to VPS. Never re-runs tests.
+
+This split ensures each job runs exactly once: tests on the PR, build+deploy after merge.
 
 ### Job Stages
 
+**`main.yml` — CI (pull_request to main)**
 ```
 [quality-backend]──┐                          (parallel, Node 24 / Node 20)
-                   ├──[unit-backend]──[integration-backend]──┐
-[quality-frontend]─┘                                         ├──[build-images] ← push to main only
-                   └──[unit-frontend]──────────────────────[e2e]
+                   ├──[unit-backend]──[integration-backend]
+[quality-frontend]─┘
+                   └──[unit-frontend]──[e2e]
 ```
 
-| # | Job | Runs on | Notes |
-|---|-----|---------|-------|
-| 1 | **Quality · Backend** | PR + push to main | ESLint + `tsc --noEmit`, Node 24 |
-| 1 | **Quality · Frontend** | PR + push to main | ESLint + `tsc --noEmit`, Node 20 |
-| 2 | **Unit Tests · Backend** | PR + push to main | Jest, needs quality-backend |
-| 2 | **Unit Tests · Frontend** | PR + push to main | Jest, needs quality-frontend |
-| 3a | **Integration Tests · Backend** | PR + push to main | NestJS e2e suite against a real Postgres service container, needs unit-backend |
-| 3b | **E2E Tests · Playwright** | PR + push to main | Full stack via docker-compose, needs unit-backend + unit-frontend |
-| 4 | **Build · Production Images** | **push to main only** | Docker BuildKit with GHA layer cache, needs integration-backend + e2e |
+**`deploy.yml` — CD (push to main)**
+```
+[build-images] ──► [deploy]
+```
+
+| Workflow | Job | Trigger | Notes |
+|----------|-----|---------|-------|
+| main.yml | **Quality · Backend** | PR only | ESLint + `tsc --noEmit`, Node 24 |
+| main.yml | **Quality · Frontend** | PR only | ESLint + `tsc --noEmit`, Node 20 |
+| main.yml | **Unit Tests · Backend** | PR only | Jest, needs quality-backend |
+| main.yml | **Unit Tests · Frontend** | PR only | Jest, needs quality-frontend |
+| main.yml | **Integration Tests · Backend** | PR only | NestJS e2e suite against a real Postgres service container |
+| main.yml | **E2E Tests · Playwright** | PR only | Full stack via docker-compose |
+| deploy.yml | **Build · Production Images** | push to main | Docker BuildKit with GHA layer cache |
+| deploy.yml | **Deploy · VPS** | push to main | SSH → docker compose pull + up, needs build-images |
 
 ### Branch Protection (GitHub Settings)
 

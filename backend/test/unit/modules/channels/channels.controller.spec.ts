@@ -20,6 +20,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RequestWithUser } from '../../../../src/modules/auth/types';
 import { ChannelsController } from '../../../../src/modules/channels/channels.controller';
 import { ChannelsService } from '../../../../src/modules/channels/channels.service';
+import { ChatGateway } from '../../../../src/modules/gateway/chat.gateway';
 import { CreateChannelDto } from '../../../../src/modules/channels/dto/create-channel.dto';
 
 describe('ChannelsController', () => {
@@ -30,12 +31,17 @@ describe('ChannelsController', () => {
     findOne: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    getMemberIds: jest.fn().mockResolvedValue([]),
   };
+  const chatGateway = { emitToUser: jest.fn() };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ChannelsController],
-      providers: [{ provide: ChannelsService, useValue: channelsService }],
+      providers: [
+        { provide: ChannelsService, useValue: channelsService },
+        { provide: ChatGateway, useValue: chatGateway },
+      ],
     }).compile();
 
     controller = module.get(ChannelsController);

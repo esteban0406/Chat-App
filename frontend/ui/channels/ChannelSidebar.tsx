@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Channel, Server } from "@/lib/definitions";
 import { useServerPermissions } from "@/lib/useServerPermissions";
-import { useServers } from "@/lib/ServersContext";
+import { useServers } from "@/lib/context/ServersContext";
 import CreateChannelModal from "./modals/CreateChannelModal";
 import EditChannelModal from "./modals/EditChannelModal";
 import DeleteChannelModal from "./modals/DeleteChannelModal";
@@ -22,6 +22,7 @@ import InviteFriendsModal from "@/ui/servers/modals/InviteFriendsModal";
 import EditServerModal from "@/ui/servers/modals/EditServerModal";
 import DeleteServerModal from "@/ui/servers/modals/DeleteServerModal";
 import ManageRolesModal from "@/ui/servers/modals/ManageRolesModal";
+import RenameServerModal from "@/ui/servers/modals/RenameServerModal";
 
 export default function ChannelSidebar({
   sidebarControls,
@@ -44,8 +45,16 @@ export default function ChannelSidebar({
   const [showEditServerModal, setShowEditServerModal] = useState(false);
   const [showDeleteServerModal, setShowDeleteServerModal] = useState(false);
   const [showRolesModal, setShowRolesModal] = useState(false);
+  const [showRenameServerModal, setShowRenameServerModal] = useState(false);
 
   const { hasPermission } = useServerPermissions(server);
+
+  const hasAnyMenuPermission =
+    hasPermission("INVITE_MEMBER") ||
+    hasPermission("REMOVE_MEMBER") ||
+    hasPermission("MANAGE_ROLES") ||
+    hasPermission("RENAME_SERVER") ||
+    hasPermission("DELETE_SERVER");
 
   const textChannels = channels.filter((channel) => channel.type === "TEXT");
   const voiceChannels = channels.filter((channel) => channel.type === "VOICE");
@@ -69,73 +78,90 @@ export default function ChannelSidebar({
               {server?.name ?? "Servidor"}
             </h2>
           </div>
-          <Menu as="div" className="relative">
-            <Menu.Button className="rounded-md p-1.5 text-text-secondary transition hover:bg-surface hover:text-text-primary">
-              <ChevronDown className="h-4 w-4" />
-            </Menu.Button>
-            <Menu.Items className="absolute right-0 z-10 mt-2 w-44 rounded-md bg-surface text-sm shadow-lg ring-1 ring-black/20 focus:outline-none">
-              {hasPermission("INVITE_MEMBER") && (
-                <Menu.Item>
-                  {({ active }) => (
-                    <button
-                      type="button"
-                      onClick={() => setShowInviteModal(true)}
-                      className={`block w-full px-3 py-2 text-left ${
-                        active ? "bg-surface/80 text-white" : "text-text-secondary"
-                      }`}
-                    >
-                      Invitar amigos
-                    </button>
-                  )}
-                </Menu.Item>
-              )}
-              {hasPermission("REMOVE_MEMBER") && (
-                <Menu.Item>
-                  {({ active }) => (
-                    <button
-                      type="button"
-                      onClick={() => setShowEditServerModal(true)}
-                      className={`block w-full px-3 py-2 text-left ${
-                        active ? "bg-surface/80 text-white" : "text-text-secondary"
-                      }`}
-                    >
-                      Eliminar miembros
-                    </button>
-                  )}
-                </Menu.Item>
-              )}
-              {hasPermission("MANAGE_ROLES") && (
-                <Menu.Item>
-                  {({ active }) => (
-                    <button
-                      type="button"
-                      onClick={() => setShowRolesModal(true)}
-                      className={`block w-full px-3 py-2 text-left ${
-                        active ? "bg-surface/80 text-white" : "text-text-secondary"
-                      }`}
-                    >
-                      Gestionar roles
-                    </button>
-                  )}
-                </Menu.Item>
-              )}
-              {hasPermission("DELETE_SERVER") && (
-                <Menu.Item>
-                  {({ active }) => (
-                    <button
-                      type="button"
-                      onClick={() => setShowDeleteServerModal(true)}
-                      className={`block w-full px-3 py-2 text-left ${
-                        active ? "bg-ruby text-white" : "text-ruby"
-                      }`}
-                    >
-                      Eliminar servidor
-                    </button>
-                  )}
-                </Menu.Item>
-              )}
-            </Menu.Items>
-          </Menu>
+          {hasAnyMenuPermission && (
+            <Menu as="div" className="relative">
+              <Menu.Button className="rounded-md p-1.5 text-text-secondary transition hover:bg-surface hover:text-text-primary">
+                <ChevronDown className="h-4 w-4" />
+              </Menu.Button>
+              <Menu.Items className="absolute right-0 z-10 mt-2 w-44 rounded-md bg-surface text-sm shadow-lg ring-1 ring-black/20 focus:outline-none">
+                {hasPermission("INVITE_MEMBER") && (
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        type="button"
+                        onClick={() => setShowInviteModal(true)}
+                        className={`block w-full px-3 py-2 text-left ${
+                          active ? "bg-surface/80 text-white" : "text-text-secondary"
+                        }`}
+                      >
+                        Invitar amigos
+                      </button>
+                    )}
+                  </Menu.Item>
+                )}
+                {hasPermission("REMOVE_MEMBER") && (
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        type="button"
+                        onClick={() => setShowEditServerModal(true)}
+                        className={`block w-full px-3 py-2 text-left ${
+                          active ? "bg-surface/80 text-white" : "text-text-secondary"
+                        }`}
+                      >
+                        Eliminar miembros
+                      </button>
+                    )}
+                  </Menu.Item>
+                )}
+                {hasPermission("MANAGE_ROLES") && (
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        type="button"
+                        onClick={() => setShowRolesModal(true)}
+                        className={`block w-full px-3 py-2 text-left ${
+                          active ? "bg-surface/80 text-white" : "text-text-secondary"
+                        }`}
+                      >
+                        Gestionar roles
+                      </button>
+                    )}
+                  </Menu.Item>
+                )}
+                {hasPermission("RENAME_SERVER") && (
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        type="button"
+                        onClick={() => setShowRenameServerModal(true)}
+                        className={`block w-full px-3 py-2 text-left ${
+                          active ? "bg-surface/80 text-white" : "text-text-secondary"
+                        }`}
+                      >
+                        Cambiar nombre del servidor
+                      </button>
+                    )}
+                  </Menu.Item>
+                )}
+                {hasPermission("DELETE_SERVER") && (
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        type="button"
+                        onClick={() => setShowDeleteServerModal(true)}
+                        className={`block w-full px-3 py-2 text-left ${
+                          active ? "bg-ruby text-white" : "text-ruby"
+                        }`}
+                      >
+                        Eliminar servidor
+                      </button>
+                    )}
+                  </Menu.Item>
+                )}
+              </Menu.Items>
+            </Menu>
+          )}
           {closeSidebar && (
             <button
               type="button"
@@ -230,6 +256,14 @@ export default function ChannelSidebar({
         <ManageRolesModal
           server={server as Server}
           onClose={() => setShowRolesModal(false)}
+        />
+      )}
+
+      {showRenameServerModal && (
+        <RenameServerModal
+          server={server as Server}
+          onClose={() => setShowRenameServerModal(false)}
+          onRenamed={refreshServers}
         />
       )}
     </>

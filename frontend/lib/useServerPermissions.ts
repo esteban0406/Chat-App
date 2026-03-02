@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { useCurrentUser } from "@/lib/CurrentUserContext";
+import { useCurrentUser } from "@/lib/context/CurrentUserContext";
 import { Server, ServerPermission } from "@/lib/definitions";
 
 export function useServerPermissions(server: Server | undefined) {
@@ -12,15 +12,13 @@ export function useServerPermissions(server: Server | undefined) {
 
   const hasPermission = useCallback(
     (perm: ServerPermission): boolean => {
-      // Permissive while data is loading — backend guard enforces real security
-      if (loading || !userId || !server?.members) return true;
+      if (loading || !userId || !server?.members) return false;
       if (server.ownerId === userId) return true;
 
       const member = server.members.find((m) => m.userId === userId);
       if (!member) return false;
 
-      // If role data isn't available yet, allow (backend is the authority)
-      if (!member.role) return true;
+      if (!member.role) return false;
 
       return member.role.permissions.includes(perm);
     },

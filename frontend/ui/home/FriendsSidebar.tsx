@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Search } from "lucide-react";
-import { useFriends } from "@/lib/FriendsContext";
-import Image from "next/image"; // 1. Import the component
+import { useFriends } from "@/lib/context/FriendsContext";
+import UserAvatar from "@/ui/user/UserAvatar";
 
 type Props = {
   sidebarControls?: {
@@ -19,6 +19,29 @@ export default function FriendsSidebar({ sidebarControls }: Props) {
   const filtered = friends.filter((f) =>
     f.username?.toLowerCase().includes(search.toLowerCase()),
   );
+
+  const online = filtered.filter((f) => f.status === "ONLINE");
+  const offline = filtered.filter((f) => f.status !== "ONLINE");
+
+  const renderFriend = (friend: (typeof friends)[0]) => {
+    const isOnline = friend.status === "ONLINE";
+    return (
+      <div
+        key={friend.id}
+        className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-text-secondary hover:bg-surface/30 hover:text-text-primary"
+      >
+        <div className="relative">
+          <UserAvatar src={friend.avatarUrl} username={friend.username} userId={friend.id} size={28} />
+          <span
+            className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-sidebar ${
+              isOnline ? "bg-green-500" : "bg-gray-500"
+            }`}
+          />
+        </div>
+        <span className="truncate">{friend.username}</span>
+      </div>
+    );
+  };
 
   return (
     <div className="flex h-full flex-col bg-sidebar text-white">
@@ -48,35 +71,24 @@ export default function FriendsSidebar({ sidebarControls }: Props) {
           />
         </div>
 
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
-          En línea — {filtered.length}
-        </p>
-
         <nav className="space-y-0.5">
-          {filtered.map((friend) => (
-            <div
-              key={friend.id}
-              className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-text-secondary hover:bg-surface/30 hover:text-text-primary"
-            >
-              <div className="relative">
-                <div className="relative flex h-7 w-7 items-center justify-center rounded-full bg-surface text-xs font-semibold text-text-primary overflow-hidden">
-                  {friend.avatarUrl ? (
-                    <Image
-                      src={friend.avatarUrl}
-                      alt={friend.username}
-                      fill
-                      sizes="28px" 
-                      className="object-cover"
-                    />
-                  ) : (
-                    <span>{friend.username?.[0]?.toUpperCase() ?? "?"}</span>
-                  )}
-                </div>
-                <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-sidebar bg-gold" />
-              </div>
-              <span className="truncate">{friend.username}</span>
-            </div>
-          ))}
+          {online.length > 0 && (
+            <>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
+                En línea — {online.length}
+              </p>
+              {online.map(renderFriend)}
+            </>
+          )}
+
+          {offline.length > 0 && (
+            <>
+              <p className={`mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted ${online.length > 0 ? "mt-3" : ""}`}>
+                Desconectado — {offline.length}
+              </p>
+              {offline.map(renderFriend)}
+            </>
+          )}
 
           {filtered.length === 0 && (
             <p className="px-2 py-2 text-xs text-text-muted">

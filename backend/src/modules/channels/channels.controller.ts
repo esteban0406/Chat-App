@@ -10,6 +10,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { ChannelsService } from './channels.service';
+import { ChatGateway } from '../gateway/chat.gateway';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { RequestWithUser } from '../auth/types';
 import { CreateChannelDto, UpdateChannelDto } from './dto';
@@ -20,7 +21,10 @@ import { ServerPermission } from '../../generated/prisma/client.js';
 @Controller('servers/:serverId/channels')
 @UseGuards(JwtAuthGuard)
 export class ChannelsController {
-  constructor(private readonly channelsService: ChannelsService) {}
+  constructor(
+    private readonly channelsService: ChannelsService,
+    private readonly chatGateway: ChatGateway,
+  ) {}
 
   @Post()
   @UseGuards(ServerPermissionGuard)
@@ -30,7 +34,16 @@ export class ChannelsController {
     @Param('serverId') serverId: string,
     @Body() createChannelDto: CreateChannelDto,
   ) {
-    return this.channelsService.create(req.user.id, serverId, createChannelDto);
+    const channel = await this.channelsService.create(
+      req.user.id,
+      serverId,
+      createChannelDto,
+    );
+    const memberIds = await this.channelsService.getMemberIds(serverId);
+    for (const memberId of memberIds) {
+      this.chatGateway.emitToUser(memberId, 'channel:created', channel);
+    }
+    return channel;
   }
 
   @Get()
@@ -57,18 +70,34 @@ export class ChannelsController {
     @Param('channelId') channelId: string,
     @Body() updateChannelDto: UpdateChannelDto,
   ) {
-    return this.channelsService.update(
+    const channel = await this.channelsService.update(
       serverId,
       channelId,
       req.user.id,
       updateChannelDto,
     );
+    const memberIds = await this.channelsService.getMemberIds(serverId);
+    for (const memberId of memberIds) {
+      this.chatGateway.emitToUser(memberId, 'channel:updated', channel);
+    }
+    return channel;
   }
 
   @Delete(':channelId')
   @UseGuards(ServerPermissionGuard)
   @RequirePermission(ServerPermission.DELETE_CHANNEL)
-  async delete(@Param('channelId') channelId: string) {
-    return this.channelsService.delete(channelId);
+  async delete(
+    @Param('serverId') serverId: string,
+    @Param('channelId') channelId: string,
+  ) {
+    const memberIds = await this.channelsService.getMemberIds(serverId);
+    const result = await this.channelsService.delete(channelId);
+    for (const memberId of memberIds) {
+      this.chatGateway.emitToUser(memberId, 'channel:deleted', {
+        channelId,
+        serverId,
+      });
+    }
+    return result;
   }
 }

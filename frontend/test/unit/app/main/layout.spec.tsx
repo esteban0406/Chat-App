@@ -80,19 +80,19 @@ jest.mock("@/ui/layout/LayoutContext", () => ({
   }),
 }));
 
-jest.mock("@/lib/NotificationContext", () => ({
+jest.mock("@/lib/context/NotificationContext", () => ({
   NotificationProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="notification-provider">{children}</div>
   ),
 }));
 
-jest.mock("@/lib/CurrentUserContext", () => ({
+jest.mock("@/lib/context/CurrentUserContext", () => ({
   CurrentUserProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="current-user-provider">{children}</div>
   ),
 }));
 
-jest.mock("@/lib/ServersContext", () => ({
+jest.mock("@/lib/context/ServersContext", () => ({
   ServersProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="servers-provider">{children}</div>
   ),

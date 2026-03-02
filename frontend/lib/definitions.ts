@@ -41,7 +41,8 @@ export type ServerPermission =
   | "DELETE_SERVER"
   | "INVITE_MEMBER"
   | "REMOVE_MEMBER"
-  | "MANAGE_ROLES";
+  | "MANAGE_ROLES"
+  | "RENAME_SERVER";
 
 export type Role = {
   id: string;

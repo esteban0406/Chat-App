@@ -6,7 +6,7 @@ import { Check, X } from "lucide-react";
 import { ServerInvite, Server } from "@/lib/definitions";
 import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
 import { useNotificationSocket } from "@/lib/useNotificationSocket";
-import { useServers } from "@/lib/ServersContext";
+import { useServers } from "@/lib/context/ServersContext";
 
 export default function ServerInviteList() {
   const router = useRouter();

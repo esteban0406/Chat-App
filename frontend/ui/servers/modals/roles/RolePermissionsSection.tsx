@@ -10,6 +10,7 @@ const PERMISSION_LABELS: Record<ServerPermission, string> = {
   INVITE_MEMBER: "Invitar miembros",
   REMOVE_MEMBER: "Eliminar miembros",
   MANAGE_ROLES: "Gestionar roles",
+  RENAME_SERVER: "Renombrar servidor",
 };
 
 const ALL_PERMISSIONS = Object.keys(PERMISSION_LABELS) as ServerPermission[];

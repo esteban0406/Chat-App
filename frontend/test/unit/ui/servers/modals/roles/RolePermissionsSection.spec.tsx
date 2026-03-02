@@ -31,6 +31,7 @@ describe("RolePermissionsSection", () => {
     expect(screen.getByText("Invitar miembros")).toBeInTheDocument();
     expect(screen.getByText("Eliminar miembros")).toBeInTheDocument();
     expect(screen.getByText("Gestionar roles")).toBeInTheDocument();
+    expect(screen.getByText("Renombrar servidor")).toBeInTheDocument();
   });
 
   it("renders a switch for each permission", () => {
@@ -38,7 +39,7 @@ describe("RolePermissionsSection", () => {
 
     // HeadlessUI Switch renders as a button with role="switch"
     const switches = screen.getAllByRole("switch");
-    expect(switches).toHaveLength(6);
+    expect(switches).toHaveLength(7);
   });
 
   it("calls onToggle when a switch is clicked", async () => {
@@ -57,7 +58,7 @@ describe("RolePermissionsSection", () => {
     render(<RolePermissionsSection {...defaultProps} />);
 
     const switches = screen.getAllByRole("switch");
-    // Click the last switch (MANAGE_ROLES)
+    // Click the MANAGE_ROLES switch (index 5)
     await user.click(switches[5]);
 
     expect(onToggle).toHaveBeenCalledWith("MANAGE_ROLES");

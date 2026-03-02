@@ -5,11 +5,11 @@ import ServerSidebar from '@/ui/servers/ServerSidebar';
 import { mockServer } from '../../../helpers/fixtures';
 import type { Server } from '@/lib/definitions';
 
-jest.mock('@/lib/ServersContext', () => ({
+jest.mock('@/lib/context/ServersContext', () => ({
   useServers: jest.fn(),
 }));
 
-jest.mock('@/lib/NotificationContext', () => ({
+jest.mock('@/lib/context/NotificationContext', () => ({
   useNotifications: jest.fn(),
 }));
 
@@ -53,8 +53,8 @@ jest.mock('@/ui/servers/modals/CreateServerModal', () => {
   };
 });
 
-import { useServers } from '@/lib/ServersContext';
-import { useNotifications } from '@/lib/NotificationContext';
+import { useServers } from '@/lib/context/ServersContext';
+import { useNotifications } from '@/lib/context/NotificationContext';
 
 const mockUseServers = useServers as jest.MockedFunction<typeof useServers>;
 const mockUseNotifications = useNotifications as jest.MockedFunction<

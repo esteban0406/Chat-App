@@ -2,14 +2,13 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import FriendsSidebar from '@/ui/home/FriendsSidebar';
-import { mockUser, mockUser2 } from '../../../helpers/fixtures';
-import type { User } from '@/lib/auth';
+import { mockFriendEntry, mockFriendEntry2 } from '../../../helpers/fixtures';
 
-jest.mock('@/lib/FriendsContext', () => ({
+jest.mock('@/lib/context/FriendsContext', () => ({
   useFriends: jest.fn(),
 }));
 
-import { useFriends } from '@/lib/FriendsContext';
+import { useFriends } from '@/lib/context/FriendsContext';
 
 const mockUseFriends = useFriends as jest.MockedFunction<typeof useFriends>;
 
@@ -19,10 +18,11 @@ beforeEach(() => {
 
 describe('FriendsSidebar', () => {
   const defaultFriendsState = {
-    friends: [] as User[],
+    friends: [],
     loading: false,
     error: null,
     refreshFriends: jest.fn(),
+    removeFriend: jest.fn(),
   };
 
   it('renders "Amigos" header', () => {
@@ -46,7 +46,7 @@ describe('FriendsSidebar', () => {
   it('renders friends list with usernames', () => {
     mockUseFriends.mockReturnValue({
       ...defaultFriendsState,
-      friends: [mockUser, mockUser2],
+      friends: [mockFriendEntry, mockFriendEntry2],
     });
 
     render(<FriendsSidebar />);
@@ -59,7 +59,7 @@ describe('FriendsSidebar', () => {
     const user = userEvent.setup();
     mockUseFriends.mockReturnValue({
       ...defaultFriendsState,
-      friends: [mockUser, mockUser2],
+      friends: [mockFriendEntry, mockFriendEntry2],
     });
 
     render(<FriendsSidebar />);
@@ -75,7 +75,7 @@ describe('FriendsSidebar', () => {
     const user = userEvent.setup();
     mockUseFriends.mockReturnValue({
       ...defaultFriendsState,
-      friends: [mockUser],
+      friends: [mockFriendEntry],
     });
 
     render(<FriendsSidebar />);
@@ -137,7 +137,7 @@ describe('FriendsSidebar', () => {
   it('shows online count matching filtered friends', () => {
     mockUseFriends.mockReturnValue({
       ...defaultFriendsState,
-      friends: [mockUser, mockUser2],
+      friends: [mockFriendEntry, mockFriendEntry2],
     });
 
     render(<FriendsSidebar />);

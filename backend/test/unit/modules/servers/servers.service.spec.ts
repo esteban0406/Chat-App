@@ -215,23 +215,16 @@ describe('ServersService', () => {
   // --- updateServer ---
   it('updateServer throws when server not found', async () => {
     prisma.server.findUnique.mockResolvedValue(null);
-    await expect(
-      service.updateServer('s1', 'u1', { name: 'new' }),
-    ).rejects.toThrow(NotFoundException);
-  });
-
-  it('updateServer throws when non-owner tries to update', async () => {
-    prisma.server.findUnique.mockResolvedValue({ id: 's1', ownerId: 'other' });
-    await expect(
-      service.updateServer('s1', 'u1', { name: 'new' }),
-    ).rejects.toThrow(ForbiddenException);
+    await expect(service.updateServer('s1', { name: 'new' })).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('updateServer updates and returns server', async () => {
-    prisma.server.findUnique.mockResolvedValue({ id: 's1', ownerId: 'u1' });
+    prisma.server.findUnique.mockResolvedValue({ id: 's1' });
     prisma.server.update.mockResolvedValue({ id: 's1', name: 'new' });
 
-    const result = await service.updateServer('s1', 'u1', { name: 'new' });
+    const result = await service.updateServer('s1', { name: 'new' });
     expect(prisma.server.update).toHaveBeenCalled();
     expect(result).toEqual({ id: 's1', name: 'new' });
   });

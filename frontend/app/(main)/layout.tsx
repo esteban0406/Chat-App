@@ -11,9 +11,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isAuthenticated } from "@/lib/auth";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
-import { NotificationProvider } from "@/lib/NotificationContext";
-import { CurrentUserProvider } from "@/lib/CurrentUserContext";
-import { ServersProvider } from "@/lib/ServersContext";
+import { NotificationProvider } from "@/lib/context/NotificationContext";
+import { CurrentUserProvider } from "@/lib/context/CurrentUserContext";
+import { ServersProvider } from "@/lib/context/ServersContext";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();

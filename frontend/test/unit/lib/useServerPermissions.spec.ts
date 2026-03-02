@@ -1,9 +1,9 @@
-jest.mock('@/lib/CurrentUserContext', () => ({
+jest.mock('@/lib/context/CurrentUserContext', () => ({
   useCurrentUser: jest.fn(),
 }));
 
 import { renderHook } from '@testing-library/react';
-import { useCurrentUser } from '@/lib/CurrentUserContext';
+import { useCurrentUser } from '@/lib/context/CurrentUserContext';
 import { useServerPermissions } from '@/lib/useServerPermissions';
 import { mockUser, mockUser2, mockServer, mockMember, mockRole } from '@/test/helpers/fixtures';
 import type { Server, Member } from '@/lib/definitions';
@@ -67,7 +67,7 @@ describe('useServerPermissions', () => {
 
   // ---------- hasPermission while loading ----------
 
-  it('hasPermission returns true while loading (permissive)', () => {
+  it('hasPermission returns false while loading (restrictive)', () => {
     mockUseCurrentUser.mockReturnValue({
       currentUser: null,
       loading: true,
@@ -76,7 +76,7 @@ describe('useServerPermissions', () => {
 
     const { result } = renderHook(() => useServerPermissions(mockServer));
 
-    expect(result.current.hasPermission('CREATE_CHANNEL')).toBe(true);
+    expect(result.current.hasPermission('CREATE_CHANNEL')).toBe(false);
   });
 
   // ---------- hasPermission when owner ----------
@@ -97,7 +97,7 @@ describe('useServerPermissions', () => {
 
   // ---------- hasPermission when member has no role ----------
 
-  it('hasPermission returns true when member has no role data', () => {
+  it('hasPermission returns false when member has no role data', () => {
     const memberWithoutRole: Member = {
       ...mockMember,
       userId: 'user-2',
@@ -118,7 +118,7 @@ describe('useServerPermissions', () => {
 
     const { result } = renderHook(() => useServerPermissions(serverWithRolelessMember));
 
-    expect(result.current.hasPermission('CREATE_CHANNEL')).toBe(true);
+    expect(result.current.hasPermission('CREATE_CHANNEL')).toBe(false);
   });
 
   // ---------- hasPermission when member not found ----------

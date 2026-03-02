@@ -1,13 +1,13 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import FriendList from '@/ui/home/FriendList';
-import { mockUser, mockUser2 } from '../../../helpers/fixtures';
+import { mockFriendEntry, mockFriendEntry2 } from '../../../helpers/fixtures';
 
-jest.mock('@/lib/FriendsContext', () => ({
+jest.mock('@/lib/context/FriendsContext', () => ({
   useFriends: jest.fn(),
 }));
 
-import { useFriends } from '@/lib/FriendsContext';
+import { useFriends } from '@/lib/context/FriendsContext';
 
 const mockUseFriends = useFriends as jest.MockedFunction<typeof useFriends>;
 
@@ -22,6 +22,7 @@ describe('FriendList', () => {
       loading: true,
       error: null,
       refreshFriends: jest.fn(),
+      removeFriend: jest.fn(),
     });
 
     render(<FriendList />);
@@ -35,6 +36,7 @@ describe('FriendList', () => {
       loading: false,
       error: 'No se pudieron cargar tus amigos',
       refreshFriends: jest.fn(),
+      removeFriend: jest.fn(),
     });
 
     render(<FriendList />);
@@ -50,6 +52,7 @@ describe('FriendList', () => {
       loading: false,
       error: null,
       refreshFriends: jest.fn(),
+      removeFriend: jest.fn(),
     });
 
     render(<FriendList />);
@@ -61,10 +64,11 @@ describe('FriendList', () => {
 
   it('renders friends with username and email', () => {
     mockUseFriends.mockReturnValue({
-      friends: [mockUser, mockUser2],
+      friends: [mockFriendEntry, mockFriendEntry2],
       loading: false,
       error: null,
       refreshFriends: jest.fn(),
+      removeFriend: jest.fn(),
     });
 
     render(<FriendList />);
@@ -77,10 +81,11 @@ describe('FriendList', () => {
 
   it('shows "Eliminar" button for each friend', () => {
     mockUseFriends.mockReturnValue({
-      friends: [mockUser],
+      friends: [mockFriendEntry],
       loading: false,
       error: null,
       refreshFriends: jest.fn(),
+      removeFriend: jest.fn(),
     });
 
     render(<FriendList />);
@@ -90,10 +95,11 @@ describe('FriendList', () => {
 
   it('renders avatar initial when no avatar URL', () => {
     mockUseFriends.mockReturnValue({
-      friends: [mockUser],
+      friends: [mockFriendEntry],
       loading: false,
       error: null,
       refreshFriends: jest.fn(),
+      removeFriend: jest.fn(),
     });
 
     render(<FriendList />);

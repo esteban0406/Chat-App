@@ -117,6 +117,14 @@ export class ChannelsService {
     });
   }
 
+  async getMemberIds(serverId: string): Promise<string[]> {
+    const members = await this.prisma.member.findMany({
+      where: { serverId },
+      select: { userId: true },
+    });
+    return members.map((m) => m.userId);
+  }
+
   async delete(channelId: string) {
     const channel = await this.prisma.channel.findUnique({
       where: { id: channelId },

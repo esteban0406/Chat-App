@@ -22,9 +22,11 @@ services:
       - ./backend/.env.test
     volumes:
       - ./backend/.env.test:/app/.env.test:ro
-    # Apply all pending migrations before starting the server.
+    # Generate Prisma client (src/generated/ is gitignored and wiped by the
+    # src bind-mount), then apply migrations and start the server.
     command: >
-      sh -c "pnpm prisma migrate deploy &&
+      sh -c "pnpm prisma generate &&
+             pnpm prisma migrate deploy &&
              pnpm run start:test"
     environment:
       # Override DATABASE_URL so the backend always reaches the

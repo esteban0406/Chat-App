@@ -8,8 +8,8 @@ import EditAvatarModal from "./modals/EditAvatarModal";
 import { logout } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { toBackendURL } from "@/lib/backend-client";
-import { useCurrentUser } from "@/lib/CurrentUserContext";
-import Image from "next/image"; 
+import { useCurrentUser } from "@/lib/context/CurrentUserContext";
+import UserAvatar from "./UserAvatar";
 
 export default function UserProfileBar() {
   const router = useRouter();
@@ -17,10 +17,6 @@ export default function UserProfileBar() {
   const { currentUser: user, refreshUser } = useCurrentUser();
   const [openNameModal, setOpenNameModal] = useState(false);
   const [openAvatarModal, setOpenAvatarModal] = useState(false);
-
-  const fallbackAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-  
-  const [failedUrl, setFailedUrl] = useState<string | null>(null);
 
   async function handleLogout() {
     await logout();
@@ -32,21 +28,10 @@ export default function UserProfileBar() {
   const dynamicUrl = toBackendURL(
     `/api/users/${user.id}/avatar?${encodeURIComponent(user.updatedAt?.toString?.() ?? "")}`
   );
-  const avatarSrc = failedUrl === dynamicUrl ? fallbackAvatar : dynamicUrl;
 
   return (
     <div className="flex h-[var(--footer-height)] items-center gap-3 border-t border-border bg-deep px-3">
-      <div className="relative h-10 w-10 shrink-0">
-        <Image
-          src={avatarSrc}
-          alt={user.username || "User avatar"}
-          fill
-          unoptimized={process.env.NODE_ENV === 'development'}
-          sizes="40px"
-          className="rounded-full object-cover ring-2 ring-gold"
-          onError={() => setFailedUrl(dynamicUrl)}
-        />
-      </div>
+      <UserAvatar src={dynamicUrl} username={user.username} userId={user.id} size={40} ring />
 
       <div className="flex-1 truncate">
         <p className="truncate text-sm font-semibold text-text-primary">{user.username}</p>

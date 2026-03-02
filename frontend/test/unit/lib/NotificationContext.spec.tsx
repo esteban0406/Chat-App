@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, act } from "@testing-library/react";
-import { NotificationProvider, useNotifications } from "@/lib/NotificationContext";
+import { NotificationProvider, useNotifications } from "@/lib/context/NotificationContext";
 
 type SocketCallbacks = {
   onFriendRequestReceived?: () => void;

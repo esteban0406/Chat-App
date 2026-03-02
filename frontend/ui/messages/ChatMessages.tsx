@@ -1,6 +1,8 @@
 "use client";
 
 import { Message } from "@/lib/definitions";
+import { toBackendURL } from "@/lib/backend-client";
+import UserAvatar from "@/ui/user/UserAvatar";
 
 type Props = {
   messages: Message[];
@@ -9,22 +11,6 @@ type Props = {
   currentUserId?: string;
 };
 
-const AVATAR_COLORS = [
-  "bg-gold",
-  "bg-ruby",
-  "bg-[#4A90D9]",
-  "bg-[#43B581]",
-  "bg-[#B56AD8]",
-  "bg-[#E67E22]",
-];
-
-function getAvatarColor(userId: string) {
-  let hash = 0;
-  for (let i = 0; i < userId.length; i++) {
-    hash = userId.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
 
 export default function ChatMessages({
   messages,
@@ -53,16 +39,17 @@ export default function ChatMessages({
       {messages.map((message) => {
         const authorName = message.author?.username ?? "Usuario";
         const authorId = message.authorId ?? "unknown";
-        const avatarColor = getAvatarColor(authorId);
         const isOwn = message.authorId === currentUserId;
 
         return (
           <div key={message.id} className={`flex items-start gap-3 ${isOwn ? "flex-row-reverse" : ""}`}>
-            <div
-              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-sm font-semibold text-white ${avatarColor}`}
-            >
-              {authorName[0]?.toUpperCase() ?? "?"}
-            </div>
+            <UserAvatar
+              src={toBackendURL(`/api/users/${authorId}/avatar`)}
+              username={authorName}
+              userId={authorId}
+              size={36}
+              shape="rounded"
+            />
 
             <div className={`min-w-0 flex-1 ${isOwn ? "flex flex-col items-end" : ""}`}>
               <div className={`flex items-baseline gap-2 ${isOwn ? "flex-row-reverse" : ""}`}>

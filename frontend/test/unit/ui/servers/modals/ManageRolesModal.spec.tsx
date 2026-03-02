@@ -18,7 +18,7 @@ jest.mock("@/lib/useServerPermissions", () => ({
   }),
 }));
 
-jest.mock("@/lib/CurrentUserContext", () => ({
+jest.mock("@/lib/context/CurrentUserContext", () => ({
   useCurrentUser: () => ({
     currentUser: { id: "user-1", username: "testuser", email: "test@example.com" },
     loading: false,
