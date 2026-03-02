@@ -147,10 +147,12 @@ export class FriendshipsService {
       },
     });
 
-    // Return the other user in each friendship
-    return friendships.map((friendship) =>
-      friendship.senderId === userId ? friendship.receiver : friendship.sender,
-    );
+    // Return the other user in each friendship, including the friendship ID
+    return friendships.map((friendship) => {
+      const user =
+        friendship.senderId === userId ? friendship.receiver : friendship.sender;
+      return { ...user, friendshipId: friendship.id };
+    });
   }
 
   async removeFriend(friendshipId: string, userId: string) {

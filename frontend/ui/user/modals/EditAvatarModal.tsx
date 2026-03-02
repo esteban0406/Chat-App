@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 import Image from "next/image";
 
@@ -14,6 +14,8 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     return () => {
@@ -27,6 +29,7 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
     setPreview("");
     setFile(null);
     setError("");
+    setIsDragging(false);
   };
 
   const closeModal = () => {
@@ -35,10 +38,7 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
     onClose();
   };
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const selected = e.target.files?.[0];
-    if (!selected) return;
-
+  function processFile(selected: File) {
     if (!selected.type.startsWith("image/")) {
       setError("Solo se permiten archivos de imagen");
       return;
@@ -55,6 +55,29 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
     const objectUrl = URL.createObjectURL(selected);
     setPreview(objectUrl);
     setError("");
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+    processFile(selected);
+  }
+
+  function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setIsDragging(true);
+  }
+
+  function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setIsDragging(false);
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setIsDragging(false);
+    const dropped = e.dataTransfer.files?.[0];
+    if (dropped) processFile(dropped);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -101,17 +124,77 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
         <h2 className="mb-4 text-lg font-bold">Editar avatar</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Hidden real file input */}
           <input
+            ref={inputRef}
             type="file"
             accept="image/*"
             disabled={loading}
             onChange={handleFileChange}
-            className="w-full text-sm text-text-muted"
+            className="hidden"
           />
 
+          {/* Drop zone (no file selected) */}
+          {!preview && (
+            <div
+              onClick={() => !loading && inputRef.current?.click()}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={[
+                "flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-8 transition-all duration-200",
+                loading ? "cursor-not-allowed opacity-50" : "cursor-pointer",
+                isDragging
+                  ? "border-gold bg-gold/10"
+                  : "border-border bg-surface/40 hover:border-gold/60 hover:bg-surface/70",
+              ].join(" ")}
+            >
+              {/* Camera icon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={[
+                  "h-10 w-10 transition-colors duration-200",
+                  isDragging ? "text-gold" : "text-text-muted",
+                ].join(" ")}
+              >
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                <circle cx="12" cy="13" r="4" />
+              </svg>
+
+              <div className="text-center">
+                <p
+                  className={[
+                    "text-sm font-medium transition-colors duration-200",
+                    isDragging ? "text-gold" : "text-text-secondary",
+                  ].join(" ")}
+                >
+                  {isDragging
+                    ? "Suelta para subir"
+                    : "Arrastra una imagen o haz clic aquí"}
+                </p>
+                <p className="mt-1 text-xs text-text-muted">
+                  PNG · JPG · GIF &nbsp;•&nbsp; máx. 5 MB
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Preview with change overlay */}
           {preview && (
-            <div className="flex justify-center">
-              <div className="relative h-24 w-24">
+            <div className="flex flex-col items-center gap-3">
+              <div
+                onClick={() => !loading && inputRef.current?.click()}
+                className={[
+                  "group relative h-24 w-24 rounded-full",
+                  loading ? "cursor-not-allowed" : "cursor-pointer",
+                ].join(" ")}
+              >
                 <Image
                   src={preview}
                   alt="Vista previa del avatar"
@@ -119,7 +202,31 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
                   unoptimized
                   className="rounded-full object-cover ring-2 ring-gold"
                 />
+                {/* Hover overlay */}
+                {!loading && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-full bg-black/60 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="h-5 w-5 text-white"
+                    >
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                      <circle cx="12" cy="13" r="4" />
+                    </svg>
+                    <span className="text-[10px] font-semibold text-white">
+                      Cambiar
+                    </span>
+                  </div>
+                )}
               </div>
+              <p className="text-xs text-text-muted">
+                Haz clic en la imagen para cambiarla
+              </p>
             </div>
           )}
 

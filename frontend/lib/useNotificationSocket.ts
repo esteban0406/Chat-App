@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { getSocket } from "./socket";
-import type { Friendship, ServerInvite } from "./definitions";
+import type { Channel, Friendship, ServerInvite } from "./definitions";
 
 type NotificationCallbacks = {
   onFriendRequestReceived?: (data: Friendship) => void;
@@ -13,6 +13,10 @@ type NotificationCallbacks = {
   onServerInviteAccepted?: (data: { inviteId: string; receiverId: string; serverId: string; serverName: string }) => void;
   onServerInviteRejected?: (data: { inviteId: string; receiverId: string; serverId: string }) => void;
   onServerInviteCancelled?: (data: { inviteId: string; cancelledBy: string; serverId: string }) => void;
+  onUserStatusChanged?: (data: { userId: string; status: "ONLINE" | "OFFLINE" }) => void;
+  onChannelCreated?: (data: Channel) => void;
+  onChannelUpdated?: (data: Channel) => void;
+  onChannelDeleted?: (data: { channelId: string; serverId: string }) => void;
 };
 
 const EVENT_MAP: Record<string, keyof NotificationCallbacks> = {
@@ -24,6 +28,10 @@ const EVENT_MAP: Record<string, keyof NotificationCallbacks> = {
   "serverInvite:accepted": "onServerInviteAccepted",
   "serverInvite:rejected": "onServerInviteRejected",
   "serverInvite:cancelled": "onServerInviteCancelled",
+  "user:statusChanged": "onUserStatusChanged",
+  "channel:created": "onChannelCreated",
+  "channel:updated": "onChannelUpdated",
+  "channel:deleted": "onChannelDeleted",
 };
 
 export function useNotificationSocket(callbacks: NotificationCallbacks) {

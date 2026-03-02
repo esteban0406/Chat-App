@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useFriends } from "@/lib/context/FriendsContext";
-import Image from "next/image"; // 1. Import the component
+import UserAvatar from "@/ui/user/UserAvatar";
 
 export default function FriendList() {
-  const { friends, loading, error } = useFriends();
+  const { friends, loading, error, removeFriend } = useFriends();
+  const [removingId, setRemovingId] = useState<string | null>(null);
 
   if (loading) {
     return <p className="text-text-muted">Cargando amigos...</p>;
@@ -18,6 +20,15 @@ export default function FriendList() {
     return <p className="text-text-muted">No tienes amigos todavía.</p>;
   }
 
+  async function handleRemove(friendshipId: string) {
+    setRemovingId(friendshipId);
+    try {
+      await removeFriend(friendshipId);
+    } finally {
+      setRemovingId(null);
+    }
+  }
+
   return (
     <ul className="max-h-[420px] space-y-2 overflow-y-auto pr-2">
       {friends.map((friend) => {
@@ -27,19 +38,7 @@ export default function FriendList() {
             className="flex items-center justify-between rounded-lg border border-border bg-surface/40 px-4 py-3 text-sm"
           >
             <div className="flex items-center gap-3 truncate">
-              <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface text-xs font-semibold text-text-primary overflow-hidden border border-border/50">
-                {friend.avatarUrl ? (
-                  <Image
-                    src={friend.avatarUrl}
-                    alt={friend.username}
-                    fill 
-                    sizes="32px" 
-                    className="object-cover"
-                  />
-                ) : (
-                  <span>{friend.username?.[0]?.toUpperCase() ?? "?"}</span>
-                )}
-              </div>
+              <UserAvatar src={friend.avatarUrl} username={friend.username} userId={friend.id} size={32} />
 
               <span className="truncate">
                 <span className="font-semibold text-text-primary">
@@ -48,8 +47,12 @@ export default function FriendList() {
                 <span className="text-text-muted">({friend.email})</span>
               </span>
             </div>
-            <button className="text-xs text-ruby hover:text-ruby/80">
-              Eliminar
+            <button
+              disabled={removingId === friend.friendshipId}
+              onClick={() => handleRemove(friend.friendshipId)}
+              className="text-xs text-ruby hover:text-ruby/80 disabled:opacity-50"
+            >
+              {removingId === friend.friendshipId ? "Eliminando..." : "Eliminar"}
             </button>
           </li>
         );

@@ -11,6 +11,7 @@ import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { MessagesService } from '../messages/messages.service';
 import { MessageDto } from './dto';
+import { PrismaService } from '../../database/prisma.service';
 
 interface SocketWithData extends Socket {
   data: {
@@ -35,9 +36,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
+  private readonly socketUser = new Map<string, string>(); // socketId → userId
+  private readonly userSockets = new Map<string, Set<string>>(); // userId → Set<socketId>
+
   constructor(
     private readonly jwtService: JwtService,
     private readonly messagesService: MessagesService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async handleConnection(client: SocketWithData) {
@@ -48,9 +53,27 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       try {
         const decoded = this.jwtService.verify<JwtPayload>(token);
         client.data = client.data || {};
-        client.data.userId = decoded.sub || decoded.id;
+        const userId = decoded.sub || decoded.id;
+        if (!userId) return;
+        client.data.userId = userId;
 
-        await client.join(`user:${client.data.userId}`);
+        await client.join(`user:${userId}`);
+
+        // Track socket → user mapping
+        this.socketUser.set(client.id, userId);
+        if (!this.userSockets.has(userId)) {
+          this.userSockets.set(userId, new Set());
+        }
+        this.userSockets.get(userId)!.add(client.id);
+
+        // Only broadcast ONLINE on first connection (first tab)
+        if (this.userSockets.get(userId)!.size === 1) {
+          await this.prisma.user.update({
+            where: { id: userId },
+            data: { status: 'ONLINE' },
+          });
+          await this.notifyFriendsStatusChanged(userId, 'ONLINE');
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error';
         console.warn('Invalid socket token:', message);
@@ -58,8 +81,43 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  handleDisconnect(client: Socket) {
+  async handleDisconnect(client: Socket) {
     console.log('Client disconnected:', client.id);
+
+    const userId = this.socketUser.get(client.id);
+    if (!userId) return;
+
+    this.socketUser.delete(client.id);
+    const sockets = this.userSockets.get(userId);
+    if (sockets) {
+      sockets.delete(client.id);
+      if (sockets.size === 0) {
+        this.userSockets.delete(userId);
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { status: 'OFFLINE' },
+        });
+        await this.notifyFriendsStatusChanged(userId, 'OFFLINE');
+      }
+    }
+  }
+
+  private async notifyFriendsStatusChanged(
+    userId: string,
+    status: 'ONLINE' | 'OFFLINE',
+  ) {
+    const friendships = await this.prisma.friendship.findMany({
+      where: {
+        status: 'ACCEPTED',
+        OR: [{ senderId: userId }, { receiverId: userId }],
+      },
+      select: { senderId: true, receiverId: true },
+    });
+
+    for (const f of friendships) {
+      const friendId = f.senderId === userId ? f.receiverId : f.senderId;
+      this.emitToUser(friendId, 'user:statusChanged', { userId, status });
+    }
   }
 
   @SubscribeMessage('message')
