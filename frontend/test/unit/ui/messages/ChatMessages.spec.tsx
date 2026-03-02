@@ -60,7 +60,7 @@ describe('ChatMessages', () => {
     expect(screen.getByText('Second message')).toBeInTheDocument();
   });
 
-  it('renders first letter of author name as avatar', () => {
+  it('renders avatar image for author', () => {
     render(
       <ChatMessages
         messages={[mockMessage]}
@@ -69,7 +69,7 @@ describe('ChatMessages', () => {
       />,
     );
 
-    expect(screen.getByText('T')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'testuser' })).toBeInTheDocument();
   });
 
   it('falls back to "Usuario" when author is missing', () => {

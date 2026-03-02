@@ -8,6 +8,7 @@ import type {
   Friendship,
   ServerInvite,
 } from '@/lib/definitions';
+import type { FriendEntry } from '@/lib/context/FriendsContext';
 
 export const mockUser: User = {
   id: 'user-1',
@@ -135,6 +136,9 @@ export const mockDefaultMemberRole: Role = {
   _count: { members: 5 },
   members: [],
 };
+
+export const mockFriendEntry: FriendEntry = { ...mockUser, friendshipId: 'friendship-1' };
+export const mockFriendEntry2: FriendEntry = { ...mockUser2, friendshipId: 'friendship-2' };
 
 export const mockMember2: Member = {
   id: 'member-2',

@@ -153,11 +153,12 @@ test.describe.serial('Server management', () => {
     await page.goto(`/servers/${server.id}`);
     await page.waitForTimeout(1000);
 
+    // Since the member has no management permissions, the dropdown button itself
+    // must not be rendered at all (entire menu is hidden for unprivileged users)
     const chevronBtn = page.locator('button').filter({ has: page.locator('svg.lucide-chevron-down') });
-    await chevronBtn.click();
-    await page.waitForTimeout(300);
+    await expect(chevronBtn).toHaveCount(0);
 
-    // The menu item must not appear for a member without RENAME_SERVER permission
+    // Rename option must also not appear anywhere on the page
     await expect(page.getByText('Cambiar nombre del servidor')).toHaveCount(0);
   });
 });

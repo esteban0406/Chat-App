@@ -215,9 +215,9 @@ describe('ServersService', () => {
   // --- updateServer ---
   it('updateServer throws when server not found', async () => {
     prisma.server.findUnique.mockResolvedValue(null);
-    await expect(
-      service.updateServer('s1', { name: 'new' }),
-    ).rejects.toThrow(NotFoundException);
+    await expect(service.updateServer('s1', { name: 'new' })).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('updateServer updates and returns server', async () => {

@@ -7,11 +7,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Socket, Server } from 'socket.io';
 import { ChatGateway } from '../../../../src/modules/gateway/chat.gateway';
 import { MessagesService } from '../../../../src/modules/messages/messages.service';
+import { PrismaService } from '../../../../src/database/prisma.service';
 
 describe('ChatGateway', () => {
   let gateway: ChatGateway;
   const jwtService = { verify: jest.fn() };
   const messagesService = { create: jest.fn() };
+  const prismaService = {
+    user: { update: jest.fn().mockResolvedValue({}) },
+    friendship: { findMany: jest.fn().mockResolvedValue([]) },
+  };
 
   const mockEmit = jest.fn();
   const mockTo = jest.fn(() => ({ emit: mockEmit }));
@@ -23,6 +28,7 @@ describe('ChatGateway', () => {
         ChatGateway,
         { provide: JwtService, useValue: jwtService },
         { provide: MessagesService, useValue: messagesService },
+        { provide: PrismaService, useValue: prismaService },
       ],
     }).compile();
 

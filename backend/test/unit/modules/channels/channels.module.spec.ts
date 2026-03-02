@@ -18,11 +18,17 @@ jest.mock('../../../../src/common/rbac/server-permission.guard', () => ({
 import { Test } from '@nestjs/testing';
 import { ChannelsModule } from '../../../../src/modules/channels/channels.module';
 import { ChannelsService } from '../../../../src/modules/channels/channels.service';
+import { MessagesService } from '../../../../src/modules/messages/messages.service';
+import { ChatGateway } from '../../../../src/modules/gateway/chat.gateway';
 
 describe('ChannelsModule', () => {
   it('compiles with mocked service', async () => {
     const mod = await Test.createTestingModule({ imports: [ChannelsModule] })
       .overrideProvider(ChannelsService)
+      .useValue({})
+      .overrideProvider(MessagesService)
+      .useValue({})
+      .overrideProvider(ChatGateway)
       .useValue({})
       .compile();
 

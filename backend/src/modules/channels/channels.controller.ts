@@ -34,7 +34,11 @@ export class ChannelsController {
     @Param('serverId') serverId: string,
     @Body() createChannelDto: CreateChannelDto,
   ) {
-    const channel = await this.channelsService.create(req.user.id, serverId, createChannelDto);
+    const channel = await this.channelsService.create(
+      req.user.id,
+      serverId,
+      createChannelDto,
+    );
     const memberIds = await this.channelsService.getMemberIds(serverId);
     for (const memberId of memberIds) {
       this.chatGateway.emitToUser(memberId, 'channel:created', channel);
@@ -89,7 +93,10 @@ export class ChannelsController {
     const memberIds = await this.channelsService.getMemberIds(serverId);
     const result = await this.channelsService.delete(channelId);
     for (const memberId of memberIds) {
-      this.chatGateway.emitToUser(memberId, 'channel:deleted', { channelId, serverId });
+      this.chatGateway.emitToUser(memberId, 'channel:deleted', {
+        channelId,
+        serverId,
+      });
     }
     return result;
   }
