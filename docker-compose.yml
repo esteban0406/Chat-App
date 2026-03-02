@@ -13,7 +13,7 @@ services:
       # (built for Linux inside the image) are never overwritten by the host.
       - ./backend/src:/app/src
       - ./backend/prisma:/app/prisma
-    command: pnpm run start:dev
+    command: sh -c "pnpm prisma generate && pnpm run start:dev"
 
   frontend:
     build:
