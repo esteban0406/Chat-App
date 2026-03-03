@@ -14,7 +14,7 @@ import UserAvatar from "./UserAvatar";
 export default function UserProfileBar() {
   const router = useRouter();
 
-  const { currentUser: user, refreshUser } = useCurrentUser();
+  const { currentUser: user, updateCurrentUser } = useCurrentUser();
   const [openNameModal, setOpenNameModal] = useState(false);
   const [openAvatarModal, setOpenAvatarModal] = useState(false);
 
@@ -91,7 +91,7 @@ export default function UserProfileBar() {
         <EditNameModal
           user={user}
           onClose={() => setOpenNameModal(false)}
-          onUpdated={() => refreshUser()}
+          onUpdated={(updated) => updateCurrentUser(updated)}
         />
       )}
       {openAvatarModal && (

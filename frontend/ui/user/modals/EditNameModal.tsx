@@ -6,7 +6,7 @@ import { updateUser, User } from "@/lib/auth";
 type Props = {
   user: User;
   onClose: () => void;
-  onUpdated: () => Promise<void> | void;
+  onUpdated: (updatedUser: User) => void;
 };
 
 export default function EditNameModal({ user, onClose, onUpdated }: Props) {
@@ -43,8 +43,8 @@ export default function EditNameModal({ user, onClose, onUpdated }: Props) {
     setError("");
 
     try {
-      await updateUser({ username: trimmed });
-      onUpdated();
+      const updated = await updateUser({ username: trimmed });
+      if (updated) onUpdated(updated);
       setError("");
       onClose();
     } catch (err: unknown) {

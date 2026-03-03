@@ -105,6 +105,66 @@ export class AuthService {
     };
   }
 
+  private async generateUniqueUsername(name: string): Promise<string> {
+    const base = name.toLowerCase().replace(/[^a-z0-9]/g, '') || 'user';
+    let candidate = base;
+    while (await this.prisma.user.findUnique({ where: { username: candidate } })) {
+      candidate = `${base}${Math.floor(Math.random() * 10000)}`;
+    }
+    return candidate;
+  }
+
+  async findOrCreateGoogleUser(profile: {
+    id: string;
+    email: string;
+    name: string;
+    picture?: string;
+  }) {
+    // Case 1: Account already linked to this Google ID (fast path)
+    const existingAccount = await this.prisma.account.findUnique({
+      where: {
+        provider_providerAccountId: {
+          provider: 'google',
+          providerAccountId: profile.id,
+        },
+      },
+      include: { user: true },
+    });
+    if (existingAccount) return existingAccount.user;
+
+    // Case 2: User exists with this email — link Google account
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: profile.email },
+    });
+    if (existingUser) {
+      await this.prisma.account.create({
+        data: {
+          provider: 'google',
+          providerAccountId: profile.id,
+          userId: existingUser.id,
+        },
+      });
+      return existingUser;
+    }
+
+    // Case 3: Brand-new user — create User + Account in one write
+    const username = await this.generateUniqueUsername(profile.name);
+    return this.prisma.user.create({
+      data: {
+        email: profile.email,
+        username,
+        avatarUrl: profile.picture ?? null,
+        status: 'ONLINE',
+        accounts: {
+          create: {
+            provider: 'google',
+            providerAccountId: profile.id,
+          },
+        },
+      },
+    });
+  }
+
   async logout(userId: string) {
     await this.usersService.updateStatus(userId, 'OFFLINE');
     return { message: 'Logged out successfully' };

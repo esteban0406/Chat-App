@@ -70,8 +70,10 @@ export default function LoginPage() {
 
       <div className="flex flex-col gap-3">
         <button
-          disabled
-          className="w-full bg-ruby hover:bg-ruby/90 py-2 rounded text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={() => {
+            window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/google`;
+          }}
+          className="w-full bg-ruby hover:bg-ruby/90 py-2 rounded text-white font-semibold"
         >
           Continuar con Google
         </button>

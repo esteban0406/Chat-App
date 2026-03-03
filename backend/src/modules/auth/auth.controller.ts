@@ -5,11 +5,14 @@ import {
   Body,
   UseGuards,
   Request,
+  Res,
 } from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
+import { Throttle, SkipThrottle } from '@nestjs/throttler';
+import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { RegisterDto } from './dto';
 import type { RequestWithUser } from './types';
 
@@ -50,5 +53,21 @@ export class AuthController {
   @Get('me')
   async getProfile(@Request() req: RequestWithUser) {
     return this.authService.getProfile(req.user.id);
+  }
+
+  @SkipThrottle()
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  async googleAuth() {
+    // Passport intercepts this and redirects to Google — body never executes
+  }
+
+  @SkipThrottle()
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  async googleCallback(@Request() req: any, @Res() res: Response) {
+    const { accessToken } = await this.authService.login(req.user);
+    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/auth/callback?token=${accessToken}`);
   }
 }
