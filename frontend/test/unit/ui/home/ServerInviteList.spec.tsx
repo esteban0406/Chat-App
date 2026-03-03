@@ -78,7 +78,7 @@ describe('ServerInviteList', () => {
     render(<ServerInviteList />);
 
     await waitFor(() => {
-      expect(screen.getByText(mockServer.name)).toBeInTheDocument();
+      expect(screen.getByText((c) => c.includes(mockServer.name))).toBeInTheDocument();
     });
   });
 
@@ -89,7 +89,7 @@ describe('ServerInviteList', () => {
     render(<ServerInviteList />);
 
     await waitFor(() => {
-      expect(screen.getByText(mockServer.name)).toBeInTheDocument();
+      expect(screen.getByText((c) => c.includes(mockServer.name))).toBeInTheDocument();
     });
 
     const acceptRes = {
@@ -120,7 +120,7 @@ describe('ServerInviteList', () => {
     render(<ServerInviteList />);
 
     await waitFor(() => {
-      expect(screen.getByText(mockServer.name)).toBeInTheDocument();
+      expect(screen.getByText((c) => c.includes(mockServer.name))).toBeInTheDocument();
     });
 
     const rejectRes = {

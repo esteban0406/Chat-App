@@ -58,6 +58,7 @@ beforeEach(() => {
     currentUser: null,
     loading: false,
     refreshUser: jest.fn(),
+      updateCurrentUser: jest.fn(),
   });
 });
 
@@ -73,6 +74,7 @@ describe('UserProfileBar', () => {
       currentUser: mockUser,
       loading: false,
       refreshUser: jest.fn(),
+      updateCurrentUser: jest.fn(),
     });
 
     render(<UserProfileBar />);
@@ -85,6 +87,7 @@ describe('UserProfileBar', () => {
       currentUser: mockUser,
       loading: false,
       refreshUser: jest.fn(),
+      updateCurrentUser: jest.fn(),
     });
 
     render(<UserProfileBar />);
@@ -97,6 +100,7 @@ describe('UserProfileBar', () => {
       currentUser: mockUser,
       loading: false,
       refreshUser: jest.fn(),
+      updateCurrentUser: jest.fn(),
     });
 
     render(<UserProfileBar />);
@@ -111,12 +115,15 @@ describe('UserProfileBar', () => {
       currentUser: mockUser,
       loading: false,
       refreshUser: jest.fn(),
+      updateCurrentUser: jest.fn(),
     });
 
     render(<UserProfileBar />);
 
     // Settings button contains Settings icon, find the Menu.Button
-    const settingsButton = screen.getByRole('button');
+    const settingsButton = screen.getAllByRole('button').find(
+      (btn) => btn.querySelector('svg') !== null
+    )!;
     await user.click(settingsButton);
 
     await waitFor(() => {
@@ -134,12 +141,15 @@ describe('UserProfileBar', () => {
       currentUser: mockUser,
       loading: false,
       refreshUser: jest.fn(),
+      updateCurrentUser: jest.fn(),
     });
 
     render(<UserProfileBar />);
 
     // Open the menu
-    const settingsButton = screen.getByRole('button');
+    const settingsButton = screen.getAllByRole('button').find(
+      (btn) => btn.querySelector('svg') !== null
+    )!;
     await user.click(settingsButton);
 
     await waitFor(() => {

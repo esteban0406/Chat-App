@@ -1,0 +1,36 @@
+{
+  "sidebar": {
+    "textChannels": "Text Channels",
+    "voiceChannels": "Voice Channels",
+    "noChannels": "No channels yet.",
+    "selectServer": "Select a server to see its channels.",
+    "menu": {
+      "inviteFriends": "Invite Friends",
+      "removeMembers": "Remove Members",
+      "manageRoles": "Manage Roles",
+      "renameServer": "Rename Server",
+      "deleteServer": "Delete Server"
+    }
+  },
+  "create": {
+    "title": "Create Channel",
+    "name": "Channel Name",
+    "type": "Type",
+    "namePlaceholder": "general",
+    "text": "Text",
+    "voice": "Voice",
+    "creating": "Creating..."
+  },
+  "delete": {
+    "title": "Delete Channel",
+    "confirmation": "Are you sure you want to delete channel #{{name}}? This action cannot be undone.",
+    "deleting": "Deleting..."
+  },
+  "edit": {
+    "title": "Edit Channel",
+    "name": "Name",
+    "saving": "Saving..."
+  },
+  "ariaEditChannel": "Edit channel",
+  "ariaDeleteChannel": "Delete channel"
+}

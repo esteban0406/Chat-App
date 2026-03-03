@@ -19,6 +19,7 @@ export default defineConfig({
     baseURL: BASE_URL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
+    locale: 'es',
   },
 
   globalSetup: "./global-setup.ts",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Server, Member } from "@/lib/definitions";
 import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 
@@ -15,6 +16,7 @@ export default function EditServerModal({
   onClose,
   onMemberRemoved,
 }: Props) {
+  const { t } = useTranslation(["servers", "common"]);
   const [removingId, setRemovingId] = useState<string>();
   const [error, setError] = useState<string | null>(null);
 
@@ -31,13 +33,13 @@ export default function EditServerModal({
         { method: "DELETE" }
       );
       if (!res.ok) {
-        const msg = await extractErrorMessage(res, "Failed to remove member");
+        const msg = await extractErrorMessage(res, t('members.removeError'));
         throw new Error(msg);
       }
       onMemberRemoved?.(member.id);
     } catch (err) {
       console.error(err);
-      const message = err instanceof Error ? err.message : "No se pudo eliminar al miembro";
+      const message = err instanceof Error ? err.message : t('members.removeError');
       setError(message);
     } finally {
       setRemovingId(undefined);
@@ -48,16 +50,16 @@ export default function EditServerModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="w-full max-w-lg rounded-lg bg-deep border border-border p-6 text-white shadow-xl">
         <div className="mb-4">
-          <h3 className="text-lg font-semibold">Miembros de {server.name}</h3>
+          <h3 className="text-lg font-semibold">{t('servers:members.title', { name: server.name })}</h3>
           <p className="text-sm text-text-muted">
-            Elimina miembros del servidor.
+            {t('servers:members.description')}
           </p>
         </div>
 
         <div className="max-h-80 space-y-2 overflow-y-auto pr-2">
           {members.length === 0 ? (
             <p className="text-sm text-text-muted">
-              No hay miembros registrados.
+              {t('servers:members.empty')}
             </p>
           ) : (
             members.map((member) => {
@@ -67,14 +69,14 @@ export default function EditServerModal({
                     key={member.id}
                     className="flex items-center justify-between rounded bg-surface px-3 py-2 text-sm"
                   >
-                    <span>{`${member.user?.username ?? "Usuario"} (${member.user?.email ?? ""})`}</span>
+                    <span>{`${member.user?.username ?? t('members.user')} (${member.user?.email ?? ""})`}</span>
                     <button
                       type="button"
                       onClick={() => handleRemove(member)}
                       disabled={removingId === member.id}
                       className="rounded bg-ruby px-3 py-1 text-xs font-semibold text-white hover:bg-ruby/90 disabled:opacity-60"
                     >
-                      Eliminar
+                      {t('servers:members.remove')}
                     </button>
                   </div>
                 );
@@ -92,7 +94,7 @@ export default function EditServerModal({
             onClick={onClose}
             className="rounded bg-surface px-4 py-2 text-sm font-semibold hover:bg-surface/80"
           >
-            Cerrar
+            {t('common:close')}
           </button>
         </div>
       </div>

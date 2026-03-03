@@ -23,6 +23,7 @@ jest.mock("@/lib/context/CurrentUserContext", () => ({
     currentUser: { id: "user-1", username: "testuser", email: "test@example.com" },
     loading: false,
     refreshUser: jest.fn(),
+      updateCurrentUser: jest.fn(),
   }),
 }));
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Member } from "@/lib/definitions";
 import { UserPlus } from "lucide-react";
 
@@ -23,6 +24,7 @@ export default function RoleMembersSection({
   onAssignMember,
   onRemoveMember,
 }: Props) {
+  const { t } = useTranslation("roles");
   const [showDropdown, setShowDropdown] = useState(false);
 
   // Members not in this role and not the server owner
@@ -52,7 +54,7 @@ export default function RoleMembersSection({
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <h4 className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-          Miembros ({members.length})
+          {t('members.title', { count: members.length })}
         </h4>
 
         {!disabled && (
@@ -63,14 +65,14 @@ export default function RoleMembersSection({
               className="flex items-center gap-1 rounded-md border border-border bg-surface px-2.5 py-1 text-[11px] font-medium text-gold transition-colors hover:bg-surface/80"
             >
               <UserPlus size={12} />
-              Agregar miembro
+              {t('members.add')}
             </button>
 
             {showDropdown && (
               <div className="absolute right-0 top-full z-10 mt-1 max-h-48 w-56 overflow-y-auto rounded-lg border border-border bg-main shadow-xl">
                 {availableMembers.length === 0 ? (
                   <p className="px-3 py-2 text-xs text-text-muted">
-                    No hay miembros disponibles.
+                    {t('members.noAvailable')}
                   </p>
                 ) : (
                   availableMembers.map((member) => (
@@ -89,7 +91,7 @@ export default function RoleMembersSection({
                       >
                         {getInitial(member)}
                       </span>
-                      {member.user?.username ?? "Usuario"}
+                      {member.user?.username ?? t('members.user')}
                     </button>
                   ))
                 )}
@@ -103,7 +105,7 @@ export default function RoleMembersSection({
       <div className="space-y-1.5">
         {members.length === 0 ? (
           <p className="rounded-lg bg-surface/40 px-3 py-3 text-center text-xs text-text-muted">
-            No hay miembros con este rol.
+            {t('members.empty')}
           </p>
         ) : (
           members.map((member, i) => (
@@ -118,7 +120,7 @@ export default function RoleMembersSection({
                   {getInitial(member)}
                 </span>
                 <span className="text-[13px] font-medium text-text-body">
-                  {member.user?.username ?? "Usuario"}
+                  {member.user?.username ?? t('members.user')}
                 </span>
               </div>
 
@@ -129,7 +131,7 @@ export default function RoleMembersSection({
                   disabled={assigningId === member.userId}
                   className="rounded px-2 py-1 text-[11px] font-medium text-ruby transition-colors hover:bg-ruby/10 disabled:opacity-50"
                 >
-                  Quitar
+                  {t('members.remove')}
                 </button>
               )}
             </div>

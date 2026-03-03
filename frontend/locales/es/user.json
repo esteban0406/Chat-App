@@ -1,0 +1,27 @@
+{
+  "profile": {
+    "editName": "Editar nombre",
+    "editAvatar": "Editar avatar",
+    "logout": "Cerrar sesión"
+  },
+  "editName": {
+    "title": "Editar nombre",
+    "placeholder": "Nuevo nombre de usuario",
+    "emptyError": "El nombre no puede estar vacío",
+    "sameError": "Debes ingresar un nombre diferente",
+    "saving": "Guardando..."
+  },
+  "editAvatar": {
+    "title": "Editar avatar",
+    "dropToUpload": "Suelta para subir",
+    "dragOrClick": "Arrastra una imagen o haz clic aquí",
+    "change": "Cambiar",
+    "preview": "Vista previa del avatar",
+    "previewHint": "Haz clic en la imagen para cambiarla",
+    "selectFirst": "Selecciona una imagen antes de guardar",
+    "imageOnly": "Solo se permiten archivos de imagen",
+    "maxSize": "La imagen no puede superar los 5MB",
+    "formats": "PNG · JPG · GIF • máx. 5 MB",
+    "saving": "Guardando..."
+  }
+}

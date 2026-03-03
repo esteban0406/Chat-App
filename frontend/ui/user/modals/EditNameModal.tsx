@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { updateUser, User } from "@/lib/auth";
 
 type Props = {
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export default function EditNameModal({ user, onClose, onUpdated }: Props) {
+  const { t } = useTranslation(["user", "common"]);
   const [name, setName] = useState(user.username ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -30,12 +32,12 @@ export default function EditNameModal({ user, onClose, onUpdated }: Props) {
     const trimmed = name.trim();
 
     if (!trimmed) {
-      setError("El nombre no puede estar vacío");
+      setError(t('user:editName.emptyError'));
       return;
     }
 
     if (trimmed === user.username) {
-      setError("Debes ingresar un nombre diferente");
+      setError(t('user:editName.sameError'));
       return;
     }
 
@@ -58,7 +60,7 @@ export default function EditNameModal({ user, onClose, onUpdated }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
       <div className="w-96 rounded-lg bg-deep border border-border p-6 text-white shadow-lg">
-        <h2 className="mb-4 text-lg font-bold">Editar nombre</h2>
+        <h2 className="mb-4 text-lg font-bold">{t('user:editName.title')}</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -66,7 +68,7 @@ export default function EditNameModal({ user, onClose, onUpdated }: Props) {
             disabled={loading}
             onChange={(e) => setName(e.target.value)}
             className="w-full rounded bg-surface px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gold"
-            placeholder="Nuevo nombre de usuario"
+            placeholder={t('user:editName.placeholder')}
           />
 
           {error ? <p className="text-sm text-ruby">{error}</p> : null}
@@ -78,7 +80,7 @@ export default function EditNameModal({ user, onClose, onUpdated }: Props) {
               disabled={loading}
               className="rounded bg-surface px-4 py-2 hover:bg-surface/80 disabled:opacity-60"
             >
-              Cancelar
+              {t('common:cancel')}
             </button>
 
             <button
@@ -86,7 +88,7 @@ export default function EditNameModal({ user, onClose, onUpdated }: Props) {
               disabled={loading}
               className="rounded bg-gold px-4 py-2 text-deep hover:bg-gold/90 disabled:opacity-60"
             >
-              {loading ? "Guardando..." : "Guardar"}
+              {loading ? t('user:editName.saving') : t('common:save')}
             </button>
           </div>
         </form>

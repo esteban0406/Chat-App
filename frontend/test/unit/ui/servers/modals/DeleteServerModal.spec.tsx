@@ -32,7 +32,7 @@ describe('DeleteServerModal', () => {
   it('shows server name in confirmation text', () => {
     render(<DeleteServerModal {...defaultProps} />);
 
-    expect(screen.getByText(mockServer.name)).toBeInTheDocument();
+    expect(screen.getByText((content) => content.includes(mockServer.name))).toBeInTheDocument();
     expect(screen.getByText('Eliminar servidor')).toBeInTheDocument();
   });
 

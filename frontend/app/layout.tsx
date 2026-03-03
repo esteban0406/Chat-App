@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from 'next';
+import I18nInit from '@/ui/common/I18nInit';
 
 export const metadata: Metadata = {
   title: 'Discol',
@@ -14,6 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-deep font-sans text-white">
+        <I18nInit />
         {children}
       </body>
     </html>

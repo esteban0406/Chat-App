@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Channel } from "@/lib/definitions";
 import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 
@@ -15,6 +16,7 @@ export default function DeleteChannelModal({
   onClose,
   onDeleted,
 }: Props) {
+  const { t } = useTranslation(["channels", "common"]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,14 +52,10 @@ export default function DeleteChannelModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="w-full max-w-md rounded-lg bg-deep border border-border p-6 text-white shadow-xl">
         <h2 className="mb-3 text-lg font-semibold text-ruby">
-          Eliminar canal
+          {t('channels:delete.title')}
         </h2>
         <p className="text-sm text-text-muted">
-          ¿Seguro que quieres eliminar el canal{" "}
-          <span className="font-semibold text-white">
-            #{channel?.name}
-          </span>
-          ? Esta acción no se puede deshacer.
+          {t('channels:delete.confirmation', { name: channel?.name ?? '' })}
         </p>
 
         {error && (
@@ -71,7 +69,7 @@ export default function DeleteChannelModal({
             className="rounded bg-surface px-4 py-2 hover:bg-surface/80"
             disabled={loading}
           >
-            Cancelar
+            {t('common:cancel')}
           </button>
           <button
             type="button"
@@ -79,7 +77,7 @@ export default function DeleteChannelModal({
             className="rounded bg-ruby px-4 py-2 hover:bg-ruby/90 disabled:opacity-70"
             disabled={loading}
           >
-            {loading ? "Eliminando..." : "Eliminar"}
+            {loading ? t('channels:delete.deleting') : t('common:delete')}
           </button>
         </div>
       </div>

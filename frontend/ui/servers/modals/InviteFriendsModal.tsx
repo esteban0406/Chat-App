@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Server, User, ServerInvite } from "@/lib/definitions";
 import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
 
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export default function InviteFriendsModal({ server, onClose }: Props) {
+  const { t } = useTranslation(["servers", "common"]);
   const [friends, setFriends] = useState<User[]>([]);
   const [pendingInvites, setPendingInvites] = useState<ServerInvite[]>([]);
   const [invitingId, setInvitingId] = useState<string | null>(null);
@@ -105,7 +107,7 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
       <div className="w-full max-w-lg rounded-lg bg-deep border border-border p-6 text-white shadow-xl">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-semibold">
-            Invitar amigos a {server.name}
+            {t('servers:invite.title', { name: server.name })}
           </h3>
           <button
             type="button"
@@ -117,10 +119,10 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
         </div>
 
         {loading ? (
-          <p className="text-sm text-text-muted">Cargando amigos...</p>
+          <p className="text-sm text-text-muted">{t('servers:invite.loading')}</p>
         ) : eligibleFriends.length === 0 ? (
           <p className="text-sm text-text-muted">
-            No hay amigos disponibles para invitar.
+            {t('servers:invite.empty')}
           </p>
         ) : (
           <ul className="space-y-2">
@@ -139,7 +141,7 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
                   disabled={invitingId === friend.id}
                   className="rounded bg-gold px-3 py-1 text-deep font-semibold text-white hover:bg-gold/90 disabled:opacity-60"
                 >
-                  {invitingId === friend.id ? "Enviando..." : "Invitar"}
+                  {invitingId === friend.id ? t('servers:invite.sending') : t('servers:invite.invite')}
                 </button>
               </li>
             ))}

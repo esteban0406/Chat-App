@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { Message } from "@/lib/definitions";
 import { toBackendURL } from "@/lib/backend-client";
 import UserAvatar from "@/ui/user/UserAvatar";
@@ -18,8 +19,9 @@ export default function ChatMessages({
   error,
   currentUserId,
 }: Props) {
+  const { t } = useTranslation("messages");
   if (loading) {
-    return <p className="p-4 text-sm text-text-muted">Cargando mensajes...</p>;
+    return <p className="p-4 text-sm text-text-muted">{t('loading')}</p>;
   }
 
   if (error) {
@@ -29,7 +31,7 @@ export default function ChatMessages({
   if (!messages.length) {
     return (
       <p className="p-4 text-sm text-text-muted">
-        Aún no hay mensajes en este canal.
+        {t('empty')}
       </p>
     );
   }
@@ -37,7 +39,7 @@ export default function ChatMessages({
   return (
     <div className="flex flex-col gap-5 p-4">
       {messages.map((message) => {
-        const authorName = message.author?.username ?? "Usuario";
+        const authorName = message.author?.username ?? t('user');
         const authorId = message.authorId ?? "unknown";
         const isOwn = message.authorId === currentUserId;
 

@@ -1,0 +1,42 @@
+{
+  "title": "Roles",
+  "create": "Create Role",
+  "close": "Close",
+  "noPermission": "You don't have the required permissions for this action.",
+  "loading": "Loading roles...",
+  "selectOrCreate": "Select a role or create a new one",
+  "newRole": "New Role",
+  "default": "Default",
+  "settings": {
+    "title": "Role Settings",
+    "name": "Role Name",
+    "namePlaceholder": "Moderator",
+    "color": "Color",
+    "defaultWarning": "Default roles cannot be modified."
+  },
+  "permissions": {
+    "title": "Permissions",
+    "CREATE_CHANNEL": "Create Channel",
+    "DELETE_CHANNEL": "Delete Channel",
+    "DELETE_SERVER": "Delete Server",
+    "MANAGE_ROLES": "Manage Roles",
+    "REMOVE_MEMBER": "Remove Members",
+    "INVITE_MEMBER": "Invite Members",
+    "RENAME_SERVER": "Rename Server"
+  },
+  "members": {
+    "title": "Members ({{count}})",
+    "add": "Add Member",
+    "noAvailable": "No members available.",
+    "empty": "No members with this role.",
+    "remove": "Remove",
+    "user": "User"
+  },
+  "actions": {
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "confirm": "Confirm",
+    "save": "Save Changes",
+    "saving": "Saving..."
+  }
+}

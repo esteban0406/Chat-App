@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 
 type Props = {
@@ -11,6 +12,7 @@ type Props = {
 
 export default function CreateServerModal({ onClose, created }: Props) {
   const router = useRouter();
+  const { t } = useTranslation(["servers", "common"]);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -49,12 +51,12 @@ export default function CreateServerModal({ onClose, created }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
       <div className="w-96 rounded-lg bg-deep border border-border p-6 text-white shadow-lg">
-        <h2 className="mb-4 text-lg font-bold">Crear Servidor</h2>
+        <h2 className="mb-4 text-lg font-bold">{t('servers:create.title')}</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
-            placeholder="Nombre del servidor"
+            placeholder={t('servers:create.name')}
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -62,7 +64,7 @@ export default function CreateServerModal({ onClose, created }: Props) {
           />
 
           <textarea
-            placeholder="Descripción (opcional)"
+            placeholder={t('servers:create.description')}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="w-full rounded bg-surface px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gold"
@@ -77,7 +79,7 @@ export default function CreateServerModal({ onClose, created }: Props) {
               className="rounded bg-surface px-4 py-2 hover:bg-surface/80"
               disabled={loading}
             >
-              Cancelar
+              {t('common:cancel')}
             </button>
 
             <button
@@ -85,7 +87,7 @@ export default function CreateServerModal({ onClose, created }: Props) {
               disabled={loading}
               className="rounded bg-gold px-4 py-2 text-deep hover:bg-gold/90 disabled:opacity-60"
             >
-              {loading ? "Creando..." : "Crear"}
+              {loading ? t('servers:create.creating') : t('common:create')}
             </button>
           </div>
         </form>

@@ -14,9 +14,11 @@ import { connectSocket, disconnectSocket } from "@/lib/socket";
 import { NotificationProvider } from "@/lib/context/NotificationContext";
 import { CurrentUserProvider } from "@/lib/context/CurrentUserContext";
 import { ServersProvider } from "@/lib/context/ServersContext";
+import { useTranslation } from "react-i18next";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const { t } = useTranslation();
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
@@ -34,7 +36,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (isChecking) {
     return (
       <div className="flex h-screen items-center justify-center bg-deep text-white">
-        <p>Loading...</p>
+        <p>{t("loading")}</p>
       </div>
     );
   }

@@ -27,7 +27,7 @@ describe('DeleteChannelModal', () => {
   it('shows channel name in confirmation text', () => {
     render(<DeleteChannelModal {...defaultProps} />);
 
-    expect(screen.getByText(`#${mockChannel.name}`)).toBeInTheDocument();
+    expect(screen.getByText((c) => c.includes(`#${mockChannel.name}`))).toBeInTheDocument();
     expect(screen.getByText('Eliminar canal')).toBeInTheDocument();
   });
 

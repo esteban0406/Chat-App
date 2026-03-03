@@ -1,0 +1,34 @@
+{
+  "create": {
+    "title": "Crear Servidor",
+    "name": "Nombre del servidor",
+    "description": "Descripción (opcional)",
+    "creating": "Creando..."
+  },
+  "delete": {
+    "title": "Eliminar servidor",
+    "confirmation": "¿Seguro que deseas eliminar {{name}}? Esta acción no se puede deshacer.",
+    "deleting": "Eliminando..."
+  },
+  "rename": {
+    "title": "Cambiar nombre del servidor",
+    "name": "Nombre",
+    "saving": "Guardando..."
+  },
+  "members": {
+    "title": "Miembros de {{name}}",
+    "description": "Elimina miembros del servidor.",
+    "empty": "No hay miembros registrados.",
+    "remove": "Eliminar",
+    "user": "Usuario",
+    "removeError": "No se pudo eliminar al miembro"
+  },
+  "invite": {
+    "title": "Invitar amigos a {{name}}",
+    "loading": "Cargando amigos...",
+    "empty": "No hay amigos disponibles para invitar.",
+    "sending": "Enviando...",
+    "invite": "Invitar",
+    "sent": "Invitación enviada"
+  }
+}

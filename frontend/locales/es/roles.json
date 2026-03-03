@@ -1,0 +1,42 @@
+{
+  "title": "Roles",
+  "create": "Crear rol",
+  "close": "Cerrar",
+  "noPermission": "No tienes los permisos requeridos para esta acción.",
+  "loading": "Cargando roles...",
+  "selectOrCreate": "Selecciona un rol o crea uno nuevo",
+  "newRole": "Nuevo Rol",
+  "default": "Por defecto",
+  "settings": {
+    "title": "Configuración del rol",
+    "name": "Nombre del rol",
+    "namePlaceholder": "Moderador",
+    "color": "Color",
+    "defaultWarning": "Los roles por defecto no se pueden modificar."
+  },
+  "permissions": {
+    "title": "Permisos",
+    "CREATE_CHANNEL": "Crear canal",
+    "DELETE_CHANNEL": "Eliminar canal",
+    "DELETE_SERVER": "Eliminar servidor",
+    "MANAGE_ROLES": "Gestionar roles",
+    "REMOVE_MEMBER": "Eliminar miembros",
+    "INVITE_MEMBER": "Invitar miembros",
+    "RENAME_SERVER": "Renombrar servidor"
+  },
+  "members": {
+    "title": "Miembros ({{count}})",
+    "add": "Agregar miembro",
+    "noAvailable": "No hay miembros disponibles.",
+    "empty": "No hay miembros con este rol.",
+    "remove": "Quitar",
+    "user": "Usuario"
+  },
+  "actions": {
+    "delete": "Eliminar",
+    "deleting": "Eliminando...",
+    "confirm": "Confirmar",
+    "save": "Guardar cambios",
+    "saving": "Guardando..."
+  }
+}

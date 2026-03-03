@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Server, Role } from "@/lib/definitions";
 import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 import { useServerPermissions } from "@/lib/useServerPermissions";
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export default function ManageRolesModal({ server, onClose }: Props) {
+  const { t } = useTranslation("roles");
   const { hasPermission, loading: permLoading } = useServerPermissions(server);
 
   const [roles, setRoles] = useState<Role[]>([]);
@@ -88,7 +90,7 @@ export default function ManageRolesModal({ server, onClose }: Props) {
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
         <div className="w-full max-w-lg rounded-xl bg-deep p-6 text-white shadow-xl">
           <p className="mb-4 text-sm text-text-secondary">
-            No tienes los permisos requeridos para esta acción.
+            {t('noPermission')}
           </p>
           <div className="text-right">
             <button
@@ -96,7 +98,7 @@ export default function ManageRolesModal({ server, onClose }: Props) {
               onClick={onClose}
               className="rounded-md bg-surface px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-surface/80"
             >
-              Cerrar
+              {t('common:close')}
             </button>
           </div>
         </div>
@@ -122,7 +124,7 @@ export default function ManageRolesModal({ server, onClose }: Props) {
         <div className="flex flex-1 flex-col overflow-hidden">
           {loading ? (
             <div className="flex flex-1 items-center justify-center">
-              <p className="text-sm text-text-muted">Cargando roles...</p>
+              <p className="text-sm text-text-muted">{t('loading')}</p>
             </div>
           ) : error ? (
             <div className="flex flex-1 items-center justify-center">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Role, Member, ServerPermission } from "@/lib/definitions";
 import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 import { Trash2, Shield } from "lucide-react";
@@ -29,6 +30,7 @@ export default function RoleDetailPanel({
   onSaved,
   onDeleted,
 }: Props) {
+  const { t } = useTranslation(["roles", "common"]);
   const [formName, setFormName] = useState("");
   const [formColor, setFormColor] = useState("#6366f1");
   const [formPermissions, setFormPermissions] = useState<ServerPermission[]>([]);
@@ -208,7 +210,7 @@ export default function RoleDetailPanel({
     return (
       <div className="flex flex-1 flex-col items-center justify-center text-text-muted">
         <Shield size={48} strokeWidth={1.5} className="mb-3 opacity-40" />
-        <p className="text-sm">Selecciona un rol o crea uno nuevo</p>
+        <p className="text-sm">{t('roles:selectOrCreate')}</p>
       </div>
     );
   }
@@ -241,9 +243,9 @@ export default function RoleDetailPanel({
             <Trash2 size={14} />
             {confirmDelete
               ? deleting
-                ? "Eliminando..."
-                : "Confirmar"
-              : "Eliminar"}
+                ? t('roles:actions.deleting')
+                : t('roles:actions.confirm')
+              : t('roles:actions.delete')}
           </button>
         )}
       </div>
@@ -301,14 +303,14 @@ export default function RoleDetailPanel({
             disabled={saving}
             className="rounded-md bg-surface px-4 py-2 text-[13px] font-medium text-text-secondary transition-colors hover:bg-surface/80"
           >
-            Cancelar
+            {t('common:cancel')}
           </button>
           <button
             type="submit"
             disabled={saving || !formName.trim()}
             className="rounded-md bg-gold px-4 py-2 text-[13px] font-semibold text-deep transition-colors hover:bg-gold/90 disabled:opacity-50"
           >
-            {saving ? "Guardando..." : "Guardar cambios"}
+            {saving ? t('roles:actions.saving') : t('roles:actions.save')}
           </button>
         </div>
       )}

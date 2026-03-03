@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Check, X } from "lucide-react";
 import { Friendship, User } from "@/lib/definitions";
 import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
 import { useNotificationSocket } from "@/lib/useNotificationSocket";
 
 export default function FriendRequestsList() {
+  const { t } = useTranslation("home");
+
   const [requests, setRequests] = useState<Friendship[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +23,7 @@ export default function FriendRequestsList() {
         cache: "no-store",
       });
       if (!res.ok) {
-        const msg = await extractErrorMessage(res, "No se pudieron cargar las solicitudes");
+        const msg = await extractErrorMessage(res, t('requests.loadError'));
         throw new Error(msg);
       }
       const body = await res.json();
@@ -29,16 +32,15 @@ export default function FriendRequestsList() {
     } catch (err) {
       console.error(err);
       setRequests([]);
-      const message = err instanceof Error ? err.message : "No se pudieron cargar las solicitudes";
+      const message = err instanceof Error ? err.message : t('requests.loadError');
       setError(message);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadRequests();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadRequests(); }, []);
 
   useNotificationSocket({
     onFriendRequestReceived: (friendship) => {
@@ -60,13 +62,13 @@ export default function FriendRequestsList() {
         body: JSON.stringify({ status }),
       });
       if (!res.ok) {
-        const msg = await extractErrorMessage(res, "No se pudo responder la solicitud");
+        const msg = await extractErrorMessage(res, t('requests.respondError'));
         throw new Error(msg);
       }
       setRequests((prev) => prev.filter((request) => request.id !== id));
     } catch (err) {
       console.error(err);
-      const message = err instanceof Error ? err.message : "No se pudo actualizar la solicitud";
+      const message = err instanceof Error ? err.message : t('requests.respondError');
       setError(message);
     } finally {
       setRespondingId(null);
@@ -74,7 +76,7 @@ export default function FriendRequestsList() {
   };
 
   if (loading) {
-    return <p className="text-text-muted">Cargando solicitudes...</p>;
+    return <p className="text-text-muted">{t("requests.loading")}</p>;
   }
 
   if (error) {
@@ -82,7 +84,7 @@ export default function FriendRequestsList() {
   }
 
   if (!requests.length) {
-    return <p className="text-text-muted">No tienes solicitudes pendientes.</p>;
+    return <p className="text-text-muted">{t("requests.empty")}</p>;
   }
 
   return (
@@ -98,10 +100,10 @@ export default function FriendRequestsList() {
             </div>
             <span className="truncate">
               <span className="font-medium text-text-primary">
-                {(request.sender as User)?.username ?? "Usuario"}
+                {(request.sender as User)?.username ?? t("requests.user")}
               </span>{" "}
               <span className="text-xs text-text-muted">
-                ({(request.sender as User)?.email ?? "Sin email"})
+                ({(request.sender as User)?.email ?? t("requests.noEmail")})
               </span>
             </span>
           </div>
@@ -111,7 +113,7 @@ export default function FriendRequestsList() {
               onClick={() => handleResponse(request.id, "ACCEPTED")}
               disabled={respondingId === request.id}
               className="flex h-8 w-8 items-center justify-center rounded-full border border-gold-muted text-gold transition hover:bg-gold hover:text-deep disabled:opacity-60"
-              aria-label="Aceptar"
+              aria-label={t("requests.accept")}
             >
               <Check className="h-4 w-4" />
             </button>
@@ -120,7 +122,7 @@ export default function FriendRequestsList() {
               onClick={() => handleResponse(request.id, "REJECTED")}
               disabled={respondingId === request.id}
               className="flex h-8 w-8 items-center justify-center rounded-full border border-ruby-muted text-ruby transition hover:bg-ruby hover:text-white disabled:opacity-60"
-              aria-label="Rechazar"
+              aria-label={t("requests.reject")}
             >
               <X className="h-4 w-4" />
             </button>

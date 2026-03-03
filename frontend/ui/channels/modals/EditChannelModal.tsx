@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Channel } from "@/lib/definitions";
 import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 
@@ -15,6 +16,7 @@ export default function EditChannelModal({
   onClose,
   onUpdated,
 }: Props) {
+  const { t } = useTranslation(["channels", "common"]);
   const [name, setName] = useState(channel?.name ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,13 +58,13 @@ export default function EditChannelModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="w-full max-w-md rounded-lg bg-deep border border-border p-6 text-white shadow-xl">
         <h2 className="mb-4 text-lg font-semibold">
-          Editar canal
+          {t('channels:edit.title')}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm text-text-muted mb-1">
-              Nombre
+              {t('channels:edit.name')}
             </label>
             <input
               type="text"
@@ -84,14 +86,14 @@ export default function EditChannelModal({
               className="rounded bg-surface px-4 py-2 hover:bg-surface/80"
               disabled={loading}
             >
-              Cancelar
+              {t('common:cancel')}
             </button>
             <button
               type="submit"
               disabled={loading}
               className="rounded bg-gold px-4 py-2 text-deep hover:bg-gold/90 disabled:opacity-60"
             >
-              {loading ? "Guardando..." : "Guardar"}
+              {loading ? t('channels:edit.saving') : t('common:save')}
             </button>
           </div>
         </form>

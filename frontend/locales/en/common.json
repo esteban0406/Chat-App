@@ -1,0 +1,19 @@
+{
+  "cancel": "Cancel",
+  "save": "Save",
+  "delete": "Delete",
+  "close": "Close",
+  "loading": "Loading...",
+  "confirm": "Confirm",
+  "create": "Create",
+  "edit": "Edit",
+  "send": "Send",
+  "search": "Search",
+  "error": "Error",
+  "remove": "Remove",
+  "online": "Online",
+  "offline": "Offline",
+  "noResults": "No results.",
+  "closeDrawer": "Close drawer",
+  "closePanel": "Close panel"
+}
