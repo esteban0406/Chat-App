@@ -108,7 +108,9 @@ export class AuthService {
   private async generateUniqueUsername(name: string): Promise<string> {
     const base = name.toLowerCase().replace(/[^a-z0-9]/g, '') || 'user';
     let candidate = base;
-    while (await this.prisma.user.findUnique({ where: { username: candidate } })) {
+    while (
+      await this.prisma.user.findUnique({ where: { username: candidate } })
+    ) {
       candidate = `${base}${Math.floor(Math.random() * 10000)}`;
     }
     return candidate;

@@ -65,7 +65,10 @@ export class AuthController {
   @SkipThrottle()
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  async googleCallback(@Request() req: any, @Res() res: Response) {
+  async googleCallback(
+    @Request() req: { user: { id: string; email: string; username: string } },
+    @Res() res: Response,
+  ) {
     const { accessToken } = await this.authService.login(req.user);
     const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
     res.redirect(`${frontendUrl}/auth/callback?token=${accessToken}`);
