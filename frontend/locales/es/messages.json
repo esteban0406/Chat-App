@@ -1,0 +1,7 @@
+{
+  "loading": "Cargando mensajes...",
+  "empty": "Aún no hay mensajes en este canal.",
+  "user": "Usuario",
+  "placeholder": "Escribe un mensaje...",
+  "sendError": "No se pudo enviar el mensaje"
+}

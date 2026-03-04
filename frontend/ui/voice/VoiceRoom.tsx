@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   LiveKitRoom,
   VideoConference,
@@ -59,6 +60,7 @@ export default function VoiceRoom({
   displayName,
   enableVideo = false,
 }: VoiceRoomProps) {
+  const { t } = useTranslation("voice");
   const [token, setToken] = useState<string>();
   const [serverUrl, setServerUrl] = useState<string>();
   const [error, setError] = useState<string | null>(null);
@@ -85,7 +87,7 @@ export default function VoiceRoom({
     })
       .then(async (res) => {
         if (!res.ok) {
-          const msg = await extractErrorMessage(res, "No se pudo conectar al canal de voz");
+          const msg = await extractErrorMessage(res, t('connectionError'));
           throw new Error(msg);
         }
         return res.json();
@@ -96,10 +98,10 @@ export default function VoiceRoom({
       })
       .catch((err) => {
         console.error("Error joining voice channel", err);
-        const message = err instanceof Error ? err.message : "No se pudo conectar al canal de voz.";
+        const message = err instanceof Error ? err.message : t('connectionError');
         setError(message);
       });
-  }, [channelId, userId, resolvedDisplayName, roomName, retryKey]);
+  }, [channelId, userId, resolvedDisplayName, roomName, retryKey, t]);
 
   if (error) {
     return (
@@ -112,7 +114,7 @@ export default function VoiceRoom({
             setRetryKey((prev) => prev + 1);
           }}
         >
-          Reintentar
+          {t('retry')}
         </button>
       </div>
     );

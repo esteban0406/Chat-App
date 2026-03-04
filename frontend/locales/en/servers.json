@@ -1,0 +1,34 @@
+{
+  "create": {
+    "title": "Create Server",
+    "name": "Server Name",
+    "description": "Description (optional)",
+    "creating": "Creating..."
+  },
+  "delete": {
+    "title": "Delete Server",
+    "confirmation": "Are you sure you want to delete {{name}}? This action cannot be undone.",
+    "deleting": "Deleting..."
+  },
+  "rename": {
+    "title": "Rename Server",
+    "name": "Name",
+    "saving": "Saving..."
+  },
+  "members": {
+    "title": "Members of {{name}}",
+    "description": "Remove members from the server.",
+    "empty": "No members registered.",
+    "remove": "Remove",
+    "user": "User",
+    "removeError": "Failed to remove member"
+  },
+  "invite": {
+    "title": "Invite friends to {{name}}",
+    "loading": "Loading friends...",
+    "empty": "No friends available to invite.",
+    "sending": "Sending...",
+    "invite": "Invite",
+    "sent": "Invitation sent"
+  }
+}

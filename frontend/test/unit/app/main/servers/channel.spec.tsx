@@ -95,6 +95,7 @@ beforeEach(() => {
     currentUser: mockUser,
     loading: false,
     refreshUser: jest.fn(),
+      updateCurrentUser: jest.fn(),
   });
 
   mockUseMessages.mockReturnValue({

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Server } from "@/lib/definitions";
 import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export default function RenameServerModal({ server, onClose, onRenamed }: Props) {
+  const { t } = useTranslation(["servers", "common"]);
   const [name, setName] = useState(server.name);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,11 +44,11 @@ export default function RenameServerModal({ server, onClose, onRenamed }: Props)
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="w-full max-w-md rounded-lg bg-deep border border-border p-6 text-white shadow-xl">
-        <h2 className="mb-4 text-lg font-semibold">Cambiar nombre del servidor</h2>
+        <h2 className="mb-4 text-lg font-semibold">{t('servers:rename.title')}</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm text-text-muted">Nombre</label>
+            <label className="mb-1 block text-sm text-text-muted">{t('servers:rename.name')}</label>
             <input
               type="text"
               value={name}
@@ -65,14 +67,14 @@ export default function RenameServerModal({ server, onClose, onRenamed }: Props)
               disabled={loading}
               className="rounded px-4 py-1.5 text-text-secondary hover:text-white disabled:opacity-60"
             >
-              Cancelar
+              {t('common:cancel')}
             </button>
             <button
               type="submit"
               disabled={loading || !name.trim()}
               className="rounded bg-gold px-4 py-1.5 font-semibold text-deep hover:bg-gold/90 disabled:opacity-60"
             >
-              {loading ? "Guardando..." : "Guardar"}
+              {loading ? t('servers:rename.saving') : t('common:save')}
             </button>
           </div>
         </form>

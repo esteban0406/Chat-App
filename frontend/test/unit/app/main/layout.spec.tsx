@@ -143,7 +143,7 @@ describe("AppLayout (main layout)", () => {
       </AppLayout>
     );
 
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    expect(screen.getByText("Cargando...")).toBeInTheDocument();
   });
 
   it("calls disconnectSocket on unmount", async () => {

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { Server } from "@/lib/definitions";
 import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 
@@ -17,6 +18,7 @@ export default function DeleteServerModal({
   onDeleted,
 }: Props) {
   const router = useRouter();
+  const { t } = useTranslation(["servers", "common"]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,12 +51,10 @@ export default function DeleteServerModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="w-full max-w-md rounded-lg bg-deep border border-border p-6 text-white shadow-xl">
         <h3 className="text-lg font-semibold mb-3">
-          Eliminar servidor
+          {t('servers:delete.title')}
         </h3>
         <p className="text-sm text-text-muted">
-          ¿Seguro que deseas eliminar{" "}
-          <span className="font-semibold text-white">{server.name}</span>?
-          Esta acción no se puede deshacer.
+          {t('servers:delete.confirmation', { name: server.name })}
         </p>
 
         {error && (
@@ -68,7 +68,7 @@ export default function DeleteServerModal({
             disabled={loading}
             className="rounded bg-surface px-4 py-2 font-semibold hover:bg-surface/80 disabled:opacity-60"
           >
-            Cancelar
+            {t('common:cancel')}
           </button>
           <button
             type="button"
@@ -76,7 +76,7 @@ export default function DeleteServerModal({
             disabled={loading}
             className="rounded bg-ruby px-4 py-2 font-semibold hover:bg-ruby/90 disabled:opacity-60"
           >
-            {loading ? "Eliminando..." : "Eliminar"}
+            {loading ? t('servers:delete.deleting') : t('common:delete')}
           </button>
         </div>
       </div>

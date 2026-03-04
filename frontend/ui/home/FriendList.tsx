@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useFriends } from "@/lib/context/FriendsContext";
 import UserAvatar from "@/ui/user/UserAvatar";
 
 export default function FriendList() {
+  const { t } = useTranslation("home");
   const { friends, loading, error, removeFriend } = useFriends();
   const [removingId, setRemovingId] = useState<string | null>(null);
 
   if (loading) {
-    return <p className="text-text-muted">Cargando amigos...</p>;
+    return <p className="text-text-muted">{t("friends.loading")}</p>;
   }
 
   if (error) {
@@ -17,7 +19,7 @@ export default function FriendList() {
   }
 
   if (!friends.length) {
-    return <p className="text-text-muted">No tienes amigos todavía.</p>;
+    return <p className="text-text-muted">{t("friends.empty")}</p>;
   }
 
   async function handleRemove(friendshipId: string) {
@@ -52,7 +54,7 @@ export default function FriendList() {
               onClick={() => handleRemove(friend.friendshipId)}
               className="text-xs text-ruby hover:text-ruby/80 disabled:opacity-50"
             >
-              {removingId === friend.friendshipId ? "Eliminando..." : "Eliminar"}
+              {removingId === friend.friendshipId ? t("friends.removing") : t("friends.remove")}
             </button>
           </li>
         );

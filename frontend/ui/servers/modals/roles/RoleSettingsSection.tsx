@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
+
 type Props = {
   name: string;
   color: string;
@@ -15,16 +17,17 @@ export default function RoleSettingsSection({
   onNameChange,
   onColorChange,
 }: Props) {
+  const { t } = useTranslation("roles");
   return (
     <div className="space-y-3">
       <h4 className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-        Configuración del rol
+        {t('settings.title')}
       </h4>
 
       {/* Name field */}
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-text-secondary">
-          Nombre del rol
+          {t('settings.name')}
         </label>
         <input
           type="text"
@@ -33,14 +36,14 @@ export default function RoleSettingsSection({
           disabled={disabled}
           required
           maxLength={50}
-          placeholder="Moderador"
+          placeholder={t('settings.namePlaceholder')}
           className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-[13px] text-white placeholder-text-muted transition-colors focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold disabled:opacity-50"
         />
       </div>
 
       {/* Color field */}
       <div className="space-y-1.5">
-        <label className="text-xs font-medium text-text-secondary">Color</label>
+        <label className="text-xs font-medium text-text-secondary">{t('settings.color')}</label>
         <div className="flex items-center gap-2.5">
           <input
             type="color"
@@ -61,7 +64,7 @@ export default function RoleSettingsSection({
 
       {disabled && (
         <p className="text-xs italic text-text-muted">
-          Los roles por defecto no se pueden modificar.
+          {t('settings.defaultWarning')}
         </p>
       )}
     </div>

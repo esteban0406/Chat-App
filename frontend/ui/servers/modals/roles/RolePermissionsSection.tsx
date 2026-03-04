@@ -1,19 +1,18 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { Switch } from "@headlessui/react";
 import { ServerPermission } from "@/lib/definitions";
 
-const PERMISSION_LABELS: Record<ServerPermission, string> = {
-  CREATE_CHANNEL: "Crear canal",
-  DELETE_CHANNEL: "Eliminar canal",
-  DELETE_SERVER: "Eliminar servidor",
-  INVITE_MEMBER: "Invitar miembros",
-  REMOVE_MEMBER: "Eliminar miembros",
-  MANAGE_ROLES: "Gestionar roles",
-  RENAME_SERVER: "Renombrar servidor",
-};
-
-const ALL_PERMISSIONS = Object.keys(PERMISSION_LABELS) as ServerPermission[];
+const ALL_PERMISSIONS: ServerPermission[] = [
+  "CREATE_CHANNEL",
+  "DELETE_CHANNEL",
+  "DELETE_SERVER",
+  "INVITE_MEMBER",
+  "REMOVE_MEMBER",
+  "MANAGE_ROLES",
+  "RENAME_SERVER",
+];
 
 type Props = {
   permissions: ServerPermission[];
@@ -26,10 +25,11 @@ export default function RolePermissionsSection({
   disabled,
   onToggle,
 }: Props) {
+  const { t } = useTranslation("roles");
   return (
     <div className="space-y-2">
       <h4 className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-        Permisos
+        {t('permissions.title')}
       </h4>
 
       <div className="space-y-1.5">
@@ -41,7 +41,7 @@ export default function RolePermissionsSection({
               className="flex items-center justify-between rounded-lg bg-surface/40 px-3 py-2.5"
             >
               <span className="text-[13px] text-text-body">
-                {PERMISSION_LABELS[perm]}
+                {t(`permissions.${perm}`)}
               </span>
               <Switch
                 checked={enabled}

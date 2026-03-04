@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
 import Image from "next/image";
 
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export default function EditAvatarModal({ onClose, onUpdated }: Props) {
+  const { t } = useTranslation(["user", "common"]);
   const [preview, setPreview] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -40,12 +42,12 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
 
   function processFile(selected: File) {
     if (!selected.type.startsWith("image/")) {
-      setError("Solo se permiten archivos de imagen");
+      setError(t('user:editAvatar.imageOnly'));
       return;
     }
 
     if (selected.size > 5 * 1024 * 1024) {
-      setError("La imagen no puede superar los 5MB");
+      setError(t('user:editAvatar.maxSize'));
       return;
     }
 
@@ -84,7 +86,7 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
     e.preventDefault();
 
     if (!file || !preview) {
-      setError("Selecciona una imagen antes de guardar");
+      setError(t('user:editAvatar.selectFirst'));
       return;
     }
 
@@ -121,7 +123,7 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
       <div className="w-96 rounded-lg bg-deep border border-border p-6 text-white shadow-lg">
-        <h2 className="mb-4 text-lg font-bold">Editar avatar</h2>
+        <h2 className="mb-4 text-lg font-bold">{t('user:editAvatar.title')}</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Hidden real file input */}
@@ -175,11 +177,11 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
                   ].join(" ")}
                 >
                   {isDragging
-                    ? "Suelta para subir"
-                    : "Arrastra una imagen o haz clic aquí"}
+                    ? t('user:editAvatar.dropToUpload')
+                    : t('user:editAvatar.dragOrClick')}
                 </p>
                 <p className="mt-1 text-xs text-text-muted">
-                  PNG · JPG · GIF &nbsp;•&nbsp; máx. 5 MB
+                  {t('user:editAvatar.formats')}
                 </p>
               </div>
             </div>
@@ -197,7 +199,7 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
               >
                 <Image
                   src={preview}
-                  alt="Vista previa del avatar"
+                  alt={t('user:editAvatar.preview')}
                   fill
                   unoptimized
                   className="rounded-full object-cover ring-2 ring-gold"
@@ -219,13 +221,13 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
                       <circle cx="12" cy="13" r="4" />
                     </svg>
                     <span className="text-[10px] font-semibold text-white">
-                      Cambiar
+                      {t('user:editAvatar.change')}
                     </span>
                   </div>
                 )}
               </div>
               <p className="text-xs text-text-muted">
-                Haz clic en la imagen para cambiarla
+                {t('user:editAvatar.previewHint')}
               </p>
             </div>
           )}
@@ -239,7 +241,7 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
               disabled={loading}
               className="rounded bg-surface px-4 py-2 hover:bg-surface/80 disabled:opacity-60"
             >
-              Cancelar
+              {t('common:cancel')}
             </button>
 
             <button
@@ -247,7 +249,7 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
               disabled={loading || !file}
               className="rounded bg-gold px-4 py-2 text-deep hover:bg-gold/90 disabled:opacity-60"
             >
-              {loading ? "Guardando..." : "Guardar"}
+              {loading ? t('user:editAvatar.saving') : t('common:save')}
             </button>
           </div>
         </form>

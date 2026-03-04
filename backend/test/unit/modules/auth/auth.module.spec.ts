@@ -16,6 +16,7 @@ import { AuthModule } from '../../../../src/modules/auth/auth.module';
 import { AuthService } from '../../../../src/modules/auth/auth.service';
 import { JwtStrategy } from '../../../../src/modules/auth/strategies/jwt.strategy';
 import { LocalStrategy } from '../../../../src/modules/auth/strategies/local.strategy';
+import { GoogleStrategy } from '../../../../src/modules/auth/strategies/google.strategy';
 
 describe('AuthModule', () => {
   it('compiles with mocked providers', async () => {
@@ -25,6 +26,8 @@ describe('AuthModule', () => {
       .overrideProvider(LocalStrategy)
       .useValue({})
       .overrideProvider(JwtStrategy)
+      .useValue({})
+      .overrideProvider(GoogleStrategy)
       .useValue({})
       .compile();
 

@@ -22,6 +22,7 @@ describe('useServerPermissions', () => {
       currentUser: mockUser, // id = 'user-1', same as mockServer.ownerId
       loading: false,
       refreshUser: jest.fn(),
+      updateCurrentUser: jest.fn(),
     });
 
     const { result } = renderHook(() => useServerPermissions(mockServer));
@@ -34,6 +35,7 @@ describe('useServerPermissions', () => {
       currentUser: mockUser2, // id = 'user-2'
       loading: false,
       refreshUser: jest.fn(),
+      updateCurrentUser: jest.fn(),
     });
 
     const { result } = renderHook(() => useServerPermissions(mockServer));
@@ -46,6 +48,7 @@ describe('useServerPermissions', () => {
       currentUser: mockUser,
       loading: false,
       refreshUser: jest.fn(),
+      updateCurrentUser: jest.fn(),
     });
 
     const { result } = renderHook(() => useServerPermissions(undefined));
@@ -58,6 +61,7 @@ describe('useServerPermissions', () => {
       currentUser: null,
       loading: false,
       refreshUser: jest.fn(),
+      updateCurrentUser: jest.fn(),
     });
 
     const { result } = renderHook(() => useServerPermissions(mockServer));
@@ -72,6 +76,7 @@ describe('useServerPermissions', () => {
       currentUser: null,
       loading: true,
       refreshUser: jest.fn(),
+      updateCurrentUser: jest.fn(),
     });
 
     const { result } = renderHook(() => useServerPermissions(mockServer));
@@ -86,6 +91,7 @@ describe('useServerPermissions', () => {
       currentUser: mockUser,
       loading: false,
       refreshUser: jest.fn(),
+      updateCurrentUser: jest.fn(),
     });
 
     const { result } = renderHook(() => useServerPermissions(mockServer));
@@ -114,6 +120,7 @@ describe('useServerPermissions', () => {
       currentUser: mockUser2, // id = 'user-2'
       loading: false,
       refreshUser: jest.fn(),
+      updateCurrentUser: jest.fn(),
     });
 
     const { result } = renderHook(() => useServerPermissions(serverWithRolelessMember));
@@ -134,6 +141,7 @@ describe('useServerPermissions', () => {
       currentUser: mockUser2, // id = 'user-2', not in members
       loading: false,
       refreshUser: jest.fn(),
+      updateCurrentUser: jest.fn(),
     });
 
     const { result } = renderHook(() => useServerPermissions(serverWithoutUser2));
@@ -159,6 +167,7 @@ describe('useServerPermissions', () => {
       currentUser: mockUser2,
       loading: false,
       refreshUser: jest.fn(),
+      updateCurrentUser: jest.fn(),
     });
 
     const { result } = renderHook(() => useServerPermissions(server));
@@ -183,6 +192,7 @@ describe('useServerPermissions', () => {
       currentUser: mockUser2,
       loading: false,
       refreshUser: jest.fn(),
+      updateCurrentUser: jest.fn(),
     });
 
     const { result } = renderHook(() => useServerPermissions(server));

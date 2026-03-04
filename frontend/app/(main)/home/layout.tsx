@@ -9,12 +9,7 @@ import { FriendsProvider } from "@/lib/context/FriendsContext";
 import { Menu, Users, CircleUser } from "lucide-react";
 import { useNotifications } from "@/lib/context/NotificationContext";
 import { useEffect } from "react";
-
-const tabs = [
-  { href: "/home", label: "Todos", exact: true },
-  { href: "/home/requests", label: "Solicitudes de amistad" },
-  { href: "/home/server-requests", label: "Solicitudes a servidores" },
-];
+import { useTranslation } from "react-i18next";
 
 export default function FriendsLayout({
   children,
@@ -32,6 +27,7 @@ export default function FriendsLayout({
 
 function FriendsContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { t } = useTranslation("home");
   const {
     openServerDrawer,
     openSectionSidebar,
@@ -43,6 +39,12 @@ function FriendsContent({ children }: { children: React.ReactNode }) {
     clearFriendRequests,
     clearServerInvites,
   } = useNotifications();
+
+  const tabs = [
+    { href: "/home", label: t("tabs.all"), exact: true },
+    { href: "/home/requests", label: t("tabs.friendRequests") },
+    { href: "/home/server-requests", label: t("tabs.serverRequests") },
+  ];
 
   useEffect(() => {
     if (pathname.startsWith("/home/requests")) clearFriendRequests();
@@ -58,13 +60,13 @@ function FriendsContent({ children }: { children: React.ReactNode }) {
               type="button"
               onClick={openServerDrawer}
               className="rounded-md p-2 text-text-muted transition hover:bg-surface hover:text-text-primary focus:outline-none"
-              aria-label="Abrir servidores"
+              aria-label={t("friends.openServers")}
             >
               <Menu className="h-5 w-5" />
             </button>
             <h1 className="flex items-center gap-2 text-base font-semibold">
               <Users className="h-4 w-4 text-text-secondary" />
-              Amigos
+              {t("friends.title")}
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -72,7 +74,7 @@ function FriendsContent({ children }: { children: React.ReactNode }) {
               type="button"
               onClick={openSectionSidebar}
               className="rounded-md p-2 text-text-muted transition hover:bg-surface hover:text-text-primary focus:outline-none"
-              aria-label="Abrir menú de amigos"
+              aria-label={t("friends.openFriendsMenu")}
             >
               <Users className="h-5 w-5" />
             </button>
@@ -80,7 +82,7 @@ function FriendsContent({ children }: { children: React.ReactNode }) {
               type="button"
               onClick={openProfileDrawer}
               className="rounded-md p-2 text-text-muted transition hover:bg-surface hover:text-text-primary focus:outline-none"
-              aria-label="Abrir perfil"
+              aria-label={t("friends.openProfile")}
             >
               <CircleUser className="h-5 w-5" />
             </button>
@@ -89,7 +91,7 @@ function FriendsContent({ children }: { children: React.ReactNode }) {
 
         <nav className="hidden h-[var(--header-height)] items-center gap-2 overflow-x-auto px-4 text-sm font-medium md:flex">
           <Users className="mr-1 h-4 w-4 text-text-secondary" />
-          <span className="mr-3 font-semibold text-text-primary">Amigos</span>
+          <span className="mr-3 font-semibold text-text-primary">{t("friends.title")}</span>
           <div className="mr-1 h-5 w-px bg-border" />
           {tabs.map((tab) => {
             const isActive = tab.exact
@@ -123,7 +125,7 @@ function FriendsContent({ children }: { children: React.ReactNode }) {
                 : "bg-gold text-deep hover:bg-gold/90"
             }`}
           >
-            Agregar amigos
+            {t("tabs.addFriends")}
           </Link>
         </nav>
 
@@ -160,7 +162,7 @@ function FriendsContent({ children }: { children: React.ReactNode }) {
                 : "bg-gold text-deep hover:bg-gold/90"
             }`}
           >
-            Agregar amigo
+            {t("tabs.addFriend")}
           </Link>
         </nav>
       </div>

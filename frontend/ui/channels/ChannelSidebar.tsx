@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Menu } from "@headlessui/react";
@@ -29,6 +30,7 @@ export default function ChannelSidebar({
 }: {
   sidebarControls?: { closeSidebar?: () => void };
 }) {
+  const { t } = useTranslation("channels");
   const params = useParams();
   const effectiveServerId = params.serverId;
   const activeChannelId = params.channelId;
@@ -64,7 +66,7 @@ export default function ChannelSidebar({
   if (!effectiveServerId) {
     return (
       <aside className="flex h-full flex-col bg-sidebar p-4 text-sm text-text-secondary">
-        <p>Selecciona un servidor para ver sus canales.</p>
+        <p>{t('sidebar.selectServer')}</p>
       </aside>
     );
   }
@@ -94,7 +96,7 @@ export default function ChannelSidebar({
                           active ? "bg-surface/80 text-white" : "text-text-secondary"
                         }`}
                       >
-                        Invitar amigos
+                        {t('sidebar.menu.inviteFriends')}
                       </button>
                     )}
                   </Menu.Item>
@@ -109,7 +111,7 @@ export default function ChannelSidebar({
                           active ? "bg-surface/80 text-white" : "text-text-secondary"
                         }`}
                       >
-                        Eliminar miembros
+                        {t('sidebar.menu.removeMembers')}
                       </button>
                     )}
                   </Menu.Item>
@@ -124,7 +126,7 @@ export default function ChannelSidebar({
                           active ? "bg-surface/80 text-white" : "text-text-secondary"
                         }`}
                       >
-                        Gestionar roles
+                        {t('sidebar.menu.manageRoles')}
                       </button>
                     )}
                   </Menu.Item>
@@ -139,7 +141,7 @@ export default function ChannelSidebar({
                           active ? "bg-surface/80 text-white" : "text-text-secondary"
                         }`}
                       >
-                        Cambiar nombre del servidor
+                        {t('sidebar.menu.renameServer')}
                       </button>
                     )}
                   </Menu.Item>
@@ -154,7 +156,7 @@ export default function ChannelSidebar({
                           active ? "bg-ruby text-white" : "text-ruby"
                         }`}
                       >
-                        Eliminar servidor
+                        {t('sidebar.menu.deleteServer')}
                       </button>
                     )}
                   </Menu.Item>
@@ -175,7 +177,7 @@ export default function ChannelSidebar({
 
         <div className="flex-1 overflow-y-auto p-3">
           <ChannelSection
-            title="Canales de texto"
+            title={t('sidebar.textChannels')}
             type="TEXT"
             channels={textChannels}
             serverId={effectiveServerId as string}
@@ -189,7 +191,7 @@ export default function ChannelSidebar({
           />
 
           <ChannelSection
-            title="Canales de voz"
+            title={t('sidebar.voiceChannels')}
             type="VOICE"
             channels={voiceChannels}
             serverId={effectiveServerId as string}
@@ -297,6 +299,7 @@ function ChannelSection({
   canCreate,
   canDelete,
 }: SectionProps) {
+  const { t } = useTranslation("channels");
   const Icon = type === "TEXT" ? Hash : Volume2;
 
   return (
@@ -344,7 +347,7 @@ function ChannelSection({
                     type="button"
                     onClick={() => onEdit(channel)}
                     className="rounded p-0.5 text-text-muted transition hover:text-text-primary"
-                    aria-label="Editar canal"
+                    aria-label={t('ariaEditChannel')}
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
@@ -352,7 +355,7 @@ function ChannelSection({
                     type="button"
                     onClick={() => onDelete(channel)}
                     className="rounded p-0.5 text-ruby/60 transition hover:text-ruby"
-                    aria-label="Eliminar canal"
+                    aria-label={t('ariaDeleteChannel')}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -363,7 +366,7 @@ function ChannelSection({
         })}
 
         {channels.length === 0 && (
-          <p className="px-2 py-2 text-xs text-text-muted">Aún no hay canales.</p>
+          <p className="px-2 py-2 text-xs text-text-muted">{t('sidebar.noChannels')}</p>
         )}
       </nav>
     </section>

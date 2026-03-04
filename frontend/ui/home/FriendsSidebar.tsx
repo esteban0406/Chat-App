@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
 import { useFriends } from "@/lib/context/FriendsContext";
 import UserAvatar from "@/ui/user/UserAvatar";
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export default function FriendsSidebar({ sidebarControls }: Props) {
+  const { t } = useTranslation(["home", "common"]);
   const closeSidebar = sidebarControls?.closeSidebar;
   const { friends } = useFriends();
   const [search, setSearch] = useState("");
@@ -46,13 +48,13 @@ export default function FriendsSidebar({ sidebarControls }: Props) {
   return (
     <div className="flex h-full flex-col bg-sidebar text-white">
       <header className="flex h-[var(--header-height)] items-center justify-between border-b border-border px-3">
-        <h2 className="font-display text-xl font-semibold">Amigos</h2>
+        <h2 className="font-display text-xl font-semibold">{t("friends.title")}</h2>
         {closeSidebar && (
           <button
             type="button"
             onClick={closeSidebar}
             className="rounded-md p-2 text-text-muted transition hover:bg-surface hover:text-white md:hidden"
-            aria-label="Cerrar menú"
+            aria-label={t("friends.closeMenu")}
           >
             ✕
           </button>
@@ -66,7 +68,7 @@ export default function FriendsSidebar({ sidebarControls }: Props) {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar amigos..."
+            placeholder={t("friends.search")}
             className="w-full rounded-md bg-surface py-1.5 pl-8 pr-3 text-xs text-white placeholder-text-muted focus:outline-none focus:ring-1 focus:ring-gold"
           />
         </div>
@@ -75,7 +77,7 @@ export default function FriendsSidebar({ sidebarControls }: Props) {
           {online.length > 0 && (
             <>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
-                En línea — {online.length}
+                {t("common:online")} — {online.length}
               </p>
               {online.map(renderFriend)}
             </>
@@ -84,7 +86,7 @@ export default function FriendsSidebar({ sidebarControls }: Props) {
           {offline.length > 0 && (
             <>
               <p className={`mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted ${online.length > 0 ? "mt-3" : ""}`}>
-                Desconectado — {offline.length}
+                {t("common:offline")} — {offline.length}
               </p>
               {offline.map(renderFriend)}
             </>
@@ -92,7 +94,7 @@ export default function FriendsSidebar({ sidebarControls }: Props) {
 
           {filtered.length === 0 && (
             <p className="px-2 py-2 text-xs text-text-muted">
-              {search ? "Sin resultados." : "No hay amigos aún."}
+              {search ? t("common:noResults") : t("friends.noFriendsYet")}
             </p>
           )}
         </nav>

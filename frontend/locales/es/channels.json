@@ -1,0 +1,36 @@
+{
+  "sidebar": {
+    "textChannels": "Canales de texto",
+    "voiceChannels": "Canales de voz",
+    "noChannels": "Aún no hay canales.",
+    "selectServer": "Selecciona un servidor para ver sus canales.",
+    "menu": {
+      "inviteFriends": "Invitar amigos",
+      "removeMembers": "Eliminar miembros",
+      "manageRoles": "Gestionar roles",
+      "renameServer": "Cambiar nombre del servidor",
+      "deleteServer": "Eliminar servidor"
+    }
+  },
+  "create": {
+    "title": "Crear canal",
+    "name": "Nombre del canal",
+    "type": "Tipo",
+    "namePlaceholder": "general",
+    "text": "Texto",
+    "voice": "Voz",
+    "creating": "Creando..."
+  },
+  "delete": {
+    "title": "Eliminar canal",
+    "confirmation": "¿Seguro que quieres eliminar el canal #{{name}}? Esta acción no se puede deshacer.",
+    "deleting": "Eliminando..."
+  },
+  "edit": {
+    "title": "Editar canal",
+    "name": "Nombre",
+    "saving": "Guardando..."
+  },
+  "ariaEditChannel": "Editar canal",
+  "ariaDeleteChannel": "Eliminar canal"
+}

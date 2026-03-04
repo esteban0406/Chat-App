@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { Role } from "@/lib/definitions";
 
 const DEFAULT_ROLE_NAMES = ["Admin", "Member"];
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export default function RoleSidebarItem({ role, isSelected, onSelect }: Props) {
+  const { t } = useTranslation("roles");
   const isDefault = DEFAULT_ROLE_NAMES.includes(role.name);
 
   return (
@@ -35,7 +37,7 @@ export default function RoleSidebarItem({ role, isSelected, onSelect }: Props) {
       )}
       {isDefault && (
         <span className="ml-auto shrink-0 rounded bg-glass px-1.5 py-0.5 text-[9px] font-medium text-text-muted">
-          Por defecto
+          {t('default')}
         </span>
       )}
     </button>

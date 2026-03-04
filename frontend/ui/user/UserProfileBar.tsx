@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Menu } from "@headlessui/react";
 import { Settings } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import EditNameModal from "./modals/EditNameModal";
 import EditAvatarModal from "./modals/EditAvatarModal";
 import { logout } from "@/lib/auth";
@@ -10,11 +11,13 @@ import { useRouter } from "next/navigation";
 import { toBackendURL } from "@/lib/backend-client";
 import { useCurrentUser } from "@/lib/context/CurrentUserContext";
 import UserAvatar from "./UserAvatar";
+import LanguageToggle from "@/ui/common/LanguageToggle";
 
 export default function UserProfileBar() {
+  const { t } = useTranslation("user");
   const router = useRouter();
 
-  const { currentUser: user, refreshUser } = useCurrentUser();
+  const { currentUser: user, updateCurrentUser } = useCurrentUser();
   const [openNameModal, setOpenNameModal] = useState(false);
   const [openAvatarModal, setOpenAvatarModal] = useState(false);
 
@@ -38,6 +41,8 @@ export default function UserProfileBar() {
         <p className="text-xs text-text-muted">{user.status}</p>
       </div>
 
+      <LanguageToggle />
+
       <Menu as="div" className="relative">
         <Menu.Button className="rounded-md p-1.5 text-text-secondary transition hover:text-text-primary">
           <Settings className="h-4 w-4" />
@@ -53,7 +58,7 @@ export default function UserProfileBar() {
                     active ? "bg-surface/80 text-white" : "text-text-secondary"
                   }`}
                 >
-                  Editar nombre
+                  {t('profile.editName')}
                 </button>
               )}
             </Menu.Item>
@@ -66,7 +71,7 @@ export default function UserProfileBar() {
                     active ? "bg-surface/80 text-white" : "text-text-secondary"
                   }`}
                 >
-                  Editar avatar
+                  {t('profile.editAvatar')}
                 </button>
               )}
             </Menu.Item>
@@ -79,7 +84,7 @@ export default function UserProfileBar() {
                     active ? "bg-ruby text-white" : "text-ruby"
                   }`}
                 >
-                  Cerrar sesión
+                  {t('profile.logout')}
                 </button>
               )}
             </Menu.Item>
@@ -91,13 +96,13 @@ export default function UserProfileBar() {
         <EditNameModal
           user={user}
           onClose={() => setOpenNameModal(false)}
-          onUpdated={() => refreshUser()}
+          onUpdated={(updated) => updateCurrentUser(updated)}
         />
       )}
       {openAvatarModal && (
         <EditAvatarModal
           onClose={() => setOpenAvatarModal(false)}
-          onUpdated={() => refreshUser()}
+          onUpdated={() => updateCurrentUser(user)}
         />
       )}
     </div>

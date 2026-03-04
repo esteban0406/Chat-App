@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import { Check, X } from "lucide-react";
 import { ServerInvite, Server } from "@/lib/definitions";
@@ -9,6 +10,7 @@ import { useNotificationSocket } from "@/lib/useNotificationSocket";
 import { useServers } from "@/lib/context/ServersContext";
 
 export default function ServerInviteList() {
+  const { t } = useTranslation("home");
   const router = useRouter();
   const { refreshServers } = useServers();
   const [invites, setInvites] = useState<ServerInvite[]>([]);
@@ -93,7 +95,7 @@ export default function ServerInviteList() {
   };
 
   if (loading) {
-    return <p className="text-text-muted">Cargando invitaciones...</p>;
+    return <p className="text-text-muted">{t('serverInvites.loading')}</p>;
   }
 
   if (error) {
@@ -101,7 +103,7 @@ export default function ServerInviteList() {
   }
 
   if (!invites.length) {
-    return <p className="text-text-muted">No tienes invitaciones pendientes.</p>;
+    return <p className="text-text-muted">{t('serverInvites.empty')}</p>;
   }
 
   return (
@@ -112,8 +114,7 @@ export default function ServerInviteList() {
           className="flex items-center justify-between rounded-lg border border-border bg-surface/30 px-4 py-3 text-sm"
         >
           <span className="text-text-primary">
-            Invitación al servidor{" "}
-            <strong className="text-gold">{(invite.server as Server)?.name ?? "Servidor"}</strong>
+            {t('serverInvites.title', { name: (invite.server as Server)?.name ?? '' })}
           </span>
           <div className="flex gap-2">
             <button
@@ -121,7 +122,7 @@ export default function ServerInviteList() {
               onClick={() => handleAction(invite, "accept")}
               disabled={processingId === invite.id}
               className="flex h-8 w-8 items-center justify-center rounded-full border border-gold-muted text-gold transition hover:bg-gold hover:text-deep disabled:opacity-60"
-              aria-label="Aceptar"
+              aria-label={t('serverInvites.accept')}
             >
               <Check className="h-4 w-4" />
             </button>
@@ -130,7 +131,7 @@ export default function ServerInviteList() {
               onClick={() => handleAction(invite, "reject")}
               disabled={processingId === invite.id}
               className="flex h-8 w-8 items-center justify-center rounded-full border border-ruby-muted text-ruby transition hover:bg-ruby hover:text-white disabled:opacity-60"
-              aria-label="Rechazar"
+              aria-label={t('serverInvites.reject')}
             >
               <X className="h-4 w-4" />
             </button>

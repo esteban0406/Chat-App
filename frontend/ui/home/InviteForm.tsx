@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { User } from "@/lib/auth";
 import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
 import { useCurrentUser } from "@/lib/context/CurrentUserContext";
 
 export default function InviteForm() {
+  const { t } = useTranslation("home");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<User[]>([]);
   const [status, setStatus] = useState<string | null>(null);
@@ -46,7 +48,7 @@ export default function InviteForm() {
   const handleSearch = async () => {
     const term = query.trim();
     if (!term) {
-      setStatus("Ingresa un nombre de usuario");
+      setStatus(t('invite.enterUsername'));
       setResults([]);
       return;
     }
@@ -58,7 +60,7 @@ export default function InviteForm() {
         `/api/users/search?username=${encodeURIComponent(term)}`
       );
       if (!res.ok) {
-        const msg = await extractErrorMessage(res, "No se pudo buscar usuarios");
+        const msg = await extractErrorMessage(res, t('invite.searchError'));
         throw new Error(msg);
       }
       const body = await res.json();
@@ -72,13 +74,13 @@ export default function InviteForm() {
       });
 
       if (!filtered.length) {
-        setStatus("No se encontraron usuarios disponibles");
+        setStatus(t('invite.notFound'));
       }
 
       setResults(filtered);
     } catch (err) {
       console.error(err);
-      const message = err instanceof Error ? err.message : "Error al buscar usuarios";
+      const message = err instanceof Error ? err.message : t('invite.searchError');
       setStatus(message);
       setResults([]);
     } finally {
@@ -97,14 +99,14 @@ export default function InviteForm() {
         body: JSON.stringify({ receiverId: user.id }),
       });
       if (!res.ok) {
-        const msg = await extractErrorMessage(res, "No se pudo enviar la invitación");
+        const msg = await extractErrorMessage(res, t('invite.sendError'));
         throw new Error(msg);
       }
-      setStatus(`Invitación enviada a ${user.username}`);
+      setStatus(t('invite.sent', { username: user.username }));
       setResults((prev) => prev.filter((candidate) => candidate.id !== user.id));
     } catch (err) {
       console.error(err);
-      const message = err instanceof Error ? err.message : "Error al enviar invitación";
+      const message = err instanceof Error ? err.message : t('invite.sendError');
       setStatus(message);
     } finally {
       setSendingId(null);
@@ -113,13 +115,13 @@ export default function InviteForm() {
 
   return (
     <div className="w-full space-y-4 rounded-lg border border-border bg-surface/30 p-4 shadow-md">
-      <h2 className="font-display text-lg font-semibold text-text-primary">Agregar amigos</h2>
+      <h2 className="font-display text-lg font-semibold text-text-primary">{t('invite.title')}</h2>
       <div className="flex gap-2">
         <input
           type="text"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Nombre de usuario"
+          placeholder={t('invite.usernamePlaceholder')}
           className="flex-1 rounded-lg bg-surface px-4 py-2 text-sm text-white placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-gold"
           onKeyDown={(event) => {
             if (event.key === "Enter") {
@@ -134,7 +136,7 @@ export default function InviteForm() {
           disabled={searching}
           className="rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-deep transition hover:bg-gold/90 disabled:opacity-60"
         >
-          {searching ? "Buscando..." : "Buscar"}
+          {searching ? t('invite.searching') : t('invite.search')}
         </button>
       </div>
 
@@ -160,7 +162,7 @@ export default function InviteForm() {
                 disabled={sendingId === user.id}
                 className="rounded-lg bg-gold px-3 py-1 text-xs font-semibold text-deep hover:bg-gold/90 disabled:opacity-60"
               >
-                {sendingId === user.id ? "Enviando..." : "Invitar"}
+                {sendingId === user.id ? t('invite.sending') : t('invite.invite')}
               </button>
             </li>
           ))}

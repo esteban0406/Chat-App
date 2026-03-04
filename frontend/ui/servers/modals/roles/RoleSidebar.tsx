@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { Role } from "@/lib/definitions";
 import { Plus, X } from "lucide-react";
 import RoleSidebarItem from "./RoleSidebarItem";
@@ -23,11 +24,12 @@ export default function RoleSidebar({
   onCreateNew,
   onClose,
 }: Props) {
+  const { t } = useTranslation("roles");
   return (
     <div className="flex h-full w-60 shrink-0 flex-col border-r border-border bg-sidebar">
       {/* Header */}
       <div className="px-4 pb-2 pt-4">
-        <h3 className="font-display text-xl font-semibold text-white">Roles</h3>
+        <h3 className="font-display text-xl font-semibold text-white">{t('title')}</h3>
         <p className="text-xs text-text-muted">{serverName}</p>
       </div>
 
@@ -43,7 +45,7 @@ export default function RoleSidebar({
           }`}
         >
           <Plus size={14} />
-          Crear rol
+          {t('create')}
         </button>
       </div>
 
@@ -70,7 +72,7 @@ export default function RoleSidebar({
           className="flex w-full items-center justify-center gap-1.5 rounded-md bg-surface py-2 text-xs font-medium text-text-secondary transition-colors hover:bg-surface/80 hover:text-white"
         >
           <X size={14} />
-          Cerrar
+          {t('common:close')}
         </button>
       </div>
     </div>

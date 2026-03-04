@@ -187,6 +187,9 @@ jobs:
           PORT=4000
           DATABASE_URL=postgresql://chatapp_test:chatapp_test_pass@localhost:5432/chatapp_test
           JWT_SECRET=${{ secrets.JWT_SECRET }}
+          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_CALLBACK_URL=${{ secrets.GOOGLE_CALLBACK_URL }}
           CORS_ORIGIN=http://localhost:3000
           CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUD_NAME }}
           CLOUDINARY_API_KEY=${{ secrets.API_KEY }}
@@ -224,6 +227,9 @@ jobs:
           PORT=4000
           DATABASE_URL=postgresql://chatapp_test:chatapp_test_pass@postgres:5432/chatapp_test
           JWT_SECRET=${{ secrets.JWT_SECRET }}
+          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_CALLBACK_URL=${{ secrets.GOOGLE_CALLBACK_URL }}
           CORS_ORIGIN=http://localhost:3000,http://frontend:3000
           CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUD_NAME }}
           CLOUDINARY_API_KEY=${{ secrets.API_KEY }}

@@ -14,12 +14,14 @@ type CurrentUserState = {
   currentUser: User | null;
   loading: boolean;
   refreshUser: () => void;
+  updateCurrentUser: (user: User) => void;
 };
 
 const CurrentUserContext = createContext<CurrentUserState>({
   currentUser: null,
   loading: true,
   refreshUser: () => {},
+  updateCurrentUser: () => {},
 });
 
 export function CurrentUserProvider({ children }: { children: ReactNode }) {
@@ -42,7 +44,7 @@ export function CurrentUserProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <CurrentUserContext.Provider value={{ currentUser, loading, refreshUser }}>
+    <CurrentUserContext.Provider value={{ currentUser, loading, refreshUser, updateCurrentUser: setCurrentUser }}>
       {children}
     </CurrentUserContext.Provider>
   );

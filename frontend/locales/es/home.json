@@ -1,0 +1,54 @@
+{
+  "tabs": {
+    "all": "Todos",
+    "friendRequests": "Solicitudes de amistad",
+    "serverRequests": "Solicitudes a servidores",
+    "addFriends": "Agregar amigos",
+    "addFriend": "Agregar amigo"
+  },
+  "friends": {
+    "title": "Amigos",
+    "heading": "Tus amigos",
+    "loading": "Cargando amigos...",
+    "empty": "No tienes amigos todavía.",
+    "removing": "Eliminando...",
+    "remove": "Eliminar",
+    "search": "Buscar amigos...",
+    "noFriendsYet": "No hay amigos aún.",
+    "openServers": "Abrir servidores",
+    "openFriendsMenu": "Abrir menú de amigos",
+    "openProfile": "Abrir perfil",
+    "closeMenu": "Cerrar menú"
+  },
+  "requests": {
+    "loading": "Cargando solicitudes...",
+    "empty": "No tienes solicitudes pendientes.",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "noEmail": "Sin email",
+    "user": "Usuario",
+    "loadError": "No se pudieron cargar las solicitudes",
+    "respondError": "No se pudo responder la solicitud"
+  },
+  "invite": {
+    "title": "Agregar amigos",
+    "usernamePlaceholder": "Nombre de usuario",
+    "searching": "Buscando...",
+    "search": "Buscar",
+    "sending": "Enviando...",
+    "invite": "Invitar",
+    "sent": "Invitación enviada a {{username}}",
+    "notFound": "No se encontraron usuarios disponibles",
+    "enterUsername": "Ingresa un nombre de usuario",
+    "searchError": "Error al buscar usuarios",
+    "sendError": "Error al enviar invitación"
+  },
+  "serverInvites": {
+    "title": "Invitación al servidor {{name}}",
+    "heading": "Invitaciones a servidores",
+    "loading": "Cargando invitaciones...",
+    "empty": "No tienes invitaciones pendientes.",
+    "accept": "Aceptar",
+    "reject": "Rechazar"
+  }
+}

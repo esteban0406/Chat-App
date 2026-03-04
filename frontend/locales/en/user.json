@@ -1,0 +1,27 @@
+{
+  "profile": {
+    "editName": "Edit Name",
+    "editAvatar": "Edit Avatar",
+    "logout": "Log out"
+  },
+  "editName": {
+    "title": "Edit Name",
+    "placeholder": "New username",
+    "emptyError": "Name cannot be empty",
+    "sameError": "You must enter a different name",
+    "saving": "Saving..."
+  },
+  "editAvatar": {
+    "title": "Edit Avatar",
+    "dropToUpload": "Drop to upload",
+    "dragOrClick": "Drag an image or click here",
+    "change": "Change",
+    "preview": "Avatar preview",
+    "previewHint": "Click on the image to change it",
+    "selectFirst": "Select an image before saving",
+    "imageOnly": "Only image files are allowed",
+    "maxSize": "Image must not exceed 5MB",
+    "formats": "PNG · JPG · GIF • max. 5 MB",
+    "saving": "Saving..."
+  }
+}

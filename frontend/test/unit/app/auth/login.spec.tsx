@@ -116,7 +116,7 @@ describe("LoginPage", () => {
     await user.click(screen.getByRole("button", { name: /login/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("Invalid credentials")).toBeInTheDocument();
+      expect(screen.getByText("Credenciales inválidas")).toBeInTheDocument();
     });
   });
 

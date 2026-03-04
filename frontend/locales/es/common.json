@@ -1,0 +1,19 @@
+{
+  "cancel": "Cancelar",
+  "save": "Guardar",
+  "delete": "Eliminar",
+  "close": "Cerrar",
+  "loading": "Cargando...",
+  "confirm": "Confirmar",
+  "create": "Crear",
+  "edit": "Editar",
+  "send": "Enviar",
+  "search": "Buscar",
+  "error": "Error",
+  "remove": "Eliminar",
+  "online": "En línea",
+  "offline": "Desconectado",
+  "noResults": "Sin resultados.",
+  "closeDrawer": "Cerrar cajón",
+  "closePanel": "Cerrar panel"
+}

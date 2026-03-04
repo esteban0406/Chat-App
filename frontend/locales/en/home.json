@@ -1,0 +1,54 @@
+{
+  "tabs": {
+    "all": "All",
+    "friendRequests": "Friend Requests",
+    "serverRequests": "Server Requests",
+    "addFriends": "Add Friends",
+    "addFriend": "Add Friend"
+  },
+  "friends": {
+    "title": "Friends",
+    "heading": "Your Friends",
+    "loading": "Loading friends...",
+    "empty": "You have no friends yet.",
+    "removing": "Removing...",
+    "remove": "Remove",
+    "search": "Search friends...",
+    "noFriendsYet": "No friends yet.",
+    "openServers": "Open servers",
+    "openFriendsMenu": "Open friends menu",
+    "openProfile": "Open profile",
+    "closeMenu": "Close menu"
+  },
+  "requests": {
+    "loading": "Loading requests...",
+    "empty": "No pending requests.",
+    "accept": "Accept",
+    "reject": "Reject",
+    "noEmail": "No email",
+    "user": "User",
+    "loadError": "Failed to load requests",
+    "respondError": "Failed to respond to request"
+  },
+  "invite": {
+    "title": "Add Friends",
+    "usernamePlaceholder": "Username",
+    "searching": "Searching...",
+    "search": "Search",
+    "sending": "Sending...",
+    "invite": "Invite",
+    "sent": "Invitation sent to {{username}}",
+    "notFound": "No users available found",
+    "enterUsername": "Enter a username",
+    "searchError": "Failed to search for users",
+    "sendError": "Failed to send invitation"
+  },
+  "serverInvites": {
+    "title": "Invitation to server {{name}}",
+    "heading": "Server Invitations",
+    "loading": "Loading invitations...",
+    "empty": "No pending invitations.",
+    "accept": "Accept",
+    "reject": "Reject"
+  }
+}

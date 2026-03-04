@@ -11,7 +11,7 @@ async function bootstrap() {
   // Enable CORS
   const corsOrigins = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
-    : ['http://localhost:3000', 'https://chat-app-koob.onrender.com'];
+    : ['http://localhost:3000'];
   app.enableCors({
     origin: corsOrigins,
     credentials: true,
