@@ -84,4 +84,5 @@ jobs:
             cd ~/apps/discord-clone
             docker compose pull
             docker compose up -d --remove-orphans
+            docker compose exec -T backend npx prisma migrate dev --name deploy
             docker image prune -f
