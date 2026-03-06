@@ -137,6 +137,21 @@ export async function updateUser(data: {
   return response.json();
 }
 
+export async function loginDemo(): Promise<AuthResponse> {
+  const response = await fetch(toBackendURL("/api/auth/demo"), {
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(parseErrorMessage(error, "Demo login failed"));
+  }
+
+  const data: AuthResponse = await response.json();
+  setToken(data.accessToken);
+  return data;
+}
+
 export function isAuthenticated(): boolean {
   return getToken() !== null;
 }

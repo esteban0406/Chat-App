@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { login } from "@/lib/auth";
+import { login, loginDemo } from "@/lib/auth";
 import { useTranslation } from "react-i18next";
 
 export default function LoginPage() {
@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,10 +81,23 @@ export default function LoginPage() {
           {t("continueWithGoogle")}
         </button>
         <button
-          disabled
+          onClick={async () => {
+            setDemoLoading(true);
+            setError(null);
+            try {
+              await loginDemo();
+              router.push("/home");
+              router.refresh();
+            } catch (err) {
+              setError(err instanceof Error ? err.message : t("invalidCredentials"));
+            } finally {
+              setDemoLoading(false);
+            }
+          }}
+          disabled={demoLoading || loading}
           className="w-full bg-gold hover:bg-gold/90 py-2 rounded text-deep font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {t("continueWithMicrosoft")}
+          {demoLoading ? t("loggingIn") : t("Try Demo")}
         </button>
       </div>
 
