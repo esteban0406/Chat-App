@@ -62,107 +62,8 @@ const seedUsers: SeedUser[] = [
 
 const demoServers: SeedServer[] = [
   {
-    name: 'Software Development Hub',
-    description:
-      'A realistic community for product engineering, code reviews, architecture, and shipping features.',
-    memberEmails: [
-      DEMO_OWNER_EMAIL,
-      'nina@chatapp.local',
-      'marco@chatapp.local',
-      'sofia@chatapp.local',
-      'leo@chatapp.local',
-    ],
-    channels: [
-      {
-        name: 'general',
-        type: ChannelType.TEXT,
-        messages: [
-          {
-            authorEmail: 'nina@chatapp.local',
-            content:
-              'Morning team. I pushed the first pass of the auth flow and left notes about the token refresh edge cases.',
-            minutesAfterStart: 0,
-          },
-          {
-            authorEmail: 'demo@chatapp.local',
-            content:
-              'Nice. I will wire the websocket session handling today so presence is synced when users reconnect.',
-            minutesAfterStart: 4,
-          },
-          {
-            authorEmail: 'marco@chatapp.local',
-            content:
-              'I reviewed the branch. Main risk is duplicate reconnect events creating multiple active sockets for the same member.',
-            minutesAfterStart: 8,
-          },
-          {
-            authorEmail: 'leo@chatapp.local',
-            content:
-              'If we store socket ids per user in Redis later, that problem becomes easier to reason about at scale.',
-            minutesAfterStart: 12,
-          },
-          {
-            authorEmail: 'sofia@chatapp.local',
-            content:
-              'Agreed. For the demo we can keep it in memory, but I want the interface designed so the backend swap is trivial.',
-            minutesAfterStart: 17,
-          },
-        ],
-      },
-      {
-        name: 'frontend',
-        type: ChannelType.TEXT,
-        messages: [
-          {
-            authorEmail: 'demo@chatapp.local',
-            content:
-              'Sidebar is feeling solid. Next pass is making the active channel state more obvious on smaller screens.',
-            minutesAfterStart: 24,
-          },
-          {
-            authorEmail: 'nina@chatapp.local',
-            content:
-              'Please keep the friend list dense. The product feels better when users can scan presence quickly.',
-            minutesAfterStart: 28,
-          },
-          {
-            authorEmail: 'leo@chatapp.local',
-            content:
-              'I can add subtle unread badges and keep the palette restrained so it does not look noisy.',
-            minutesAfterStart: 31,
-          },
-        ],
-      },
-      {
-        name: 'backend',
-        type: ChannelType.TEXT,
-        messages: [
-          {
-            authorEmail: 'marco@chatapp.local',
-            content:
-              'Channel pagination works, but we should seed older messages so the infinite scroll path is easy to verify.',
-            minutesAfterStart: 38,
-          },
-          {
-            authorEmail: 'demo@chatapp.local',
-            content:
-              'That is part of the demo mode work. I am creating seeded channels with enough history to feel like a real workspace.',
-            minutesAfterStart: 41,
-          },
-          {
-            authorEmail: 'sofia@chatapp.local',
-            content:
-              'Also include a project-explanation server. New users should understand the purpose of the app without clicking around too much.',
-            minutesAfterStart: 46,
-          },
-        ],
-      },
-    ],
-  },
-  {
     name: 'Demo server',
-    description:
-      'Project and product context for the demo environment, including what the chat app is for and what should be shown.',
+    description: 'i18n:demo:seed.seedNote',
     memberEmails: [
       DEMO_OWNER_EMAIL,
       'nina@chatapp.local',
@@ -176,20 +77,17 @@ const demoServers: SeedServer[] = [
         messages: [
           {
             authorEmail: DEMO_OWNER_EMAIL,
-            content:
-              'Welcome to the demo workspace. This server explains the project and gives the account some believable activity on first load.',
+            content: 'i18n:demo:seed.welcome.msg0',
             minutesAfterStart: 0,
           },
           {
             authorEmail: 'camila@chatapp.local',
-            content:
-              'The goal is simple: when someone enters demo mode, they should immediately understand the product without creating data themselves.',
+            content: 'i18n:demo:seed.welcome.msg1',
             minutesAfterStart: 3,
           },
           {
             authorEmail: 'nina@chatapp.local',
-            content:
-              'Exactly. Empty chat apps feel broken, so the seed should show friends, joined servers, active channels, and natural conversation history.',
+            content: 'i18n:demo:seed.welcome.msg2',
             minutesAfterStart: 7,
           },
         ],
@@ -200,26 +98,22 @@ const demoServers: SeedServer[] = [
         messages: [
           {
             authorEmail: DEMO_OWNER_EMAIL,
-            content:
-              'This project is a real-time chat platform with friendships, servers, channels, and live messaging.',
+            content: 'i18n:demo:seed.projectContext.msg0',
             minutesAfterStart: 12,
           },
           {
             authorEmail: 'leo@chatapp.local',
-            content:
-              'Demo mode is for product walkthroughs, portfolio reviews, and testing the UI without manual setup.',
+            content: 'i18n:demo:seed.projectContext.msg1',
             minutesAfterStart: 16,
           },
           {
             authorEmail: 'camila@chatapp.local',
-            content:
-              'It is also useful for QA because every run starts from a known dataset and the interface stays easy to validate.',
+            content: 'i18n:demo:seed.projectContext.msg2',
             minutesAfterStart: 20,
           },
           {
             authorEmail: 'nina@chatapp.local',
-            content:
-              'If someone asks what to look at first, point them to the friends list, the server switcher, and message history across both servers.',
+            content: 'i18n:demo:seed.projectContext.msg3',
             minutesAfterStart: 24,
           },
         ],
@@ -230,15 +124,29 @@ const demoServers: SeedServer[] = [
         messages: [
           {
             authorEmail: 'camila@chatapp.local',
-            content:
-              'Future improvement: add a few pending notifications so the dashboard feels even more alive.',
+            content: 'i18n:demo:seed.feedback.msg0',
             minutesAfterStart: 30,
           },
           {
             authorEmail: DEMO_OWNER_EMAIL,
-            content:
-              'Agreed, but first I want the core seed to be deterministic and easy to rerun during development.',
+            content: 'i18n:demo:seed.feedback.msg1',
             minutesAfterStart: 34,
+          },
+        ],
+      },
+      {
+        name: 'ai-chatbot',
+        type: ChannelType.TEXT,
+        messages: [
+          {
+            authorEmail: DEMO_OWNER_EMAIL,
+            content: 'i18n:demo:seed.aiChatbot.msg0',
+            minutesAfterStart: 40,
+          },
+          {
+            authorEmail: 'nina@chatapp.local',
+            content: 'i18n:demo:seed.aiChatbot.msg1',
+            minutesAfterStart: 43,
           },
         ],
       },
@@ -440,7 +348,7 @@ export class DemoSeedService implements OnModuleInit {
         data: {
           channelId: channel.id,
           authorId: ownerId,
-          content: `Seed note: ${serverSeed.description}`,
+          content: serverSeed.description,
           createdAt: new Date(
             baseTime.getTime() + (channelIndex + 1) * 90 * 60 * 1000,
           ),

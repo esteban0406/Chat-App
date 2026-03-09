@@ -11,6 +11,7 @@ import { ChannelsModule } from './modules/channels/channels.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { LivekitModule } from './modules/livekit/livekit.module';
 import { GatewayModule } from './modules/gateway/gateway.module';
+import { AiBotModule } from './modules/ai-bot/ai-bot.module';
 import { HTTPLoggerMiddleware } from './common/middleware/logger.middleware';
 import { TestModule } from './test-utils/test.module';
 import { AppController } from './app.controller';
@@ -38,6 +39,7 @@ import { AppController } from './app.controller';
     MessagesModule,
     LivekitModule,
     GatewayModule,
+    AiBotModule,
   ],
   controllers: [AppController],
   providers: [

@@ -11,11 +11,18 @@ import {
 import ChatMessages from "@/ui/messages/ChatMessages";
 import ChatInput from "@/ui/messages/ChatInput";
 import { useMessages } from "@/ui/messages/useMessages";
+import { useAiBot } from "@/ui/messages/useAiBot";
 import { useLayoutContext } from "@/ui/layout/LayoutContext";
 import { useServers } from "@/lib/context/ServersContext";
 import { useCurrentUser } from "@/lib/context/CurrentUserContext";
 
 const VoiceRoom = dynamic(() => import("@/ui/voice/VoiceRoom"), { ssr: false });
+const AiBotMessages = dynamic(() => import("@/ui/messages/AiBotMessages"), {
+  ssr: false,
+});
+const AiBotInput = dynamic(() => import("@/ui/messages/AiBotInput"), {
+  ssr: false,
+});
 
 export default function ChannelPage() {
   const params = useParams();
@@ -34,7 +41,14 @@ export default function ChannelPage() {
   const channel = server?.channels?.find((c) => c.id === channelId);
 
   const { messages, loading, error, refresh } = useMessages(channelId);
+  const {
+    messages: botMessages,
+    loading: botLoading,
+    error: botError,
+    sendMessage,
+  } = useAiBot();
 
+  const isAiBotChannel = channel?.name === "ai-chatbot";
   const ChannelIcon = channel?.type === "VOICE" ? Volume2 : Hash;
 
   if (channel?.type === "VOICE") {
@@ -94,14 +108,25 @@ export default function ChannelPage() {
           error={error}
           currentUserId={currentUser?.id}
         />
+        {isAiBotChannel ? (
+          <AiBotMessages
+            messages={botMessages}
+            loading={botLoading}
+            error={botError}
+          />
+        ) : null}
       </main>
 
       <div className="flex h-[var(--footer-height)] items-center px-3">
-        <ChatInput
-          channelId={channelId ?? ""}
-          senderId={currentUser?.id}
-          onError={refresh}
-        />
+        {isAiBotChannel ? (
+          <AiBotInput onSend={sendMessage} loading={botLoading} />
+        ) : (
+          <ChatInput
+            channelId={channelId ?? ""}
+            senderId={currentUser?.id}
+            onError={refresh}
+          />
+        )}
       </div>
     </div>
   );

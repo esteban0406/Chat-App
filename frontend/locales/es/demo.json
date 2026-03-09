@@ -38,5 +38,27 @@
     "author": "SystemBot",
     "time": "Hoy",
     "body": "¡Bienvenido DemoUser 👋\nEste es un entorno de demostración.\n¡Siéntete libre de explorar el servidor y enviar mensajes!"
+  },
+  "seed": {
+    "welcome": {
+      "msg0": "Bienvenido al espacio de demostración. Este servidor explica el proyecto y le da a la cuenta algo de actividad creíble desde el primer uso.",
+      "msg1": "El objetivo es simple: cuando alguien entra en modo demo, debería entender el producto de inmediato sin tener que crear datos él mismo.",
+      "msg2": "Exacto. Las apps de chat vacías se sienten rotas, así que el seed muestra amigos, servidores, canales activos e historial de conversación natural."
+    },
+    "projectContext": {
+      "msg0": "Este proyecto es una plataforma de chat en tiempo real con amistades, servidores, canales y mensajería en vivo.",
+      "msg1": "El modo demo es para demostraciones de producto, revisiones de portafolio y pruebas de la interfaz sin configuración manual.",
+      "msg2": "También es útil para QA porque cada ejecución parte de un conjunto de datos conocido y la interfaz es fácil de validar.",
+      "msg3": "Si alguien pregunta qué ver primero, dirígelo a la lista de amigos, el selector de servidores y el historial de mensajes en ambos servidores."
+    },
+    "feedback": {
+      "msg0": "Mejora futura: agregar algunas notificaciones pendientes para que el panel se sienta aún más dinámico.",
+      "msg1": "De acuerdo, pero primero quiero que el seed base sea determinista y fácil de volver a ejecutar durante el desarrollo."
+    },
+    "aiChatbot": {
+      "msg0": "¡Bienvenido al canal del asistente IA! 🤖 Aquí puedes preguntarle al bot todo lo que quieras sobre el proyecto: su arquitectura, tecnologías, características, cómo funciona, y mucho más. Solo escribe tu pregunta y el bot te responderá.",
+      "msg1": "Por ejemplo, puedes preguntar: ¿Qué es esta app? ¿Qué tecnologías usa? ¿Cómo funciona el sistema de autenticación? ¿Cómo se implementó el chat en tiempo real?"
+    },
+    "seedNote": "Este es un entorno de demostración. ¡Explora libremente!"
   }
 }
