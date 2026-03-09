@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../database/prisma.service';
 import {
@@ -246,11 +247,48 @@ const demoServers: SeedServer[] = [
 ];
 
 @Injectable()
-export class DemoSeedService {
+export class DemoSeedService implements OnModuleInit {
+  private readonly logger = new Logger(DemoSeedService.name);
+
   constructor(private readonly prisma: PrismaService) {}
+
+  async onModuleInit(): Promise<void> {
+    if (process.env.NODE_ENV === 'test') return;
+    this.logger.log('Seeding demo data on startup…');
+    await this.run();
+  }
+
+  @Cron('0 */6 * * *')
+  async resetDemo(): Promise<void> {
+    if (process.env.NODE_ENV === 'test') return;
+    this.logger.log('Running scheduled 6-hour demo reset…');
+    await this.run();
+  }
 
   async run(): Promise<void> {
     const passwordHash = await bcrypt.hash(DEMO_PASSWORD, SALT_ROUNDS);
+
+    // True reset: wipe all data owned by demo users before re-seeding
+    const demoEmails = seedUsers.map((u) => u.email);
+    const existingDemoUsers = await this.prisma.user.findMany({
+      where: { email: { in: demoEmails } },
+      select: { id: true },
+    });
+    const demoUserIds = existingDemoUsers.map((u) => u.id);
+
+    if (demoUserIds.length > 0) {
+      await this.prisma.server.deleteMany({
+        where: { ownerId: { in: demoUserIds } },
+      });
+      await this.prisma.friendship.deleteMany({
+        where: {
+          OR: [
+            { senderId: { in: demoUserIds } },
+            { receiverId: { in: demoUserIds } },
+          ],
+        },
+      });
+    }
 
     const users = await Promise.all(
       seedUsers.map((user) => this.upsertSeedUser(user, passwordHash)),

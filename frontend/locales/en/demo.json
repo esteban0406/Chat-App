@@ -1,0 +1,42 @@
+{
+  "phase1": {
+    "step0": {
+      "title": "Friends List",
+      "content": "Here you can see your online and offline friends. Search by name or start a conversation."
+    },
+    "step1": {
+      "title": "Server List",
+      "content": "Servers are workspaces where communities live. Click one to explore its channels."
+    },
+    "step2": {
+      "title": "Friend Requests & Invites",
+      "content": "Use these tabs to handle incoming friend requests, server invitations, and to add new friends."
+    }
+  },
+  "phase2": {
+    "step0": {
+      "title": "Server Channels",
+      "content": "Here are the text and voice channels for this server. The menu (⌄) next to the name lets you manage the server."
+    },
+    "step1": {
+      "title": "Send a Message",
+      "content": "Try typing something here! Messages are delivered in real time to all channel members."
+    },
+    "step2": {
+      "title": "Your Profile",
+      "content": "Here you can see your status, switch language, or adjust your account."
+    }
+  },
+  "nav": {
+    "back": "Back",
+    "close": "Close",
+    "last": "Done!",
+    "next": "Next",
+    "skip": "Skip tour"
+  },
+  "welcome": {
+    "author": "SystemBot",
+    "time": "Today",
+    "body": "Welcome DemoUser 👋\nThis is a demo environment.\nFeel free to explore the server and send messages!"
+  }
+}

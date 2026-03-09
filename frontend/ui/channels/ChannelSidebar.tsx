@@ -73,7 +73,7 @@ export default function ChannelSidebar({
 
   return (
     <>
-      <aside className="flex h-full flex-col bg-sidebar text-white">
+      <aside className="flex h-full flex-col bg-sidebar text-white" data-tour="channel-sidebar">
         <header className="flex h-[var(--header-height)] items-center justify-between border-b border-border px-3">
           <div className="min-w-0 flex-1">
             <h2 className="truncate font-display text-xl font-semibold">
@@ -82,7 +82,7 @@ export default function ChannelSidebar({
           </div>
           {hasAnyMenuPermission && (
             <Menu as="div" className="relative">
-              <Menu.Button className="rounded-md p-1.5 text-text-secondary transition hover:bg-surface hover:text-text-primary">
+              <Menu.Button data-tour="server-menu-button" className="rounded-md p-1.5 text-text-secondary transition hover:bg-surface hover:text-text-primary">
                 <ChevronDown className="h-4 w-4" />
               </Menu.Button>
               <Menu.Items className="absolute right-0 z-10 mt-2 w-44 rounded-md bg-surface text-sm shadow-lg ring-1 ring-black/20 focus:outline-none">

@@ -11,6 +11,7 @@ import enRoles from '@/locales/en/roles.json';
 import enUser from '@/locales/en/user.json';
 import enMessages from '@/locales/en/messages.json';
 import enVoice from '@/locales/en/voice.json';
+import enDemo from '@/locales/en/demo.json';
 
 import esCommon from '@/locales/es/common.json';
 import esAuth from '@/locales/es/auth.json';
@@ -21,6 +22,7 @@ import esRoles from '@/locales/es/roles.json';
 import esUser from '@/locales/es/user.json';
 import esMessages from '@/locales/es/messages.json';
 import esVoice from '@/locales/es/voice.json';
+import esDemo from '@/locales/es/demo.json';
 
 i18next
   .use(LanguageDetector)
@@ -37,6 +39,7 @@ i18next
         user: enUser,
         messages: enMessages,
         voice: enVoice,
+        demo: enDemo,
       },
       es: {
         common: esCommon,
@@ -48,6 +51,7 @@ i18next
         user: esUser,
         messages: esMessages,
         voice: esVoice,
+        demo: esDemo,
       },
     },
     fallbackLng: 'en',

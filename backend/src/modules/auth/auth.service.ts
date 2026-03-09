@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../database/prisma.service';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
-import { DemoSeedService, DEMO_OWNER_EMAIL } from './demo-seed.service';
+import { DEMO_OWNER_EMAIL } from './demo-seed.service';
 
 @Injectable()
 export class AuthService {
@@ -12,7 +12,6 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-    private readonly demoSeedService: DemoSeedService,
   ) {}
 
   async validateUser(email: string, password: string) {
@@ -170,7 +169,6 @@ export class AuthService {
   }
 
   async loginDemo() {
-    await this.demoSeedService.run();
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { email: DEMO_OWNER_EMAIL },
     });

@@ -15,6 +15,7 @@ import { NotificationProvider } from "@/lib/context/NotificationContext";
 import { CurrentUserProvider } from "@/lib/context/CurrentUserContext";
 import { ServersProvider } from "@/lib/context/ServersContext";
 import { useTranslation } from "react-i18next";
+import DemoTourLoader from "@/ui/demo/DemoTourLoader";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -63,45 +64,48 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
   } = useLayoutContext();
 
   return (
-    <div
-      className="h-screen bg-deep text-white md:grid"
-      style={{
-        gridTemplateColumns: "var(--nav-width) var(--sidebar-width) minmax(0, 1fr)",
-        gridTemplateRows: "minmax(0, 1fr) var(--footer-height)",
-        gridTemplateAreas: "'servers section chat' 'profile profile chat'",
-      }}
-    >
-      <aside
-        className="hidden border-r border-border bg-deep md:block"
-        style={{ gridArea: "servers" }}
+    <>
+      <div
+        className="h-screen bg-deep text-white md:grid"
+        style={{
+          gridTemplateColumns: "var(--nav-width) var(--sidebar-width) minmax(0, 1fr)",
+          gridTemplateRows: "minmax(0, 1fr) var(--footer-height)",
+          gridTemplateAreas: "'servers section chat' 'profile profile chat'",
+        }}
       >
-        <ServerSidebar />
-      </aside>
+        <aside
+          className="hidden border-r border-border bg-deep md:block"
+          style={{ gridArea: "servers" }}
+        >
+          <ServerSidebar />
+        </aside>
 
-      <div className="contents">{children}</div>
+        <div className="contents">{children}</div>
 
-      <aside
-        className="hidden border-t border-r border-border bg-deep md:block"
-        style={{ gridArea: "profile" }}
-      >
-        <UserProfileBar />
-      </aside>
+        <aside
+          className="hidden border-t border-r border-border bg-deep md:block"
+          style={{ gridArea: "profile" }}
+        >
+          <UserProfileBar />
+        </aside>
 
-      <MobileDrawer
-        open={isServerDrawerOpen}
-        side="left"
-        onClose={closeServerDrawer}
-      >
-        <ServerSidebar onClose={closeServerDrawer} />
-      </MobileDrawer>
+        <MobileDrawer
+          open={isServerDrawerOpen}
+          side="left"
+          onClose={closeServerDrawer}
+        >
+          <ServerSidebar onClose={closeServerDrawer} />
+        </MobileDrawer>
 
-      <MobileDrawer
-        open={isProfileDrawerOpen}
-        side="bottom"
-        onClose={closeProfileDrawer}
-      >
-        <UserProfileBar />
-      </MobileDrawer>
-    </div>
+        <MobileDrawer
+          open={isProfileDrawerOpen}
+          side="bottom"
+          onClose={closeProfileDrawer}
+        >
+          <UserProfileBar />
+        </MobileDrawer>
+      </div>
+      <DemoTourLoader />
+    </>
   );
 }

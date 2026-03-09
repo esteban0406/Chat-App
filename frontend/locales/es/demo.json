@@ -1,0 +1,42 @@
+{
+  "phase1": {
+    "step0": {
+      "title": "Lista de amigos",
+      "content": "Aquí puedes ver tus amigos en línea y sin conexión. Busca por nombre o inicia una conversación."
+    },
+    "step1": {
+      "title": "Lista de servidores",
+      "content": "Los servidores son espacios donde viven las comunidades. Haz clic en uno para explorar sus canales."
+    },
+    "step2": {
+      "title": "Solicitudes e invitaciones",
+      "content": "Usa estas pestañas para gestionar solicitudes de amistad, invitaciones a servidores y agregar nuevos amigos."
+    }
+  },
+  "phase2": {
+    "step0": {
+      "title": "Canales del servidor",
+      "content": "Aquí están los canales de texto y voz. El menú (⌄) junto al nombre permite gestionar el servidor."
+    },
+    "step1": {
+      "title": "Escribe un mensaje",
+      "content": "¡Prueba escribiendo algo aquí! Los mensajes se entregan en tiempo real a todos los miembros del canal."
+    },
+    "step2": {
+      "title": "Tu perfil",
+      "content": "Aquí puedes ver tu estado, cambiar el idioma o ajustar tu cuenta."
+    }
+  },
+  "nav": {
+    "back": "Atrás",
+    "close": "Cerrar",
+    "last": "¡Listo!",
+    "next": "Siguiente",
+    "skip": "Omitir tour"
+  },
+  "welcome": {
+    "author": "SystemBot",
+    "time": "Hoy",
+    "body": "¡Bienvenido DemoUser 👋\nEste es un entorno de demostración.\n¡Siéntete libre de explorar el servidor y enviar mensajes!"
+  }
+}

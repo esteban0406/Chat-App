@@ -1,6 +1,9 @@
 import { toBackendURL } from "./backend-client";
 
 const TOKEN_KEY = "accessToken";
+const DEMO_MODE_KEY = "isDemoMode";
+const DEMO_TOUR_STEP_KEY = "demoTourStep";
+const DEMO_TOUR_DONE_KEY = "demoTourCompleted";
 
 function parseErrorMessage(body: { message?: string | string[] }, fallback: string): string {
   if (!body.message) return fallback;
@@ -36,6 +39,25 @@ export function setToken(token: string): void {
 export function removeToken(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(TOKEN_KEY);
+}
+
+export function setDemoMode(): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(DEMO_MODE_KEY, "true");
+  localStorage.setItem(DEMO_TOUR_STEP_KEY, "0");
+  localStorage.removeItem(DEMO_TOUR_DONE_KEY);
+}
+
+export function clearDemoMode(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(DEMO_MODE_KEY);
+  localStorage.removeItem(DEMO_TOUR_STEP_KEY);
+  localStorage.removeItem(DEMO_TOUR_DONE_KEY);
+}
+
+export function isDemoMode(): boolean {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem(DEMO_MODE_KEY) === "true";
 }
 
 // Auth API calls
@@ -91,6 +113,7 @@ export async function logout(): Promise<void> {
     });
   }
   removeToken();
+  clearDemoMode();
 }
 
 export async function getMe(): Promise<User | null> {
@@ -149,6 +172,7 @@ export async function loginDemo(): Promise<AuthResponse> {
 
   const data: AuthResponse = await response.json();
   setToken(data.accessToken);
+  setDemoMode();
   return data;
 }
 
