@@ -33,7 +33,7 @@ export default function UserProfileBar() {
   );
 
   return (
-    <div className="flex h-[var(--footer-height)] items-center gap-3 border-t border-border bg-deep px-3">
+    <div className="flex h-[var(--footer-height)] items-center gap-3 border-t border-border bg-deep px-3" data-tour="user-profile-bar">
       <UserAvatar src={dynamicUrl} username={user.username} userId={user.id} size={40} ring />
 
       <div className="flex-1 truncate">

@@ -89,7 +89,7 @@ function FriendsContent({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <nav className="hidden h-[var(--header-height)] items-center gap-2 overflow-x-auto px-4 text-sm font-medium md:flex">
+        <nav className="hidden h-[var(--header-height)] items-center gap-2 overflow-x-auto px-4 text-sm font-medium md:flex" data-tour="home-nav">
           <Users className="mr-1 h-4 w-4 text-text-secondary" />
           <span className="mr-3 font-semibold text-text-primary">{t("friends.title")}</span>
           <div className="mr-1 h-5 w-px bg-border" />

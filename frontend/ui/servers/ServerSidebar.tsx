@@ -13,7 +13,7 @@ export default function ServerSidebar({ onClose }: { onClose?: () => void }) {
   const { hasNewFriendRequests, hasNewServerInvites } = useNotifications();
 
   return (
-    <div className="flex flex-col items-center bg-deep h-full">
+    <div className="flex flex-col items-center bg-deep h-full" data-tour="server-sidebar">
       <div className="flex h-[var(--header-height)] w-full shrink-0 items-center justify-center border-b border-border">
         <Link
           href="/home"

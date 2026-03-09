@@ -1,6 +1,7 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './modules/users/users.module';
@@ -10,6 +11,7 @@ import { ChannelsModule } from './modules/channels/channels.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { LivekitModule } from './modules/livekit/livekit.module';
 import { GatewayModule } from './modules/gateway/gateway.module';
+import { AiBotModule } from './modules/ai-bot/ai-bot.module';
 import { HTTPLoggerMiddleware } from './common/middleware/logger.middleware';
 import { TestModule } from './test-utils/test.module';
 import { AppController } from './app.controller';
@@ -20,6 +22,7 @@ import { AppController } from './app.controller';
       envFilePath: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([
       {
         name: 'default',
@@ -36,6 +39,7 @@ import { AppController } from './app.controller';
     MessagesModule,
     LivekitModule,
     GatewayModule,
+    AiBotModule,
   ],
   controllers: [AppController],
   providers: [

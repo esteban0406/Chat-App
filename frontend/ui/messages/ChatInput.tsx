@@ -48,6 +48,7 @@ export default function ChatInput({ channelId, senderId, disabled, onError }: Pr
         onChange={(event) => setContent(event.target.value)}
         placeholder={t('placeholder')}
         disabled={disabled}
+        data-tour="chat-input"
         className="flex-1 rounded-lg bg-surface px-4 py-2 text-sm text-white placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-gold disabled:opacity-50"
       />
       <button

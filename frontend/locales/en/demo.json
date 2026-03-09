@@ -1,0 +1,64 @@
+{
+  "phase1": {
+    "step0": {
+      "title": "Friends List",
+      "content": "Here you can see your online and offline friends. Search by name or start a conversation."
+    },
+    "step1": {
+      "title": "Server List",
+      "content": "Servers are workspaces where communities live. Click one to explore its channels."
+    },
+    "step2": {
+      "title": "Friend Requests & Invites",
+      "content": "Use these tabs to handle incoming friend requests, server invitations, and to add new friends."
+    }
+  },
+  "phase2": {
+    "step0": {
+      "title": "Server Channels",
+      "content": "Here are the text and voice channels for this server. The menu (⌄) next to the name lets you manage the server."
+    },
+    "step1": {
+      "title": "Send a Message",
+      "content": "Try typing something here! Messages are delivered in real time to all channel members."
+    },
+    "step2": {
+      "title": "Your Profile",
+      "content": "Here you can see your status, switch language, or adjust your account."
+    }
+  },
+  "nav": {
+    "back": "Back",
+    "close": "Close",
+    "last": "Done!",
+    "next": "Next",
+    "skip": "Skip tour"
+  },
+  "welcome": {
+    "author": "SystemBot",
+    "time": "Today",
+    "body": "Welcome DemoUser 👋\nThis is a demo environment.\nFeel free to explore the server and send messages!"
+  },
+  "seed": {
+    "welcome": {
+      "msg0": "Welcome to the demo workspace. This server explains the project and gives the account some believable activity on first load.",
+      "msg1": "The goal is simple: when someone enters demo mode, they should immediately understand the product without creating data themselves.",
+      "msg2": "Exactly. Empty chat apps feel broken, so the seed should show friends, joined servers, active channels, and natural conversation history."
+    },
+    "projectContext": {
+      "msg0": "This project is a real-time chat platform with friendships, servers, channels, and live messaging.",
+      "msg1": "Demo mode is for product walkthroughs, portfolio reviews, and testing the UI without manual setup.",
+      "msg2": "It is also useful for QA because every run starts from a known dataset and the interface stays easy to validate.",
+      "msg3": "If someone asks what to look at first, point them to the friends list, the server switcher, and message history across both servers."
+    },
+    "feedback": {
+      "msg0": "Future improvement: add a few pending notifications so the dashboard feels even more alive.",
+      "msg1": "Agreed, but first I want the core seed to be deterministic and easy to rerun during development."
+    },
+    "aiChatbot": {
+      "msg0": "Welcome to the AI assistant channel! 🤖 Here you can ask the bot anything about the project: its architecture, technologies, features, how it works, and much more. Just type your question and the bot will answer.",
+      "msg1": "For example, you can ask: What is this app? What technologies does it use? How does the authentication system work? How was real-time chat implemented?"
+    },
+    "seedNote": "This is a demo environment. Explore freely!"
+  }
+}

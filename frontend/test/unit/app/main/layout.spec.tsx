@@ -34,6 +34,7 @@ jest.mock("next/link", () => {
 jest.mock("@/lib/auth", () => ({
   isAuthenticated: () => mockIsAuthenticated(),
   getToken: jest.fn().mockReturnValue("fake-token"),
+  isDemoMode: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock("@/lib/socket", () => ({

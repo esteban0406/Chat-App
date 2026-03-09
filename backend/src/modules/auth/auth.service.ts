@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../database/prisma.service';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
+import { DEMO_OWNER_EMAIL } from './demo-seed.service';
 
 @Injectable()
 export class AuthService {
@@ -164,6 +165,17 @@ export class AuthService {
           },
         },
       },
+    });
+  }
+
+  async loginDemo() {
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { email: DEMO_OWNER_EMAIL },
+    });
+    return this.login({
+      id: user.id,
+      email: user.email!,
+      username: user.username,
     });
   }
 

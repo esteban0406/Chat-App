@@ -14,6 +14,7 @@ jest.mock('../../../../src/modules/users/users.module', () => {
 import { Test } from '@nestjs/testing';
 import { AuthModule } from '../../../../src/modules/auth/auth.module';
 import { AuthService } from '../../../../src/modules/auth/auth.service';
+import { DemoSeedService } from '../../../../src/modules/auth/demo-seed.service';
 import { JwtStrategy } from '../../../../src/modules/auth/strategies/jwt.strategy';
 import { LocalStrategy } from '../../../../src/modules/auth/strategies/local.strategy';
 import { GoogleStrategy } from '../../../../src/modules/auth/strategies/google.strategy';
@@ -22,6 +23,8 @@ describe('AuthModule', () => {
   it('compiles with mocked providers', async () => {
     const mod = await Test.createTestingModule({ imports: [AuthModule] })
       .overrideProvider(AuthService)
+      .useValue({})
+      .overrideProvider(DemoSeedService)
       .useValue({})
       .overrideProvider(LocalStrategy)
       .useValue({})

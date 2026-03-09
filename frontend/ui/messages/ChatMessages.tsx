@@ -19,7 +19,7 @@ export default function ChatMessages({
   error,
   currentUserId,
 }: Props) {
-  const { t } = useTranslation("messages");
+  const { t, i18n } = useTranslation("messages");
   if (loading) {
     return <p className="p-4 text-sm text-text-muted">{t('loading')}</p>;
   }
@@ -67,7 +67,9 @@ export default function ChatMessages({
                 </span>
               </div>
               <p className="mt-0.5 text-sm leading-relaxed text-text-body break-words">
-                {message.content}
+                {message.content.startsWith('i18n:')
+                  ? i18n.t(message.content.slice(5))
+                  : message.content}
               </p>
             </div>
           </div>

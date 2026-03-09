@@ -55,12 +55,21 @@ export class AuthController {
     return this.authService.getProfile(req.user.id);
   }
 
+  @Throttle({
+    default: {
+      ttl: 60_000,
+      limit: process.env.NODE_ENV === 'test' ? 1000 : 5,
+    },
+  })
+  @Post('demo')
+  async demo() {
+    return this.authService.loginDemo();
+  }
+
   @SkipThrottle()
   @Get('google')
   @UseGuards(GoogleAuthGuard)
-  async googleAuth() {
-    // Passport intercepts this and redirects to Google — body never executes
-  }
+  async googleAuth() {}
 
   @SkipThrottle()
   @Get('google/callback')

@@ -46,7 +46,7 @@ export default function FriendsSidebar({ sidebarControls }: Props) {
   };
 
   return (
-    <div className="flex h-full flex-col bg-sidebar text-white">
+    <div className="flex h-full flex-col bg-sidebar text-white" data-tour="friends-sidebar">
       <header className="flex h-[var(--header-height)] items-center justify-between border-b border-border px-3">
         <h2 className="font-display text-xl font-semibold">{t("friends.title")}</h2>
         {closeSidebar && (
