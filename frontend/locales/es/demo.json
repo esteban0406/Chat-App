@@ -57,7 +57,9 @@
     },
     "aiChatbot": {
       "msg0": "¡Bienvenido al canal del asistente IA! 🤖 Aquí puedes preguntarle al bot todo lo que quieras sobre el proyecto: su arquitectura, tecnologías, características, cómo funciona, y mucho más. Solo escribe tu pregunta y el bot te responderá.",
-      "msg1": "Por ejemplo, puedes preguntar: ¿Qué es esta app? ¿Qué tecnologías usa? ¿Cómo funciona el sistema de autenticación? ¿Cómo se implementó el chat en tiempo real?"
+      "msg1": "Por ejemplo, puedes preguntar: ¿Qué es esta app? ¿Qué tecnologías usa? ¿Cómo funciona el sistema de autenticación? ¿Cómo se implementó el chat en tiempo real?",
+      "writing": "El asistente IA está escribiendo...",
+      "name": "Asistente IA"
     },
     "seedNote": "Este es un entorno de demostración. ¡Explora libremente!"
   }
