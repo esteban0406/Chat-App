@@ -1,4 +1,22 @@
 {
+  "mobile": {
+    "phase1": {
+      "step0": {
+        "title": "Friends & Servers",
+        "content": "Tap the ☰ button to open the navigation drawer. Server icons are on the left and your friends list is on the right."
+      },
+      "step1": {
+        "title": "Navigation Tabs",
+        "content": "Use these tabs to manage friend requests, server invitations, or add new friends."
+      }
+    },
+    "phase2": {
+      "step0": {
+        "title": "Channels & Profile",
+        "content": "Tap the ☰ button to open the navigation drawer. The channel list appears on the right and your profile is pinned at the bottom."
+      }
+    }
+  },
   "phase1": {
     "step0": {
       "title": "Friends List",

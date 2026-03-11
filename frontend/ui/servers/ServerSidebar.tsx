@@ -33,7 +33,6 @@ export default function ServerSidebar({ onClose }: { onClose?: () => void }) {
           <Link
             key={server.id}
             href={server.id ? `/servers/${server.id}` : "/servers"}
-            onClick={onClose}
             className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface text-sm font-semibold text-text-secondary shadow-md shadow-black/25 transition-all hover:rounded-[14px] hover:bg-gold hover:text-deep"
           >
             {server.name?.[0] ?? "?"}

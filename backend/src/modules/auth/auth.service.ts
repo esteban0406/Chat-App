@@ -172,11 +172,21 @@ export class AuthService {
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { email: DEMO_OWNER_EMAIL },
     });
-    return this.login({
-      id: user.id,
-      email: user.email!,
+
+    await this.usersService.updateStatus(user.id, 'ONLINE');
+
+    const sessionId = crypto.randomUUID();
+    const payload = {
+      sub: user.id,
+      email: user.email,
       username: user.username,
-    });
+      sessionId,
+    };
+
+    return {
+      user: await this.usersService.findOne(user.id),
+      accessToken: this.jwtService.sign(payload),
+    };
   }
 
   async logout(userId: string) {

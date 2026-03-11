@@ -30,6 +30,7 @@ export default function AiBotInput({ onSend, loading }: Props) {
         onChange={(e) => setContent(e.target.value)}
         placeholder="Pregúntale al asistente IA sobre Discol…"
         disabled={loading}
+        data-tour="chat-input"
         className="flex-1 rounded-lg bg-surface px-4 py-2 text-sm text-white placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-gold disabled:opacity-50"
       />
       <button

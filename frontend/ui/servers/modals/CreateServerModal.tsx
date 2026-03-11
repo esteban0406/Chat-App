@@ -49,8 +49,8 @@ export default function CreateServerModal({ onClose, created }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="w-96 rounded-lg bg-deep border border-border p-6 text-white shadow-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="w-full max-w-sm rounded-lg bg-deep border border-border p-6 text-white shadow-lg">
         <h2 className="mb-4 text-lg font-bold">{t('servers:create.title')}</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -60,7 +60,7 @@ export default function CreateServerModal({ onClose, created }: Props) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full rounded bg-surface px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gold"
+            className="w-full rounded bg-surface px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-gold"
           />
 
           <textarea
@@ -76,7 +76,7 @@ export default function CreateServerModal({ onClose, created }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="rounded bg-surface px-4 py-2 hover:bg-surface/80"
+              className="rounded bg-surface px-4 py-2 min-h-[44px] hover:bg-surface/80"
               disabled={loading}
             >
               {t('common:cancel')}
@@ -85,7 +85,7 @@ export default function CreateServerModal({ onClose, created }: Props) {
             <button
               type="submit"
               disabled={loading}
-              className="rounded bg-gold px-4 py-2 text-deep hover:bg-gold/90 disabled:opacity-60"
+              className="rounded bg-gold px-4 py-2 min-h-[44px] text-deep hover:bg-gold/90 disabled:opacity-60"
             >
               {loading ? t('servers:create.creating') : t('common:create')}
             </button>

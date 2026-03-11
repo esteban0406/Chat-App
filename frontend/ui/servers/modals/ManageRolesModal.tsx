@@ -22,6 +22,7 @@ export default function ManageRolesModal({ server, onClose }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [mobileView, setMobileView] = useState<"list" | "detail">("list");
 
   const isCreatingRef = useRef(isCreating);
   useLayoutEffect(() => {
@@ -63,11 +64,17 @@ export default function ManageRolesModal({ server, onClose }: Props) {
   function handleSelectRole(roleId: string) {
     setSelectedRoleId(roleId);
     setIsCreating(false);
+    setMobileView("detail");
   }
 
   function handleCreateNew() {
     setIsCreating(true);
     setSelectedRoleId(null);
+    setMobileView("detail");
+  }
+
+  function handleMobileBack() {
+    setMobileView("list");
   }
 
   function handleSaved() {
@@ -108,8 +115,8 @@ export default function ManageRolesModal({ server, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="flex h-[80vh] max-h-[760px] w-full max-w-[920px] overflow-hidden rounded-xl border border-border bg-deep shadow-2xl">
-        {/* Left Panel — Role Sidebar */}
+      <div className="flex h-[90vh] max-h-[760px] w-full max-w-[920px] flex-col overflow-hidden rounded-xl border border-border bg-deep shadow-2xl md:flex-row">
+        {/* Left Panel — Role Sidebar (hidden on mobile when viewing detail) */}
         <RoleSidebar
           serverName={server.name}
           roles={roles}
@@ -118,10 +125,11 @@ export default function ManageRolesModal({ server, onClose }: Props) {
           onSelectRole={handleSelectRole}
           onCreateNew={handleCreateNew}
           onClose={onClose}
+          hiddenOnMobile={mobileView === "detail"}
         />
 
-        {/* Right Panel — Role Detail */}
-        <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Right Panel — Role Detail (hidden on mobile when viewing list) */}
+        <div className={`flex flex-1 flex-col overflow-hidden ${mobileView === "list" ? "hidden md:flex" : "flex"}`}>
           {loading ? (
             <div className="flex flex-1 items-center justify-center">
               <p className="text-sm text-text-muted">{t('loading')}</p>
@@ -139,6 +147,7 @@ export default function ManageRolesModal({ server, onClose }: Props) {
               ownerId={server.ownerId}
               onSaved={handleSaved}
               onDeleted={handleDeleted}
+              onBack={handleMobileBack}
             />
           )}
         </div>

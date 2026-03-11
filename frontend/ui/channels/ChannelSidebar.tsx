@@ -168,7 +168,7 @@ export default function ChannelSidebar({
             <button
               type="button"
               onClick={closeSidebar}
-              className="rounded-md p-2 text-text-muted transition hover:bg-surface hover:text-white md:hidden"
+              className="rounded-md min-h-[44px] min-w-[44px] flex items-center justify-center text-text-muted transition hover:bg-surface hover:text-white md:hidden"
             >
               ✕
             </button>

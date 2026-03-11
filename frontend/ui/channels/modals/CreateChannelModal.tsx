@@ -76,7 +76,7 @@ export default function CreateChannelModal({
               onChange={(event) => setName(event.target.value)}
               required
               placeholder={t('channels:create.namePlaceholder')}
-              className="w-full rounded bg-surface px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gold"
+              className="w-full rounded bg-surface px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-gold"
             />
           </div>
 
@@ -89,7 +89,7 @@ export default function CreateChannelModal({
               onChange={(event) =>
                 setType(event.target.value as ChannelType)
               }
-              className="w-full rounded bg-surface px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gold"
+              className="w-full rounded bg-surface px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-gold"
             >
               <option value="TEXT">{t('channels:create.text')}</option>
               <option value="VOICE">{t('channels:create.voice')}</option>

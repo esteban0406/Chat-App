@@ -29,9 +29,21 @@ function clearMenuButtonHighlight() {
   btn.style.borderRadius = "";
 }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+  return isMobile;
+}
+
 export default function DemoTour() {
   const { t } = useTranslation("demo");
   const pathname = usePathname();
+  const isMobile = useIsMobile();
   const [tourState, setTourState] = useState<{ run: boolean; phase: 1 | 2 | null }>({
     run: false,
     phase: null,
@@ -92,6 +104,31 @@ export default function DemoTour() {
     },
   ];
 
+  // Phase 1 mobile: only target visible elements
+  const phase1MobileSteps: Step[] = [
+    {
+      target: "body",
+      title: t("welcome.author"),
+      content: t("welcome.body"),
+      placement: "center",
+      disableBeacon: true,
+    },
+    {
+      target: "body",
+      title: t("mobile.phase1.step0.title"),
+      content: t("mobile.phase1.step0.content"),
+      placement: "center",
+      disableBeacon: true,
+    },
+    {
+      target: '[data-tour="home-nav-mobile"]',
+      title: t("mobile.phase1.step1.title"),
+      content: t("mobile.phase1.step1.content"),
+      placement: "bottom",
+      disableBeacon: true,
+    },
+  ];
+
   // Phase 2: /servers/.../channels/... — channel sidebar + chat input + profile bar
   const phase2Steps: Step[] = [
     {
@@ -117,11 +154,29 @@ export default function DemoTour() {
     },
   ];
 
+  // Phase 2 mobile: only target visible elements
+  const phase2MobileSteps: Step[] = [
+    {
+      target: "body",
+      title: t("mobile.phase2.step0.title"),
+      content: t("mobile.phase2.step0.content"),
+      placement: "center",
+      disableBeacon: true,
+    },
+    {
+      target: '[data-tour="chat-input"]',
+      title: t("phase2.step1.title"),
+      content: t("phase2.step1.content"),
+      placement: "top",
+      disableBeacon: true,
+    },
+  ];
+
   const handleCallback = useCallback(
     (data: CallBackProps) => {
       const { status, type, index } = data;
 
-      if (tourState.phase === 2) {
+      if (tourState.phase === 2 && !isMobile) {
         const primaryColor =
           getComputedStyle(document.documentElement)
             .getPropertyValue("--color-gold")
@@ -136,14 +191,15 @@ export default function DemoTour() {
         if (type === EVENTS.STEP_AFTER && index === 0) {
           clearMenuButtonHighlight();
         }
+      }
 
-        // Auto-focus the chat input when its tooltip appears (step index 1 in phase 2)
-        if (type === EVENTS.TOOLTIP && index === 1) {
-          const input = document.querySelector<HTMLInputElement>(
-            '[data-tour="chat-input"]'
-          );
-          input?.focus();
-        }
+      // Auto-focus the chat input when its tooltip appears
+      // On desktop: step index 1; on mobile: step index 1
+      if (tourState.phase === 2 && type === EVENTS.TOOLTIP && index === 1) {
+        const input = document.querySelector<HTMLInputElement>(
+          '[data-tour="chat-input"]'
+        );
+        input?.focus();
       }
 
       if (status === STATUS.FINISHED) {
@@ -162,7 +218,7 @@ export default function DemoTour() {
         localStorage.setItem(DEMO_TOUR_DONE_KEY, "true");
       }
     },
-    [tourState.phase]
+    [tourState.phase, isMobile]
   );
 
   const primaryColor =
@@ -181,9 +237,14 @@ export default function DemoTour() {
 
   if (!tourState.run || tourState.phase === null) return null;
 
+  const steps =
+    tourState.phase === 1
+      ? isMobile ? phase1MobileSteps : phase1Steps
+      : isMobile ? phase2MobileSteps : phase2Steps;
+
   return (
     <Joyride
-      steps={tourState.phase === 1 ? phase1Steps : phase2Steps}
+      steps={steps}
       run={tourState.run}
       continuous
       showSkipButton

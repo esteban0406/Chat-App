@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Role, Member, ServerPermission } from "@/lib/definitions";
 import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
-import { Trash2, Shield } from "lucide-react";
+import { Trash2, Shield, ArrowLeft } from "lucide-react";
 import RoleSettingsSection from "./RoleSettingsSection";
 import RolePermissionsSection from "./RolePermissionsSection";
 import RoleMembersSection from "./RoleMembersSection";
@@ -19,6 +19,7 @@ type Props = {
   ownerId: string;
   onSaved: () => void;
   onDeleted: () => void;
+  onBack?: () => void;
 };
 
 export default function RoleDetailPanel({
@@ -29,6 +30,7 @@ export default function RoleDetailPanel({
   ownerId,
   onSaved,
   onDeleted,
+  onBack,
 }: Props) {
   const { t } = useTranslation(["roles", "common"]);
   const [formName, setFormName] = useState("");
@@ -220,6 +222,16 @@ export default function RoleDetailPanel({
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-5">
         <div className="flex items-center gap-2.5">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="mr-1 flex items-center justify-center rounded-md p-1.5 text-text-muted transition hover:bg-surface hover:text-white md:hidden"
+              aria-label="Volver a roles"
+            >
+              <ArrowLeft size={18} />
+            </button>
+          )}
           {!isCreating && role && (
             <span
               className="inline-block h-4 w-4 rounded-full"

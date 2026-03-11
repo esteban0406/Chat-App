@@ -16,7 +16,7 @@ type Props = {
 
 export default function AiBotMessages({ messages, loading, error }: Props) {
   const { currentUser } = useCurrentUser();
-  const { t } = useTranslation();
+  const { t } = useTranslation("demo");
 
 
   return (
@@ -30,7 +30,7 @@ export default function AiBotMessages({ messages, loading, error }: Props) {
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-2">
                 <span className="text-sm font-semibold text-gold">
-                  {t('demo.aiChatbot.name')}
+                  {t('demo:seed.aiChatbot.name')}
                 </span>
                 <span className="text-xs text-text-muted">
                   {new Date(msg.createdAt).toLocaleTimeString()}
@@ -68,9 +68,9 @@ export default function AiBotMessages({ messages, loading, error }: Props) {
             <Bot className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <span className="text-sm font-semibold text-gold">{t('demo.aiChatbot.name')}</span>
+            <span className="text-sm font-semibold text-gold">{t('demo:seed.aiChatbot.name')}</span>
             <p className="mt-0.5 text-sm text-text-muted animate-pulse">
-              {t('demo.aiChatbot.writing')}
+              {t('demo:seed.aiChatbot.writing')}
             </p>
           </div>
         </div>

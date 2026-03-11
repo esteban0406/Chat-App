@@ -2,7 +2,7 @@
 
 import ServerSidebar from "@/ui/servers/ServerSidebar";
 import UserProfileBar from "@/ui/user/UserProfileBar";
-import MobileDrawer from "@/ui/common/MobileDrawer";
+import MobileNavDrawer from "@/ui/layout/MobileNavDrawer";
 import {
   LayoutContextProvider,
   useLayoutContext,
@@ -58,9 +58,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const {
     isServerDrawerOpen,
-    isProfileDrawerOpen,
     closeServerDrawer,
-    closeProfileDrawer,
   } = useLayoutContext();
 
   return (
@@ -89,21 +87,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
           <UserProfileBar />
         </aside>
 
-        <MobileDrawer
-          open={isServerDrawerOpen}
-          side="left"
-          onClose={closeServerDrawer}
-        >
-          <ServerSidebar onClose={closeServerDrawer} />
-        </MobileDrawer>
-
-        <MobileDrawer
-          open={isProfileDrawerOpen}
-          side="bottom"
-          onClose={closeProfileDrawer}
-        >
-          <UserProfileBar />
-        </MobileDrawer>
+        <MobileNavDrawer open={isServerDrawerOpen} onClose={closeServerDrawer} />
       </div>
       <DemoTourLoader />
     </>

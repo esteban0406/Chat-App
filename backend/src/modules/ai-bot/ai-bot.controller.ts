@@ -15,7 +15,7 @@ export class AiBotController {
     @Body() chatMessageDto: ChatMessageDto,
   ): Promise<{ reply: string }> {
     const reply = await this.aiBotService.chat(
-      req.user.id,
+      req.user,
       chatMessageDto.message,
     );
     return { reply };

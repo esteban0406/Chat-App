@@ -1,4 +1,22 @@
 {
+  "mobile": {
+    "phase1": {
+      "step0": {
+        "title": "Amigos y servidores",
+        "content": "Toca el botón ☰ para abrir el menú de navegación. Los iconos de servidores están a la izquierda y tu lista de amigos a la derecha."
+      },
+      "step1": {
+        "title": "Pestañas de navegación",
+        "content": "Usa estas pestañas para gestionar solicitudes de amistad, invitaciones a servidores o agregar nuevos amigos."
+      }
+    },
+    "phase2": {
+      "step0": {
+        "title": "Canales y perfil",
+        "content": "Toca el botón ☰ para abrir el menú de navegación. La lista de canales aparece a la derecha y tu perfil está fijado en la parte inferior."
+      }
+    }
+  },
   "phase1": {
     "step0": {
       "title": "Lista de amigos",
