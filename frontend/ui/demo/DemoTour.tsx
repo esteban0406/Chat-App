@@ -5,6 +5,7 @@ import Joyride, { CallBackProps, STATUS, EVENTS, Step } from "react-joyride";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { isDemoMode } from "@/lib/auth";
+import { useLayoutContext } from "@/ui/layout/LayoutContext";
 
 const DEMO_TOUR_STEP_KEY = "demoTourStep";
 const DEMO_TOUR_DONE_KEY = "demoTourCompleted";
@@ -44,6 +45,8 @@ export default function DemoTour() {
   const { t } = useTranslation("demo");
   const pathname = usePathname();
   const isMobile = useIsMobile();
+  const { closeServerDrawer, closeSectionSidebar, closeProfileDrawer } =
+    useLayoutContext();
   const [tourState, setTourState] = useState<{ run: boolean; phase: 1 | 2 | null }>({
     run: false,
     phase: null,
@@ -196,6 +199,11 @@ export default function DemoTour() {
       // Auto-focus the chat input when its tooltip appears
       // On desktop: step index 1; on mobile: step index 1
       if (tourState.phase === 2 && type === EVENTS.TOOLTIP && index === 1) {
+        if (isMobile) {
+          closeServerDrawer();
+          closeSectionSidebar();
+          closeProfileDrawer();
+        }
         const input = document.querySelector<HTMLInputElement>(
           '[data-tour="chat-input"]'
         );
@@ -218,7 +226,13 @@ export default function DemoTour() {
         localStorage.setItem(DEMO_TOUR_DONE_KEY, "true");
       }
     },
-    [tourState.phase, isMobile]
+    [
+      tourState.phase,
+      isMobile,
+      closeServerDrawer,
+      closeSectionSidebar,
+      closeProfileDrawer,
+    ]
   );
 
   const primaryColor =
