@@ -36,6 +36,11 @@
       "sourceType": "github",
       "computedHash": "a1bc395530ba9116a4509e27321eaf7cc81c5f93aa80a4778ad6f915180b4f2c"
     },
+    "mermaid-diagrams": {
+      "source": "softaworks/agent-toolkit",
+      "sourceType": "github",
+      "computedHash": "6d36e69adad781f106a2fb4b19ebc22bf0c211babdc0d1ae5822fa65abb48bd8"
+    },
     "nestjs-best-practices": {
       "source": "kadajett/agent-nestjs-skills",
       "sourceType": "github",
