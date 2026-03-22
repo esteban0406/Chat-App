@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { Channel, Server } from "@/lib/definitions";
 import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
-import { useNotificationSocket } from "@/lib/useNotificationSocket";
+import { useNotificationSocket } from "@/lib/hooks/useNotificationSocket";
 
 type ServersState = {
   servers: Server[];

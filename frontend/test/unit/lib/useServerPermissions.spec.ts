@@ -4,7 +4,7 @@ jest.mock('@/lib/context/CurrentUserContext', () => ({
 
 import { renderHook } from '@testing-library/react';
 import { useCurrentUser } from '@/lib/context/CurrentUserContext';
-import { useServerPermissions } from '@/lib/useServerPermissions';
+import { useServerPermissions } from '@/lib/hooks/useServerPermissions';
 import { mockUser, mockUser2, mockServer, mockMember, mockRole } from '@/test/helpers/fixtures';
 import type { Server, Member } from '@/lib/definitions';
 

@@ -121,8 +121,8 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="w-96 rounded-lg bg-deep border border-border p-6 text-white shadow-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="w-full max-w-sm rounded-lg bg-deep border border-border p-6 text-white shadow-lg">
         <h2 className="mb-4 text-lg font-bold">{t('user:editAvatar.title')}</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -239,7 +239,7 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
               type="button"
               onClick={closeModal}
               disabled={loading}
-              className="rounded bg-surface px-4 py-2 hover:bg-surface/80 disabled:opacity-60"
+              className="rounded bg-surface px-4 py-2 min-h-[44px] hover:bg-surface/80 disabled:opacity-60"
             >
               {t('common:cancel')}
             </button>
@@ -247,7 +247,7 @@ export default function EditAvatarModal({ onClose, onUpdated }: Props) {
             <button
               type="submit"
               disabled={loading || !file}
-              className="rounded bg-gold px-4 py-2 text-deep hover:bg-gold/90 disabled:opacity-60"
+              className="rounded bg-gold px-4 py-2 min-h-[44px] text-deep hover:bg-gold/90 disabled:opacity-60"
             >
               {loading ? t('user:editAvatar.saving') : t('common:save')}
             </button>

@@ -54,7 +54,7 @@ export default function RenameServerModal({ server, onClose, onRenamed }: Props)
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full rounded bg-surface px-3 py-2 text-sm text-white placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-gold"
+              className="w-full rounded bg-surface px-3 py-2 min-h-[44px] text-sm text-white placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-gold"
             />
           </div>
 
@@ -65,14 +65,14 @@ export default function RenameServerModal({ server, onClose, onRenamed }: Props)
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="rounded px-4 py-1.5 text-text-secondary hover:text-white disabled:opacity-60"
+              className="rounded px-4 py-2.5 text-text-secondary hover:text-white disabled:opacity-60"
             >
               {t('common:cancel')}
             </button>
             <button
               type="submit"
               disabled={loading || !name.trim()}
-              className="rounded bg-gold px-4 py-1.5 font-semibold text-deep hover:bg-gold/90 disabled:opacity-60"
+              className="rounded bg-gold px-4 py-2.5 font-semibold text-deep hover:bg-gold/90 disabled:opacity-60"
             >
               {loading ? t('servers:rename.saving') : t('common:save')}
             </button>

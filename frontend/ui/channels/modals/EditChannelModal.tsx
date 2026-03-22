@@ -71,7 +71,7 @@ export default function EditChannelModal({
               value={name}
               onChange={(event) => setName(event.target.value)}
               required
-              className="w-full rounded bg-surface px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gold"
+              className="w-full rounded bg-surface px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-gold"
             />
           </div>
 

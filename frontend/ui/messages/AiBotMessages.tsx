@@ -5,6 +5,8 @@ import { useCurrentUser } from "@/lib/context/CurrentUserContext";
 import { toBackendURL } from "@/lib/backend-client";
 import UserAvatar from "@/ui/user/UserAvatar";
 import type { BotMessage } from "./useAiBot";
+import { useTranslation } from "react-i18next";
+
 
 type Props = {
   messages: BotMessage[];
@@ -14,6 +16,8 @@ type Props = {
 
 export default function AiBotMessages({ messages, loading, error }: Props) {
   const { currentUser } = useCurrentUser();
+  const { t } = useTranslation("demo");
+
 
   return (
     <div className="flex flex-col gap-5 p-4">
@@ -26,7 +30,7 @@ export default function AiBotMessages({ messages, loading, error }: Props) {
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-2">
                 <span className="text-sm font-semibold text-gold">
-                  Asistente IA
+                  {t('demo:seed.aiChatbot.name')}
                 </span>
                 <span className="text-xs text-text-muted">
                   {new Date(msg.createdAt).toLocaleTimeString()}
@@ -64,9 +68,9 @@ export default function AiBotMessages({ messages, loading, error }: Props) {
             <Bot className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <span className="text-sm font-semibold text-gold">Asistente IA</span>
+            <span className="text-sm font-semibold text-gold">{t('demo:seed.aiChatbot.name')}</span>
             <p className="mt-0.5 text-sm text-text-muted animate-pulse">
-              Escribiendo…
+              {t('demo:seed.aiChatbot.writing')}
             </p>
           </div>
         </div>

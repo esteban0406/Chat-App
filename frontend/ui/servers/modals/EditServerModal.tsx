@@ -74,7 +74,7 @@ export default function EditServerModal({
                       type="button"
                       onClick={() => handleRemove(member)}
                       disabled={removingId === member.id}
-                      className="rounded bg-ruby px-3 py-1 text-xs font-semibold text-white hover:bg-ruby/90 disabled:opacity-60"
+                      className="rounded bg-ruby px-3 py-2 min-h-[44px] text-xs font-semibold text-white hover:bg-ruby/90 disabled:opacity-60"
                     >
                       {t('servers:members.remove')}
                     </button>

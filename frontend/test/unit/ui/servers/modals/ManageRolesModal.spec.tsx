@@ -10,7 +10,7 @@ jest.mock("@/lib/backend-client", () => ({
 
 const mockHasPermission = jest.fn().mockReturnValue(true);
 
-jest.mock("@/lib/useServerPermissions", () => ({
+jest.mock("@/lib//hooks/useServerPermissions", () => ({
   useServerPermissions: () => ({
     hasPermission: mockHasPermission,
     isOwner: true,

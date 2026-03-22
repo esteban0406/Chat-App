@@ -13,6 +13,7 @@ type Props = {
   onSelectRole: (roleId: string) => void;
   onCreateNew: () => void;
   onClose: () => void;
+  hiddenOnMobile?: boolean;
 };
 
 export default function RoleSidebar({
@@ -23,10 +24,11 @@ export default function RoleSidebar({
   onSelectRole,
   onCreateNew,
   onClose,
+  hiddenOnMobile = false,
 }: Props) {
   const { t } = useTranslation("roles");
   return (
-    <div className="flex h-full w-60 shrink-0 flex-col border-r border-border bg-sidebar">
+    <div className={`${hiddenOnMobile ? "hidden md:flex" : "flex"} h-full w-full flex-col border-r border-border bg-sidebar md:w-60 md:shrink-0`}>
       {/* Header */}
       <div className="px-4 pb-2 pt-4">
         <h3 className="font-display text-xl font-semibold text-white">{t('title')}</h3>

@@ -51,14 +51,17 @@ export default function SectionShell({
       </aside>
 
       {isSectionSidebarOpen && sidebarContent && (
-        <div className="fixed inset-0 z-40 flex md:hidden">
-          <button
-            type="button"
-            aria-label="Cerrar panel"
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div
+            className="absolute inset-0 bg-black/50"
             onClick={closeSectionSidebar}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           />
-          <div className="relative z-10 h-full w-72 max-w-[80%] overflow-y-auto bg-sidebar shadow-xl">
+          <div className="relative h-full w-72 overflow-y-auto bg-sidebar">
+            <button
+              aria-label="Cerrar panel"
+              onClick={closeSectionSidebar}
+              className="absolute right-2 top-2"
+            />
             {sidebarContent}
           </div>
         </div>

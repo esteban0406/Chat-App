@@ -4,6 +4,8 @@
     "voiceChannels": "Canales de voz",
     "noChannels": "Aún no hay canales.",
     "selectServer": "Selecciona un servidor para ver sus canales.",
+    "createServer": "Crea un servidor para empezar a chatear.",
+    "selectChannel": "Selecciona un canal para empezar a chatear.",
     "menu": {
       "inviteFriends": "Invitar amigos",
       "removeMembers": "Eliminar miembros",

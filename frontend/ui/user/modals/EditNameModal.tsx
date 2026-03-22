@@ -58,8 +58,8 @@ export default function EditNameModal({ user, onClose, onUpdated }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="w-96 rounded-lg bg-deep border border-border p-6 text-white shadow-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="w-full max-w-sm rounded-lg bg-deep border border-border p-6 text-white shadow-lg">
         <h2 className="mb-4 text-lg font-bold">{t('user:editName.title')}</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -67,7 +67,7 @@ export default function EditNameModal({ user, onClose, onUpdated }: Props) {
             value={name}
             disabled={loading}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded bg-surface px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gold"
+            className="w-full rounded bg-surface px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-gold"
             placeholder={t('user:editName.placeholder')}
           />
 
@@ -78,7 +78,7 @@ export default function EditNameModal({ user, onClose, onUpdated }: Props) {
               type="button"
               onClick={closeModal}
               disabled={loading}
-              className="rounded bg-surface px-4 py-2 hover:bg-surface/80 disabled:opacity-60"
+              className="rounded bg-surface px-4 py-2 min-h-[44px] hover:bg-surface/80 disabled:opacity-60"
             >
               {t('common:cancel')}
             </button>
@@ -86,7 +86,7 @@ export default function EditNameModal({ user, onClose, onUpdated }: Props) {
             <button
               type="submit"
               disabled={loading}
-              className="rounded bg-gold px-4 py-2 text-deep hover:bg-gold/90 disabled:opacity-60"
+              className="rounded bg-gold px-4 py-2 min-h-[44px] text-deep hover:bg-gold/90 disabled:opacity-60"
             >
               {loading ? t('user:editName.saving') : t('common:save')}
             </button>

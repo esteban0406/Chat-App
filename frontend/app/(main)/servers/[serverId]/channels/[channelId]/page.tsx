@@ -6,7 +6,6 @@ import {
   Menu,
   Hash,
   Volume2,
-  CircleUser,
 } from "lucide-react";
 import ChatMessages from "@/ui/messages/ChatMessages";
 import ChatInput from "@/ui/messages/ChatInput";
@@ -31,8 +30,7 @@ export default function ChannelPage() {
   const rawChannelId = params?.channelId;
   const channelId = Array.isArray(rawChannelId) ? rawChannelId[0] : rawChannelId;
 
-  const { openServerDrawer, openSectionSidebar, openProfileDrawer } =
-    useLayoutContext();
+  const { openServerDrawer } = useLayoutContext();
 
   const { servers } = useServers();
   const { currentUser } = useCurrentUser();
@@ -71,7 +69,7 @@ export default function ChannelPage() {
           <button
             type="button"
             onClick={openServerDrawer}
-            className="rounded-md p-2 text-text-muted transition hover:bg-surface hover:text-text-primary focus:outline-none md:hidden"
+            className="rounded-md p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-text-muted transition hover:bg-surface hover:text-text-primary focus:outline-none md:hidden"
             aria-label="Abrir servidores"
           >
             <Menu className="h-5 w-5" />
@@ -80,24 +78,6 @@ export default function ChannelPage() {
             <ChannelIcon className="h-4 w-4 text-text-secondary" />
             {channel?.name ?? `Canal ${channelId ?? ""}`}
           </h2>
-        </div>
-        <div className="flex items-center gap-2 md:hidden">
-          <button
-            type="button"
-            onClick={openSectionSidebar}
-            className="rounded-md p-2 text-text-muted transition hover:bg-surface hover:text-text-primary focus:outline-none"
-            aria-label="Abrir canales"
-          >
-            <Hash className="h-5 w-5" />
-          </button>
-          <button
-            type="button"
-            onClick={openProfileDrawer}
-            className="rounded-md p-2 text-text-muted transition hover:bg-surface hover:text-text-primary focus:outline-none"
-            aria-label="Abrir perfil"
-          >
-            <CircleUser className="h-5 w-5" />
-          </button>
         </div>
       </header>
 

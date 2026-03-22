@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef } from "react";
-import { getSocket } from "./socket";
-import type { Channel, Friendship, ServerInvite } from "./definitions";
+import { getSocket } from "../socket";
+import type { Channel, Friendship, ServerInvite } from "../definitions";
 
 type NotificationCallbacks = {
   onFriendRequestReceived?: (data: Friendship) => void;

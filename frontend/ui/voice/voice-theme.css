@@ -23,7 +23,7 @@
   --lk-danger2: #dc2626;
   --lk-danger3: #b91c1c;
   --lk-danger4: #7f1d1d;
-  --lk-control-bar-height: 72px;
+  --lk-control-bar-height: 60px;
 }
 
 [data-lk-theme="chat-app"] .lk-video-conference,

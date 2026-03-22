@@ -1,15 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import SectionShell from "@/ui/layout/SectionShell";
 import FriendsSidebar from "@/ui/home/FriendsSidebar";
 import { useLayoutContext } from "@/ui/layout/LayoutContext";
 import { FriendsProvider } from "@/lib/context/FriendsContext";
-import { Menu, Users, CircleUser } from "lucide-react";
+import { Menu, Users } from "lucide-react";
 import { useNotifications } from "@/lib/context/NotificationContext";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useServers } from "@/lib/context/ServersContext";
+import { isDemoMode } from "@/lib/auth";
 
 export default function FriendsLayout({
   children,
@@ -27,12 +29,24 @@ export default function FriendsLayout({
 
 function FriendsContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { t } = useTranslation("home");
   const {
     openServerDrawer,
     openSectionSidebar,
-    openProfileDrawer,
   } = useLayoutContext();
+  const { servers } = useServers();
+
+  const handleOpenServers = () => {
+    if (isDemoMode()) {
+      const step = parseInt(localStorage.getItem("demoTourStep") ?? "0", 10);
+      if (step >= 2 && servers[0]) {
+        router.push(`/servers/${servers[0].id}`);
+        return;
+      }
+    }
+    openServerDrawer();
+  };
   const {
     hasNewFriendRequests,
     hasNewServerInvites,
@@ -58,7 +72,7 @@ function FriendsContent({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={openServerDrawer}
+              onClick={handleOpenServers}
               className="rounded-md p-2 text-text-muted transition hover:bg-surface hover:text-text-primary focus:outline-none"
               aria-label={t("friends.openServers")}
             >
@@ -77,14 +91,6 @@ function FriendsContent({ children }: { children: React.ReactNode }) {
               aria-label={t("friends.openFriendsMenu")}
             >
               <Users className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={openProfileDrawer}
-              className="rounded-md p-2 text-text-muted transition hover:bg-surface hover:text-text-primary focus:outline-none"
-              aria-label={t("friends.openProfile")}
-            >
-              <CircleUser className="h-5 w-5" />
             </button>
           </div>
         </div>
@@ -129,7 +135,7 @@ function FriendsContent({ children }: { children: React.ReactNode }) {
           </Link>
         </nav>
 
-        <nav className="flex gap-2 overflow-x-auto px-4 pb-3 text-sm font-medium md:hidden">
+        <nav className="flex gap-2 overflow-x-auto px-4 pb-3 text-sm font-medium md:hidden" data-tour="home-nav-mobile">
           {tabs.map((tab) => {
             const isActive = tab.exact
               ? pathname === tab.href

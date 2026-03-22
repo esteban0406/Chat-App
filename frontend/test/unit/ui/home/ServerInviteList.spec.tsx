@@ -4,7 +4,7 @@ jest.mock('@/lib/backend-client', () => ({
   extractErrorMessage: jest.fn(),
 }));
 
-jest.mock('@/lib/useNotificationSocket', () => ({
+jest.mock('@/lib/hooks/useNotificationSocket', () => ({
   useNotificationSocket: jest.fn(),
 }));
 

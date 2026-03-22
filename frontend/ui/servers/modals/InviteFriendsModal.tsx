@@ -112,7 +112,7 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="text-text-muted hover:text-white"
+            className="rounded-md p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-text-muted hover:text-white hover:bg-surface/50"
           >
             ✕
           </button>
@@ -139,7 +139,7 @@ export default function InviteFriendsModal({ server, onClose }: Props) {
                   type="button"
                   onClick={() => handleInvite(friend.id)}
                   disabled={invitingId === friend.id}
-                  className="rounded bg-gold px-3 py-1 text-deep font-semibold text-white hover:bg-gold/90 disabled:opacity-60"
+                  className="rounded bg-gold px-3 py-2 min-h-[44px] text-deep font-semibold text-white hover:bg-gold/90 disabled:opacity-60"
                 >
                   {invitingId === friend.id ? t('servers:invite.sending') : t('servers:invite.invite')}
                 </button>

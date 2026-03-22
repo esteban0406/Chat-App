@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Check, X } from "lucide-react";
 import { Friendship, User } from "@/lib/definitions";
 import { backendFetch, unwrapList, extractErrorMessage } from "@/lib/backend-client";
-import { useNotificationSocket } from "@/lib/useNotificationSocket";
+import { useNotificationSocket } from "@/lib/hooks/useNotificationSocket";
 
 export default function FriendRequestsList() {
   const { t } = useTranslation("home");
