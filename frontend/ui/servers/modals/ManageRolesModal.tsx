@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { useTranslation } from "react-i18next";
 import { Server, Role } from "@/lib/definitions";
 import { backendFetch, extractErrorMessage } from "@/lib/backend-client";
-import { useServerPermissions } from "@/lib/useServerPermissions";
+import { useServerPermissions } from "@/lib/hooks/useServerPermissions";
 import RoleSidebar from "./roles/RoleSidebar";
 import RoleDetailPanel from "./roles/RoleDetailPanel";
 

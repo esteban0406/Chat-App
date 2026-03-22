@@ -10,7 +10,7 @@ jest.mock('@/lib/context/ServersContext', () => ({
   useServers: jest.fn(),
 }));
 
-jest.mock('@/lib/useServerPermissions', () => ({
+jest.mock('@/lib/hooks/useServerPermissions', () => ({
   useServerPermissions: jest.fn(),
 }));
 
@@ -89,7 +89,7 @@ jest.mock('@/ui/servers/modals/RenameServerModal', () => {
 });
 
 import { useServers } from '@/lib/context/ServersContext';
-import { useServerPermissions } from '@/lib/useServerPermissions';
+import { useServerPermissions } from '@/lib/hooks/useServerPermissions';
 import { useParams } from 'next/navigation';
 
 const mockUseServers = useServers as jest.MockedFunction<typeof useServers>;
@@ -117,12 +117,25 @@ beforeEach(() => {
 });
 
 describe('ChannelSidebar', () => {
-  it('returns fallback message when no serverId in params', () => {
+  it('shows create server message when no serverId in params and no servers exist', () => {
     render(<ChannelSidebar />);
 
     expect(
-      screen.getByText('Selecciona un servidor para ver sus canales.'),
+      screen.getByText('Crea un servidor para empezar a chatear.'),
     ).toBeInTheDocument();
+  });
+
+  it('shows first server channels when no serverId in params but servers exist', () => {
+    mockUseParams.mockReturnValue({});
+    mockUseServers.mockReturnValue({
+      servers: [mockServer],
+      loading: false,
+      refreshServers: jest.fn(),
+    });
+
+    render(<ChannelSidebar />);
+
+    expect(screen.getByText('Test Server')).toBeInTheDocument();
   });
 
   it('renders server name in header', () => {

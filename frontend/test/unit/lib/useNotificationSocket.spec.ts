@@ -8,7 +8,7 @@ jest.mock('@/lib/socket', () => ({
 }));
 
 import { renderHook } from '@testing-library/react';
-import { useNotificationSocket } from '@/lib/useNotificationSocket';
+import { useNotificationSocket } from '@/lib/hooks/useNotificationSocket';
 import { mockFriendship } from '@/test/helpers/fixtures';
 
 beforeEach(() => {

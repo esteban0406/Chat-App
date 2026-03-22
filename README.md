@@ -3,26 +3,51 @@
 
   # Discol
 
-  A Discord-inspired real-time chat application built with NestJS, Next.js, and LiveKit.
+  A Discord-inspired real-time chat app — text channels, voice rooms, friend system, role-based permissions, and a full CI/CD pipeline.
 
   [![CI](https://github.com/esteban0406/Chat-App/actions/workflows/main.yml/badge.svg)](https://github.com/esteban0406/Chat-App/actions/workflows/main.yml)
-  ![Node Backend](https://img.shields.io/badge/node-24-green)
-  ![Node Frontend](https://img.shields.io/badge/node-20-green)
   ![TypeScript](https://img.shields.io/badge/typescript-5-blue)
+  ![Node Backend](https://img.shields.io/badge/node_backend-24-green)
+  ![Node Frontend](https://img.shields.io/badge/node_frontend-20-green)
   ![pnpm](https://img.shields.io/badge/pnpm-10-orange)
 </div>
 
 ---
 
+**[Live Demo](https://esteban-discord-clone.duckdns.org)** — Try Demo mode, no signup needed.
+
+![Discol app screenshot](images/mockup.png)
+
+---
+
 ## Features
 
-- **Text channels** — Organize conversations in server-based text channels with real-time message delivery.
-- **Voice & video rooms** — Join LiveKit-powered voice and video rooms directly inside a server channel.
-- **Friend system** — Send and accept friend requests with instant Socket.io notifications.
-- **Server management** — Create servers, invite members, and configure roles with granular permissions (`CREATE_CHANNEL`, `MANAGE_ROLES`, `INVITE_MEMBER`, and more).
-- **Authentication** — Sign in with email/password or Google OAuth2. JWTs are issued on login and expire after 7 days.
-- **Avatar uploads** — User avatars are stored and served via Cloudinary.
-- **Real-time notifications** — A Socket.io gateway emits targeted events (friend requests, server invites, new messages) to individual users without broadcasting to everyone.
+- **Real-time messaging** — Messages are delivered instantly via Socket.IO to channel members only — no global broadcasts.
+- **Voice & video rooms** — LiveKit-powered audio and video sessions directly inside a channel.
+- **Friend system** — Send and accept friend requests with live socket notifications.
+- **Server management** — Create servers, invite members, and assign roles with granular permissions.
+- **Authentication** — Sign in with email/password or Google OAuth2. JWTs expire after 7 days.
+- **Avatar uploads** — Profile pictures stored and served via Cloudinary.
+- **Guided demo tour** — An interactive onboarding tour walks new users through the interface step by step.
+- **Bilingual UI** — Full English and Spanish localization with automatic browser language detection.
+
+---
+
+## Technical Highlights
+
+**Selective real-time events.** The Socket.IO gateway uses two patterns: channel rooms for message fanout (only users in the active channel receive new messages), and user-specific rooms (`user:<id>`) for private notifications like friend requests and server invites. This avoids the common trap of broadcasting everything to everyone and keeps the real-time layer predictable.
+
+**Role-based access control.** Six permissions — `CREATE_CHANNEL`, `DELETE_CHANNEL`, `INVITE_MEMBER`, `REMOVE_MEMBER`, `MANAGE_ROLES`, and `DELETE_SERVER` — are modeled in the database and enforced through NestJS guards. Server owners bypass checks automatically. This keeps authorization rules visible and in one place rather than scattered across controllers.
+
+**Layered test strategy.** The project has 53 frontend unit tests, 34 backend unit tests, 14 backend integration tests running against a real PostgreSQL instance, and 9 Playwright end-to-end specs covering auth, messaging, friends, servers, roles, and invites. Each layer catches a different class of bug — logic errors, database issues, and broken user flows respectively.
+
+**CI/CD pipeline.** GitHub Actions runs lint, type-check, unit tests, integration tests, and full-stack E2E tests on every pull request. No direct pushes to `main` are allowed — a PR must pass all checks before it can merge. Merging to `main` triggers a production Docker build and VPS deployment over SSH automatically.
+
+---
+
+## Architecture
+
+![Architecture diagram](images/architecturemermaid.png)
 
 ## Tech Stack
 
@@ -30,176 +55,37 @@
 |---|---|
 | Frontend | Next.js 16, React 19, Tailwind CSS v4 |
 | Backend | NestJS 11, Prisma ORM, PostgreSQL |
-| Real-time | Socket.io v4 |
+| Real-time | Socket.IO v4 |
 | Voice / Video | LiveKit Cloud |
-| Authentication | JWT, Google OAuth2, Passport.js |
+| Auth | JWT, Google OAuth2, Passport.js |
 | File storage | Cloudinary |
-| Testing | Jest (unit), Supertest (integration), Playwright (e2e) |
-| Package manager | pnpm 10 |
+| Testing | Jest, Supertest, Playwright |
+| DevOps | Docker, GitHub Actions, GHCR, VPS |
 
-## Architecture
+---
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  Browser (localhost:3000)                               │
-│  Next.js 16 + React 19 + Tailwind v4                   │
-│  HTTP (fetch) ──────────────► /api/*                   │
-│  WebSocket (socket.io) ─────► ws://backend:4000        │
-└───────────────────────┬─────────────────────────────────┘
-                        │
-┌───────────────────────▼─────────────────────────────────┐
-│  NestJS (localhost:4000)                                │
-│  REST API prefix: /api                                  │
-│  Socket.io gateway (same port)                         │
-│  Prisma ORM → PostgreSQL                               │
-│  LiveKit server SDK (voice token minting)              │
-└─────────────────────────────────────────────────────────┘
+## What I Learned
 
-LiveKit Cloud  ←  browser connects directly after receiving token
-```
+- Designing a real-time system that routes events *selectively* — only to the users who need them — rather than defaulting to global broadcasts.
+- How to model role-based access control so that authorization rules stay readable and maintainable as the feature set grows.
+- The value of testing at multiple layers: unit tests catch logic bugs early, integration tests expose database issues that mocks would hide, and E2E tests verify the flows that actually matter to users.
+- How to build a CI/CD pipeline that separates test gating from deployment, so every layer of tests runs exactly once and the deploy only happens after a clean merge.
 
-## Getting Started
+---
 
-### Prerequisites
+## Run Locally
 
-- [Docker](https://docs.docker.com/get-docker/) and Docker Compose
-- [pnpm](https://pnpm.io/installation) 10.x
-- Environment variable files (see [Environment Variables](#environment-variables) below)
-
-### Run with Docker (recommended)
-
-The fastest way to get everything running — backend, frontend, and a LiveKit relay — with hot-reload:
+Requires [Docker](https://docs.docker.com/get-docker/) and pnpm 10.x. Copy the env files described in [`backend/CLAUDE.md`](backend/CLAUDE.md) and [`frontend/CLAUDE.md`](frontend/CLAUDE.md), then:
 
 ```bash
 pnpm docker:up
 ```
 
-| Service | Host port | Notes |
-|---|---|---|
-| frontend | 3000 | Next.js dev server with HMR |
-| backend | 4000 | NestJS watch mode |
-| livekit | 7880–7882 | LiveKit Cloud relay |
+| Service | Port |
+|---|---|
+| Frontend | 3000 |
+| Backend | 4000 |
 
-> [!NOTE]
-> `pnpm docker:up` tears down existing volumes before starting, giving you a clean state every time.
+---
 
-### Run locally (without Docker)
-
-Each sub-project manages its own dependencies and scripts. See the sub-project documentation for details:
-
-- **Backend** — `backend/CLAUDE.md` (`pnpm start:dev`, port 4000)
-- **Frontend** — `frontend/CLAUDE.md` (`pnpm dev`, port 3000)
-
-## Environment Variables
-
-Three separate env files are required. Copy and fill in your own values.
-
-<details>
-<summary><strong>Root <code>.env</code></strong> — LiveKit credentials (shared by docker-compose)</summary>
-
-```env
-LIVEKIT_URL=wss://your-livekit-app.livekit.cloud
-LIVEKIT_API_KEY=...
-LIVEKIT_API_SECRET=...
-```
-
-</details>
-
-<details>
-<summary><strong><code>backend/.env</code></strong> — Database, auth, and third-party services</summary>
-
-```env
-DATABASE_URL=postgresql://user:pass@localhost:5432/discol
-
-JWT_SECRET=change-me-in-production
-
-FRONTEND_URL=http://localhost:3000
-PORT=4000
-
-# Google OAuth2
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-GOOGLE_CALLBACK_URL=http://localhost:4000/api/auth/google/callback
-
-# Cloudinary (avatar uploads)
-CLOUDINARY_CLOUD_NAME=...
-CLOUDINARY_API_KEY=...
-CLOUDINARY_API_SECRET=...
-
-# LiveKit (voice token minting)
-LIVEKIT_URL=wss://your-livekit-app.livekit.cloud
-LIVEKIT_API_KEY=...
-LIVEKIT_API_SECRET=...
-```
-
-</details>
-
-<details>
-<summary><strong><code>frontend/.env.local</code></strong> — Backend URL for API and WebSocket</summary>
-
-```env
-NEXT_PUBLIC_BACKEND_URL=http://localhost:4000
-```
-
-</details>
-
-## Running Tests
-
-```bash
-# Full E2E suite (Playwright) — spins up the entire stack in Docker
-pnpm docker:test
-
-# Backend unit tests
-cd backend && pnpm test
-
-# Backend integration tests (NestJS + real Postgres)
-cd backend && pnpm test:e2e
-
-# Frontend unit tests
-cd frontend && pnpm test
-
-# Playwright in interactive UI mode (local)
-cd e2e && pnpm test:ui
-```
-
-> [!TIP]
-> E2E tests reset the database before each spec file via `POST /api/test/reset`, which is only registered when `NODE_ENV=test`.
-
-## CI/CD
-
-The pipeline uses a gated model — no direct pushes to `main`. All changes go through a pull request.
-
-| Workflow | Trigger | Jobs |
-|---|---|---|
-| `main.yml` | Pull request → `main` | Quality (lint + type-check) → Unit tests → Integration tests → E2E tests |
-| `deploy.yml` | Push to `main` (after PR merge) | Build Docker images → Deploy to VPS via SSH |
-
-```
-[quality-backend]──┐
-                   ├──[unit-backend]──[integration-backend]
-[quality-frontend]─┘
-                   └──[unit-frontend]──[e2e]
-```
-
-> [!NOTE]
-> All status checks must pass before a PR can merge. Auto-merge is enabled — once all checks go green the PR merges automatically.
-
-## Project Structure
-
-```
-Chat-App/
-├── backend/          # NestJS API + Socket.io gateway
-│   ├── src/
-│   │   └── modules/  # auth, users, servers, channels, messages, livekit, gateway
-│   └── prisma/       # schema.prisma + migrations
-├── frontend/         # Next.js client
-│   ├── app/          # App Router: (auth) and (main) route groups
-│   ├── ui/           # React components organised by feature
-│   └── lib/          # Utilities, contexts, socket singleton
-├── e2e/              # Playwright test suite
-│   └── tests/        # auth, messaging, channels, friends, servers, roles…
-├── .github/
-│   └── workflows/    # main.yml (CI), deploy.yml (CD)
-├── docker-compose.yml
-└── docker-compose.test.yml
-```
+> Read the [full case study →](CASE_STUDY.md)

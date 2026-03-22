@@ -9,7 +9,7 @@ type SocketCallbacks = {
 
 let capturedCallbacks: SocketCallbacks = {};
 
-jest.mock("@/lib/useNotificationSocket", () => ({
+jest.mock("@/lib//hooks/useNotificationSocket", () => ({
   useNotificationSocket: (cbs: SocketCallbacks) => {
     capturedCallbacks = cbs;
   },

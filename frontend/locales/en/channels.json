@@ -4,6 +4,7 @@
     "voiceChannels": "Voice Channels",
     "noChannels": "No channels yet.",
     "selectServer": "Select a server to see its channels.",
+    "createServer": "Create a server to start chatting.",
     "selectChannel": "Select a channel to start chatting.",
     "menu": {
       "inviteFriends": "Invite Friends",

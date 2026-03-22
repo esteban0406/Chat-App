@@ -27,7 +27,7 @@ export default function SectionShell({
   sidebar,
   children,
 }: SectionShellProps) {
-  const { closeSectionSidebar } = useLayoutContext();
+  const { isSectionSidebarOpen, closeSectionSidebar } = useLayoutContext();
 
   const sidebarControls: SidebarControls = {
     closeSidebar: closeSectionSidebar,
@@ -49,6 +49,23 @@ export default function SectionShell({
       >
         {sidebarContent}
       </aside>
+
+      {isSectionSidebarOpen && sidebarContent && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={closeSectionSidebar}
+          />
+          <div className="relative h-full w-72 overflow-y-auto bg-sidebar">
+            <button
+              aria-label="Cerrar panel"
+              onClick={closeSectionSidebar}
+              className="absolute right-2 top-2"
+            />
+            {sidebarContent}
+          </div>
+        </div>
+      )}
 
       <div
         className="flex h-full min-h-0 flex-col overflow-hidden bg-main"

@@ -14,7 +14,7 @@ import {
   Plus,
 } from "lucide-react";
 import { Channel, Server } from "@/lib/definitions";
-import { useServerPermissions } from "@/lib/useServerPermissions";
+import { useServerPermissions } from "@/lib/hooks/useServerPermissions";
 import { useServers } from "@/lib/context/ServersContext";
 import CreateChannelModal from "./modals/CreateChannelModal";
 import EditChannelModal from "./modals/EditChannelModal";
@@ -32,10 +32,11 @@ export default function ChannelSidebar({
 }) {
   const { t } = useTranslation("channels");
   const params = useParams();
-  const effectiveServerId = params.serverId;
   const activeChannelId = params.channelId;
 
-  const { servers, refreshServers } = useServers();
+  const { servers, loading, refreshServers } = useServers();
+
+  const effectiveServerId = (params.serverId ?? servers[0]?.id) as string | undefined;
 
   const server = servers.find((s) => s.id === effectiveServerId);
   const channels = server?.channels ?? [];
@@ -66,7 +67,7 @@ export default function ChannelSidebar({
   if (!effectiveServerId) {
     return (
       <aside className="flex h-full flex-col bg-sidebar p-4 text-sm text-text-secondary">
-        <p>{t('sidebar.selectServer')}</p>
+        {!loading && <p>{t('sidebar.createServer')}</p>}
       </aside>
     );
   }

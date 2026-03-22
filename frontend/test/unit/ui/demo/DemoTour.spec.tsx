@@ -57,7 +57,13 @@ describe("DemoTour", () => {
       closeServerDrawer: mockCloseServerDrawer,
       closeSectionSidebar: mockCloseSectionSidebar,
       closeProfileDrawer: mockCloseProfileDrawer,
-    } as ReturnType<typeof useLayoutContext>);
+      openServerDrawer: jest.fn(),
+      openSectionSidebar: jest.fn(),
+      openProfileDrawer: jest.fn(),
+      isSectionSidebarOpen: false,
+      isServerDrawerOpen: false,
+      isProfileDrawerOpen: false,
+    });
 
     mockCloseServerDrawer.mockClear();
     mockCloseSectionSidebar.mockClear();
