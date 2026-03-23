@@ -34,7 +34,7 @@ jest.mock("@/lib/context/CurrentUserContext", () => ({
   useCurrentUser: () => mockUseCurrentUser(),
 }));
 
-jest.mock("@/ui/messages/useMessages", () => ({
+jest.mock("@/lib/hooks/useMessages", () => ({
   useMessages: (...args: unknown[]) => mockUseMessages(...args),
 }));
 

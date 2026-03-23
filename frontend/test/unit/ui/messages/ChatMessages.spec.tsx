@@ -4,6 +4,10 @@ import ChatMessages from '@/ui/messages/ChatMessages';
 import { mockMessage, mockUser2 } from '../../../helpers/fixtures';
 import type { Message } from '@/lib/definitions';
 
+beforeEach(() => {
+  window.HTMLElement.prototype.scrollIntoView = jest.fn();
+});
+
 describe('ChatMessages', () => {
   it('shows loading text when loading is true', () => {
     render(<ChatMessages messages={[]} loading={true} error={null} />);

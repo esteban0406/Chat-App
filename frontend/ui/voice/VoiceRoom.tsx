@@ -17,9 +17,6 @@ type VoiceRoomProps = {
   channelId: string;
   userId?: string;
   displayName?: string;
-  /**
-   * Allow opting into video in the future without touching the component again.
-   */
   enableVideo?: boolean;
 };
 

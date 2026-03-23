@@ -9,8 +9,8 @@ import {
 } from "lucide-react";
 import ChatMessages from "@/ui/messages/ChatMessages";
 import ChatInput from "@/ui/messages/ChatInput";
-import { useMessages } from "@/ui/messages/useMessages";
-import { useAiBot } from "@/ui/messages/useAiBot";
+import { useMessages } from "@/lib/hooks/useMessages";
+import { useAiBot } from "@/lib/hooks/useAiBot";
 import { useLayoutContext } from "@/ui/layout/LayoutContext";
 import { useServers } from "@/lib/context/ServersContext";
 import { useCurrentUser } from "@/lib/context/CurrentUserContext";
