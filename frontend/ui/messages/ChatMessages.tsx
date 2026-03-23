@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Message } from "@/lib/definitions";
 import { toBackendURL } from "@/lib/backend-client";
@@ -20,6 +21,12 @@ export default function ChatMessages({
   currentUserId,
 }: Props) {
   const { t, i18n } = useTranslation("messages");
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   if (loading) {
     return <p className="p-4 text-sm text-text-muted">{t('loading')}</p>;
   }
@@ -75,6 +82,7 @@ export default function ChatMessages({
           </div>
         );
       })}
+      <div ref={bottomRef} />
     </div>
   );
 }

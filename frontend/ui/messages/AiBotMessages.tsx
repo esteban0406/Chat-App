@@ -4,7 +4,7 @@ import { Bot } from "lucide-react";
 import { useCurrentUser } from "@/lib/context/CurrentUserContext";
 import { toBackendURL } from "@/lib/backend-client";
 import UserAvatar from "@/ui/user/UserAvatar";
-import type { BotMessage } from "./useAiBot";
+import type { BotMessage } from "../../lib/hooks/useAiBot";
 import { useTranslation } from "react-i18next";
 
 

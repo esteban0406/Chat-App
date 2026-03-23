@@ -15,7 +15,7 @@ jest.mock('@/lib/backend-client', () => ({
 }));
 
 import { renderHook, waitFor, act } from '@testing-library/react';
-import { useMessages } from '@/ui/messages/useMessages';
+import { useMessages } from '@/lib/hooks/useMessages';
 import { backendFetch, unwrapList, extractErrorMessage } from '@/lib/backend-client';
 import { mockMessage } from '@/test/helpers/fixtures';
 import type { Message } from '@/lib/definitions';
