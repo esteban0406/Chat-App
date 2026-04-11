@@ -2,7 +2,7 @@ fastapi[standard]
 sqlalchemy[asyncio]
 asyncpg
 python-jose[cryptography]
-passlib[bcrypt]
+bcrypt
 pydantic[email]
 pydantic-settings
 alembic
