@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.dependencies import check_server_permission
 from models.server_invite import ServerInvite
+from modules.gateway.socket import emit_to_user
 from modules.server_invites import repository
 from modules.server_invites.schemas import SendServerInviteDTO
 from shared import exceptions
@@ -36,7 +37,15 @@ async def send_invite(
     if existing:
         raise exceptions.conflict("Ya existe una invitación pendiente para este usuario")
 
-    return await repository.create(db, sender_id, dto.receiver_id, server_id)
+    invite = await repository.create(db, sender_id, dto.receiver_id, server_id)
+    await emit_to_user(invite.receiver_id, "serverInvite:received", {
+        "id": invite.id,
+        "senderId": invite.sender_id,
+        "receiverId": invite.receiver_id,
+        "serverId": invite.server_id,
+        "status": invite.status.value,
+    })
+    return invite
 
 
 async def accept_invite(db: AsyncSession, invite_id: str, user_id: str) -> ServerInvite:
@@ -52,7 +61,14 @@ async def accept_invite(db: AsyncSession, invite_id: str, user_id: str) -> Serve
     await repository.update_status(db, invite, RequestStatus.ACCEPTED)
     await db.commit()
 
-    return await repository.find_by_id(db, invite_id)
+    accepted = await repository.find_by_id(db, invite_id)
+    await emit_to_user(accepted.sender_id, "serverInvite:accepted", {
+        "inviteId": invite_id,
+        "receiverId": user_id,
+        "serverId": accepted.server_id,
+        "serverName": accepted.server.name,
+    })
+    return accepted
 
 
 async def reject_invite(db: AsyncSession, invite_id: str, user_id: str) -> ServerInvite:
@@ -64,7 +80,13 @@ async def reject_invite(db: AsyncSession, invite_id: str, user_id: str) -> Serve
     if invite.status != RequestStatus.PENDING:
         raise exceptions.bad_request("La invitación ya fue respondida")
 
-    return await repository.update_status(db, invite, RequestStatus.REJECTED)
+    rejected = await repository.update_status(db, invite, RequestStatus.REJECTED)
+    await emit_to_user(rejected.sender_id, "serverInvite:rejected", {
+        "inviteId": invite_id,
+        "receiverId": user_id,
+        "serverId": rejected.server_id,
+    })
+    return rejected
 
 
 async def cancel_invite(db: AsyncSession, invite_id: str, user_id: str) -> None:
@@ -76,4 +98,9 @@ async def cancel_invite(db: AsyncSession, invite_id: str, user_id: str) -> None:
     if invite.status != RequestStatus.PENDING:
         raise exceptions.bad_request("La invitación ya fue respondida")
 
+    await emit_to_user(invite.receiver_id, "serverInvite:cancelled", {
+        "inviteId": invite_id,
+        "cancelledBy": user_id,
+        "serverId": invite.server_id,
+    })
     await repository.delete(db, invite)

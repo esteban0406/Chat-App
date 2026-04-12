@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.friendship import Friendship
 from models.user import User
+from modules.gateway.socket import emit_to_user
 from modules.users.friendships import repository
 from modules.users.friendships.schemas import RespondRequestDTO, SendRequestDTO
 from shared import exceptions
@@ -18,7 +19,14 @@ async def send_request(db: AsyncSession, sender: User, dto: SendRequestDTO) -> F
             "Ya existe una solicitud de amistad o amistad con este usuario"
         )
 
-    return await repository.create(db, sender.id, dto.receiver_id)
+    friendship = await repository.create(db, sender.id, dto.receiver_id)
+    await emit_to_user(friendship.receiver_id, "friendRequest:received", {
+        "id": friendship.id,
+        "senderId": friendship.sender_id,
+        "receiverId": friendship.receiver_id,
+        "status": friendship.status.value,
+    })
+    return friendship
 
 
 async def respond_to_request(
@@ -37,7 +45,14 @@ async def respond_to_request(
     if dto.status not in (RequestStatus.ACCEPTED, RequestStatus.REJECTED):
         raise exceptions.bad_request("Estado inválido")
 
-    return await repository.update_status(db, friendship, dto.status)
+    friendship = await repository.update_status(db, friendship, dto.status)
+    await emit_to_user(friendship.sender_id, "friendRequest:responded", {
+        "id": friendship.id,
+        "senderId": friendship.sender_id,
+        "receiverId": friendship.receiver_id,
+        "status": friendship.status.value,
+    })
+    return friendship
 
 
 async def get_friends(db: AsyncSession, user: User) -> list[Friendship]:
@@ -61,7 +76,12 @@ async def remove_friend(db: AsyncSession, current_user: User, friendship_id: str
     if friendship.status != RequestStatus.ACCEPTED:
         raise exceptions.bad_request("Esta solicitud no es una amistad activa")
 
+    other_id = friendship.receiver_id if friendship.sender_id == current_user.id else friendship.sender_id
     await repository.delete(db, friendship)
+    await emit_to_user(other_id, "friendship:removed", {
+        "friendshipId": friendship_id,
+        "removedBy": current_user.id,
+    })
     return {"message": "Amistad eliminada exitosamente"}
 
 
@@ -74,5 +94,9 @@ async def cancel_request(db: AsyncSession, current_user: User, friendship_id: st
     if friendship.status != RequestStatus.PENDING:
         raise exceptions.bad_request("La solicitud ya fue respondida")
 
+    await emit_to_user(friendship.receiver_id, "friendRequest:cancelled", {
+        "friendshipId": friendship_id,
+        "cancelledBy": current_user.id,
+    })
     await repository.delete(db, friendship)
     return {"message": "Solicitud cancelada exitosamente"}

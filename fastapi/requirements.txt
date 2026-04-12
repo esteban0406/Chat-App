@@ -8,6 +8,7 @@ pydantic-settings
 alembic
 python-multipart
 python-socketio
+livekit-api
 pytest
 httpx
 pytest-asyncio

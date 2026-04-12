@@ -1,17 +1,21 @@
 from contextlib import asynccontextmanager
 
+import socketio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from core.config import settings
 from modules.auth.router import router as auth_router
 from modules.channels.router import router as channels_router
+import modules.gateway.handlers  # noqa: F401 — registers @sio.on handlers
+from modules.gateway.socket import sio
 from modules.messages.router import router as messages_router
 from modules.server_invites.router import router as server_invites_router
 from modules.servers.roles.router import router as roles_router
 from modules.servers.router import router as servers_router
 from modules.users.friendships.router import router as friendships_router
 from modules.users.router import router as users_router
+from modules.voice.router import router as voice_router
 
 
 @asynccontextmanager
@@ -37,8 +41,15 @@ app.include_router(roles_router, prefix="/api")
 app.include_router(server_invites_router, prefix="/api")
 app.include_router(channels_router, prefix="/api")
 app.include_router(messages_router, prefix="/api")
+app.include_router(voice_router, prefix="/api")
 
 
 @app.get("/")
 async def health_check():
     return {"status": "ok"}
+
+
+# Wrap the FastAPI app with python-socketio as ASGI middleware.
+# Run with: uvicorn main:socket_app --reload
+# HTTP tests continue to use `app` directly (ASGITransport(app=app)).
+socket_app = socketio.ASGIApp(socketio_server=sio, other_asgi_app=app)

@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.message import Message
+from modules.gateway.socket import emit_to_channel
 from modules.messages import repository
 from modules.messages.schemas import CreateMessageDTO, PaginatedMessagesResponse, UpdateMessageDTO
 from shared import exceptions
@@ -36,7 +37,16 @@ async def create_message(
     if not await _is_member(db, server_id, user_id):
         raise exceptions.forbidden("No eres miembro de este servidor")
 
-    return await repository.create(db, user_id, dto.channel_id, dto.content)
+    message = await repository.create(db, user_id, dto.channel_id, dto.content)
+    await emit_to_channel(message.channel_id, "message", {
+        "id": message.id,
+        "content": message.content,
+        "channelId": message.channel_id,
+        "authorId": message.author_id,
+        "createdAt": message.created_at.isoformat(),
+        "updatedAt": message.updated_at.isoformat(),
+    })
+    return message
 
 
 async def list_messages(
