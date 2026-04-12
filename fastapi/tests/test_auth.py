@@ -1,7 +1,4 @@
-import pytest
 from httpx import AsyncClient
-
-pytestmark = pytest.mark.anyio
 
 
 async def test_register(client: AsyncClient):

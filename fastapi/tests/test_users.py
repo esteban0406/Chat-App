@@ -1,7 +1,4 @@
-import pytest
 from httpx import AsyncClient
-
-pytestmark = pytest.mark.anyio
 
 
 async def _register(client: AsyncClient, email: str, username: str) -> str:
@@ -20,7 +17,7 @@ async def test_get_users(client: AsyncClient):
 
 
 async def test_search_users(client: AsyncClient):
-    token = await _register(client, "search@example.com", "searchme")
+    await _register(client, "search@example.com", "searchme")
     response = await client.get("/api/users/search?username=search")
     assert response.status_code == 200
     usernames = [u["username"] for u in response.json()]

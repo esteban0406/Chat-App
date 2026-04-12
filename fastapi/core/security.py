@@ -1,21 +1,23 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-import bcrypt
-from jose import jwt
+import jwt
+from pwdlib import PasswordHash
 
 from core.config import settings
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_DAYS = 7
 
+password_hash = PasswordHash.recommended()
+
 
 def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    return password_hash.hash(password)
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return bcrypt.checkpw(plain.encode(), hashed.encode())
+    return password_hash.verify(plain, hashed)
 
 
 def create_access_token(payload: dict[str, Any]) -> str:

@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Enum as SAEnum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -7,6 +10,9 @@ from sqlalchemy.sql import func
 
 from models.base import Base
 from shared.enums import RequestStatus
+
+if TYPE_CHECKING:
+    from models.user import User
 
 
 class Friendship(Base):
@@ -27,5 +33,5 @@ class Friendship(Base):
     )
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.now())
 
-    sender: Mapped["User"] = relationship("User", foreign_keys="[Friendship.sender_id]")
-    receiver: Mapped["User"] = relationship("User", foreign_keys="[Friendship.receiver_id]")
+    sender: Mapped[User] = relationship("User", foreign_keys="[Friendship.sender_id]")
+    receiver: Mapped[User] = relationship("User", foreign_keys="[Friendship.receiver_id]")

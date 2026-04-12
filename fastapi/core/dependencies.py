@@ -1,6 +1,8 @@
+from typing import Annotated
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError
+from jwt.exceptions import InvalidTokenError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,8 +13,8 @@ bearer_scheme = HTTPBearer()
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-    db: AsyncSession = Depends(get_db),
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(bearer_scheme)],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
     token = credentials.credentials
     try:
@@ -20,7 +22,7 @@ async def get_current_user(
         user_id: str | None = payload.get("sub")
         if not user_id:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
-    except JWTError:
+    except InvalidTokenError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
 
     # Import here to avoid circular import at module load time

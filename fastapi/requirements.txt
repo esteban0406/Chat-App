@@ -1,8 +1,8 @@
 fastapi[standard]
 sqlalchemy[asyncio]
 asyncpg
-python-jose[cryptography]
-bcrypt
+PyJWT
+pwdlib[argon2]
 pydantic[email]
 pydantic-settings
 alembic
@@ -11,3 +11,4 @@ python-socketio
 pytest
 httpx
 pytest-asyncio
+ruff
