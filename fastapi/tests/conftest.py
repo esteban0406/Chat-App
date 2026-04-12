@@ -21,7 +21,10 @@ from main import app  # noqa: E402
 async def clean_db():
     async with AsyncSessionLocal() as session:
         await session.execute(
-            text("TRUNCATE TABLE friendships, accounts, users RESTART IDENTITY CASCADE")
+            text(
+                "TRUNCATE TABLE messages, server_invites, members, channels, roles, servers, "
+                "friendships, accounts, users RESTART IDENTITY CASCADE"
+            )
         )
         await session.commit()
 
