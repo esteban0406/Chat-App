@@ -5,7 +5,9 @@ const DEMO_MODE_KEY = "isDemoMode";
 const DEMO_TOUR_STEP_KEY = "demoTourStep";
 const DEMO_TOUR_DONE_KEY = "demoTourCompleted";
 
-function parseErrorMessage(body: { message?: string | string[] }, fallback: string): string {
+function parseErrorMessage(body: { message?: string | string[]; detail?: string }, fallback: string): string {
+  // FastAPI uses `detail`, NestJS used `message`
+  if (body.detail) return body.detail;
   if (!body.message) return fallback;
   return Array.isArray(body.message) ? body.message.join(", ") : body.message;
 }

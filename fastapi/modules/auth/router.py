@@ -15,12 +15,12 @@ DbDep = Annotated[AsyncSession, Depends(get_db)]
 CurrentUserDep = Annotated[User, Depends(get_current_user)]
 
 
-@router.post("/register", response_model=TokenResponse, status_code=201)
+@router.post("/register", response_model=TokenResponse, response_model_by_alias=True, status_code=201)
 async def register(dto: RegisterDTO, db: DbDep):
     return await service.register(db, dto)
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login", response_model=TokenResponse, response_model_by_alias=True)
 async def login(dto: LoginDTO, db: DbDep):
     return await service.login(db, dto)
 

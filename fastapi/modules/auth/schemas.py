@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from shared.enums import UserStatus
 
@@ -29,7 +29,9 @@ class LoginDTO(BaseModel):
 
 
 class TokenResponse(BaseModel):
-    access_token: str
+    model_config = {"populate_by_name": True}
+
+    access_token: str = Field(serialization_alias="accessToken")
     token_type: str = "bearer"
 
 
