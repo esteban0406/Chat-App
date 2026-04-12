@@ -7,7 +7,7 @@ async def _register(client: AsyncClient, email: str, username: str) -> str:
         "/api/auth/register",
         json={"email": email, "username": username, "password": "password123"},
     )
-    return res.json()["access_token"]
+    return res.json()["accessToken"]
 
 
 async def test_get_users(client: AsyncClient):

@@ -1,9 +1,10 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import EmailStr, field_validator
 
 from shared.enums import UserStatus
+from shared.schemas import CamelCaseModel
 
 
-class RegisterDTO(BaseModel):
+class RegisterDTO(CamelCaseModel):
     email: EmailStr
     username: str
     password: str
@@ -23,23 +24,19 @@ class RegisterDTO(BaseModel):
         return v
 
 
-class LoginDTO(BaseModel):
+class LoginDTO(CamelCaseModel):
     email: EmailStr
     password: str
 
 
-class TokenResponse(BaseModel):
-    model_config = {"populate_by_name": True}
-
-    access_token: str = Field(serialization_alias="accessToken")
+class TokenResponse(CamelCaseModel):
+    access_token: str
     token_type: str = "bearer"
 
 
-class UserResponse(BaseModel):
+class UserResponse(CamelCaseModel):
     id: str
     email: str
     username: str
     avatar_url: str | None = None
     status: UserStatus
-
-    model_config = {"from_attributes": True}

@@ -1,11 +1,11 @@
-from pydantic import BaseModel
+from shared.schemas import CamelCaseModel
 
 
-class JoinRoomDTO(BaseModel):
+class JoinRoomDTO(CamelCaseModel):
     identity: str
     room: str
 
 
-class JoinRoomResponse(BaseModel):
+class JoinRoomResponse(CamelCaseModel):
     token: str
     url: str

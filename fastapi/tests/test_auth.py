@@ -8,8 +8,8 @@ async def test_register(client: AsyncClient):
     )
     assert response.status_code == 201
     data = response.json()
-    assert "access_token" in data
-    assert data["token_type"] == "bearer"
+    assert "accessToken" in data
+    assert data["tokenType"] == "bearer"
 
 
 async def test_register_duplicate_email(client: AsyncClient):
@@ -30,7 +30,7 @@ async def test_login(client: AsyncClient):
         json={"email": "login@example.com", "password": "password123"},
     )
     assert response.status_code == 200
-    assert "access_token" in response.json()
+    assert "accessToken" in response.json()
 
 
 async def test_login_wrong_password(client: AsyncClient):
@@ -50,7 +50,7 @@ async def test_get_me(client: AsyncClient):
         "/api/auth/register",
         json={"email": "me@example.com", "username": "meuser", "password": "password123"},
     )
-    token = reg.json()["access_token"]
+    token = reg.json()["accessToken"]
     response = await client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
     assert response.json()["email"] == "me@example.com"

@@ -6,7 +6,7 @@ async def _register(client: AsyncClient, email: str, username: str) -> str:
         "/api/auth/register",
         json={"email": email, "username": username, "password": "password123"},
     )
-    return res.json()["access_token"]
+    return res.json()["accessToken"]
 
 
 async def _create_server(client: AsyncClient, token: str, name: str = "Test Server") -> dict:
@@ -103,7 +103,7 @@ async def test_join_and_leave_server(client: AsyncClient):
         headers={"Authorization": f"Bearer {token_user}"},
     )
     assert res.status_code == 200
-    member_ids = [m["user_id"] for m in res.json()["members"]]
+    member_ids = [m["userId"] for m in res.json()["members"]]
     assert any(m for m in member_ids)
 
     # Joining twice returns 400

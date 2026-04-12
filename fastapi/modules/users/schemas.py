@@ -1,11 +1,12 @@
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr
+from pydantic import EmailStr
 
 from shared.enums import UserStatus
+from shared.schemas import CamelCaseModel
 
 
-class UserResponse(BaseModel):
+class UserResponse(CamelCaseModel):
     id: str
     email: str
     username: str
@@ -13,13 +14,11 @@ class UserResponse(BaseModel):
     status: UserStatus
     created_at: datetime
 
-    model_config = {"from_attributes": True}
 
-
-class UpdateUserDTO(BaseModel):
+class UpdateUserDTO(CamelCaseModel):
     username: str | None = None
     email: EmailStr | None = None
 
 
-class UpdateStatusDTO(BaseModel):
+class UpdateStatusDTO(CamelCaseModel):
     status: UserStatus

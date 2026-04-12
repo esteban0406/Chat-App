@@ -1,31 +1,31 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from modules.users.schemas import UserResponse
 from shared.enums import ChannelType, ServerPermission
+from shared.schemas import CamelCaseModel
 
 
-class CreateServerDTO(BaseModel):
+class CreateServerDTO(CamelCaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     icon_url: str | None = None
 
 
-class UpdateServerDTO(BaseModel):
+class UpdateServerDTO(CamelCaseModel):
     name: str | None = Field(None, min_length=1, max_length=100)
     icon_url: str | None = None
 
 
-class RoleResponse(BaseModel):
+class RoleResponse(CamelCaseModel):
     id: str
     name: str
     color: str | None = None
     permissions: list[ServerPermission]
     created_at: datetime
-    model_config = {"from_attributes": True}
 
 
-class MemberResponse(BaseModel):
+class MemberResponse(CamelCaseModel):
     id: str
     user_id: str
     server_id: str
@@ -33,19 +33,17 @@ class MemberResponse(BaseModel):
     joined_at: datetime
     user: UserResponse | None = None
     role: RoleResponse | None = None
-    model_config = {"from_attributes": True}
 
 
-class ChannelResponse(BaseModel):
+class ChannelResponse(CamelCaseModel):
     id: str
     name: str
     type: ChannelType
     server_id: str
     created_at: datetime
-    model_config = {"from_attributes": True}
 
 
-class ServerResponse(BaseModel):
+class ServerResponse(CamelCaseModel):
     id: str
     name: str
     icon_url: str | None = None
@@ -56,4 +54,3 @@ class ServerResponse(BaseModel):
     members: list[MemberResponse] = []
     channels: list[ChannelResponse] = []
     roles: list[RoleResponse] = []
-    model_config = {"from_attributes": True}

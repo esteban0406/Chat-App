@@ -1,20 +1,21 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from modules.users.schemas import UserResponse
+from shared.schemas import CamelCaseModel
 
 
-class CreateMessageDTO(BaseModel):
+class CreateMessageDTO(CamelCaseModel):
     content: str = Field(..., min_length=1, max_length=2000)
     channel_id: str
 
 
-class UpdateMessageDTO(BaseModel):
+class UpdateMessageDTO(CamelCaseModel):
     content: str = Field(..., min_length=1, max_length=2000)
 
 
-class MessageResponse(BaseModel):
+class MessageResponse(CamelCaseModel):
     id: str
     content: str
     author_id: str
@@ -22,10 +23,9 @@ class MessageResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     author: UserResponse | None = None
-    model_config = {"from_attributes": True}
 
 
-class PaginatedMessagesResponse(BaseModel):
+class PaginatedMessagesResponse(CamelCaseModel):
     messages: list[MessageResponse]
     next_cursor: str | None
     has_more: bool

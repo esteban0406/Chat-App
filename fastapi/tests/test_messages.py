@@ -6,7 +6,7 @@ async def _register(client: AsyncClient, email: str, username: str) -> str:
         "/api/auth/register",
         json={"email": email, "username": username, "password": "password123"},
     )
-    return res.json()["access_token"]
+    return res.json()["accessToken"]
 
 
 async def _create_server(client: AsyncClient, token: str, name: str = "Test Server") -> dict:
@@ -76,11 +76,11 @@ async def test_paginated_messages(client: AsyncClient):
     assert res.status_code == 200
     data = res.json()
     assert len(data["messages"]) == 50
-    assert data["has_more"] is True
-    assert data["next_cursor"] is not None
+    assert data["hasMore"] is True
+    assert data["nextCursor"] is not None
 
     # Second page using cursor
-    cursor = data["next_cursor"]
+    cursor = data["nextCursor"]
     res2 = await client.get(
         f"/api/messages/channel/{channel_id}?limit=50&cursor={cursor}",
         headers={"Authorization": f"Bearer {token}"},
@@ -88,7 +88,7 @@ async def test_paginated_messages(client: AsyncClient):
     assert res2.status_code == 200
     data2 = res2.json()
     assert len(data2["messages"]) == 2
-    assert data2["has_more"] is False
+    assert data2["hasMore"] is False
 
 
 async def test_update_message(client: AsyncClient):
