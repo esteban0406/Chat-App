@@ -64,10 +64,10 @@ public class AuthService {
     @Transactional
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
-            .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
+            .orElseThrow(() -> new UnauthorizedException("Invalid email"));
 
         if (user.getPasswordHash() == null || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw new UnauthorizedException("Invalid credentials");
+            throw new UnauthorizedException("Invalid password");
         }
 
         user.setStatus(UserStatus.ONLINE);

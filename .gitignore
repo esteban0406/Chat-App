@@ -14,6 +14,9 @@ data/
 #vscode
 .vscode/
 
+#jetbrains
+.idea/
+
 .claude/
 
 #skills
