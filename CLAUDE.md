@@ -45,7 +45,8 @@ docker compose down
 Services:
 | Service   | Host port | Notes                          |
 |-----------|-----------|--------------------------------|
-| backend   | 4000      | Node 24, pnpm start:dev        |
+| postgres  | 5433      | Postgres 16, `chatapp`/`chatapp_dev_pass`, db `chatapp_dev`, data in `postgres_data` volume |
+| backend   | 4000      | Node 24, applies migrations then pnpm start:dev |
 | frontend  | 3000      | Node 20, pnpm dev              |
 | livekit   | 7880-7882 | LiveKit Cloud relay            |
 
@@ -55,7 +56,7 @@ Services:
 pnpm docker:test        # runs: docker compose -f docker-compose.yml -f docker-compose.test.yml up --build --exit-code-from e2e
 ```
 
-This adds `postgres` + `e2e` (Playwright) services on top of the dev stack and waits for the e2e container to exit.
+This adds the `e2e` (Playwright) service on top of the dev stack, switches `postgres` to an ephemeral, unpublished test database, and waits for the e2e container to exit.
 
 ### Running Services Individually (no Docker)
 

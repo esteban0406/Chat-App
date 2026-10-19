@@ -1,4 +1,22 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: chatapp
+      POSTGRES_PASSWORD: chatapp_dev_pass
+      POSTGRES_DB: chatapp_dev
+    ports:
+      # Host 5432 is often taken by another Postgres; 5433 avoids the clash.
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chatapp -d chatapp_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
   backend:
     build:
       context: ./backend
@@ -8,13 +26,23 @@ services:
       - "4000:4000"
     env_file:
       - ./backend/.env
+    environment:
+      # Takes precedence over backend/.env so the container always reaches
+      # the compose-managed postgres service.
+      DATABASE_URL: postgresql://chatapp:chatapp_dev_pass@postgres:5432/chatapp_dev
+    depends_on:
+      postgres:
+        condition: service_healthy
     volumes:
       # Bind-mount only the source tree — the container's node_modules
       # (built for Linux inside the image) are never overwritten by the host.
       - ./backend/src:/app/src
       - ./backend/prisma:/app/prisma
       - ./README.md:/app/README.md:ro
-    command: sh -c "pnpm prisma generate && pnpm run start:dev"
+    command: >
+      sh -c "pnpm prisma generate &&
+             pnpm prisma migrate deploy &&
+             pnpm run start:dev"
 
   frontend:
     build:
@@ -50,3 +78,6 @@ services:
       - .env
     environment:
       LIVEKIT_LOG_LEVEL: debug
+
+volumes:
+  postgres_data:

@@ -9,6 +9,10 @@ services:
       POSTGRES_USER: chatapp_test
       POSTGRES_PASSWORD: chatapp_test_pass
       POSTGRES_DB: chatapp_test
+    # Drop the dev volume and host port inherited from docker-compose.yml so
+    # every test run gets a fresh, unpublished database.
+    volumes: !reset []
+    ports: !reset []
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U chatapp_test"]
       interval: 5s
