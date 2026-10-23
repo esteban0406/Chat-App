@@ -89,7 +89,10 @@ Modules that emit WebSocket events must import `GatewayModule`:
 Global `ValidationPipe` with `whitelist: true, transform: true` is applied in `main.ts`. All request bodies should have a corresponding DTO class with `class-validator` decorators.
 
 ### Rate Limiting
-`ThrottlerModule`: 120 requests / 60 s in development/production, 1200 in test mode.
+`ThrottlerModule`: 120 requests / 60 s in development/production, 1200 in test mode. Login/register: 10 / 60 s (1000 in test mode).
+The limit is tracked per IP per handler, so a load generator on one machine hits it immediately. Override with env vars (used by the `load-tests/` stack):
+- `THROTTLE_LIMIT` — global limit per 60 s
+- `AUTH_THROTTLE_LIMIT` — login/register limit per 60 s
 
 ## Database (Prisma)
 
@@ -130,6 +133,8 @@ LIVEKIT_URL=wss://...
 LIVEKIT_API_KEY=...
 LIVEKIT_API_SECRET=...
 NODE_ENV=development|test|production
+THROTTLE_LIMIT=...                       # optional, see Rate Limiting
+AUTH_THROTTLE_LIMIT=...                  # optional, see Rate Limiting
 ```
 
 Test overrides go in `backend/.env.test`. The app loads `.env.test` automatically when `NODE_ENV=test`.

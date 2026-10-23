@@ -1,0 +1,157 @@
+# Load-test stack: production backend + isolated Postgres + observability.
+#
+# Separate compose project (`name:` below) and separate host ports, so it never
+# touches the dev stack or its database. Stop the dev stack before running
+# tests anyway, otherwise it competes for CPU and skews results.
+#
+#   docker compose -f load-tests/docker-compose.loadtest.yml up -d --build
+#   docker compose -f load-tests/docker-compose.loadtest.yml down        # keep data
+#   docker compose -f load-tests/docker-compose.loadtest.yml down -v     # wipe data
+name: chatapp-loadtest
+
+x-db-url: &db-url postgresql://chatapp:chatapp_lt_pass@lt-postgres:5432/chatapp_loadtest
+
+services:
+  # ── System under test ──────────────────────────────────────────────────────
+  lt-postgres:
+    image: postgres:16-alpine
+    container_name: lt-postgres
+    environment:
+      POSTGRES_USER: chatapp
+      POSTGRES_PASSWORD: chatapp_lt_pass
+      POSTGRES_DB: chatapp_loadtest
+    # pg_stat_statements records per-query timings — the "which query is slow?" tool.
+    command: >
+      postgres
+        -c shared_preload_libraries=pg_stat_statements
+        -c pg_stat_statements.track=all
+    ports:
+      - "5434:5432"
+    volumes:
+      - lt_pg_data:/var/lib/postgresql/data
+      - ./seed:/seed:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chatapp -d chatapp_loadtest"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+
+  # The production image has no Prisma CLI (it's a devDependency), so a one-off
+  # container built from the `build` stage applies migrations and exits.
+  lt-migrate:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+      target: build
+    environment:
+      DATABASE_URL: *db-url
+    command: pnpm prisma migrate deploy
+    depends_on:
+      lt-postgres:
+        condition: service_healthy
+    restart: "no"
+
+  lt-backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: lt-backend
+    env_file:
+      - ../backend/.env
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: *db-url
+      CORS_ORIGIN: http://localhost:3000
+      # Every k6 VU shares one IP; lift the per-IP throttle so we measure the app, not the limiter.
+      THROTTLE_LIMIT: 1000000
+      AUTH_THROTTLE_LIMIT: 1000000
+    ports:
+      - "4001:4000"
+    depends_on:
+      lt-migrate:
+        condition: service_completed_successfully
+    # Simulates a small VPS. Node runs JS on one thread, so 1 CPU is realistic.
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+    # A real server would restart a crashed process; `docker inspect lt-backend`
+    # → RestartCount tells you if that happened during a test.
+    restart: on-failure
+    # The app logs every request; without rotation a soak test fills your disk.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ── Observability ──────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v3.15.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=30d
+      # k6 pushes its metrics here (`-o experimental-prometheus-rw`).
+      - --web.enable-remote-write-receiver
+      # k6 sends latency as native histograms → correct percentiles per time window.
+      - --enable-feature=native-histograms
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - lt_prom_data:/prometheus
+
+  grafana:
+    image: grafana/grafana:13.0.11
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/dashboards/chatapp-overview.json
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/etc/grafana/dashboards:ro
+      - lt_grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+  # Container CPU / memory / throttling for lt-backend and lt-postgres.
+  cadvisor:
+    image: ghcr.io/google/cadvisor:v0.60.6
+    privileged: true
+    devices:
+      - /dev/kmsg
+    command:
+      - --docker_only=true
+      - --housekeeping_interval=5s
+      - --store_container_labels=false
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+
+  # Postgres connections, transactions, table sizes.
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.20.1
+    environment:
+      DATA_SOURCE_NAME: postgresql://chatapp:chatapp_lt_pass@lt-postgres:5432/chatapp_loadtest?sslmode=disable
+    depends_on:
+      lt-postgres:
+        condition: service_healthy
+
+volumes:
+  lt_pg_data:
+  lt_prom_data:
+  lt_grafana_data:

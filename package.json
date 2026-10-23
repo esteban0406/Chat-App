@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "docker:up": "docker compose down -v && docker compose -f docker-compose.yml up --build",
-    "docker:test": "docker compose -f docker-compose.yml -f docker-compose.test.yml up --build"
+    "docker:test": "docker compose -f docker-compose.yml -f docker-compose.test.yml up --build",
+    "loadtest:up": "./load-tests/run.sh up && ./load-tests/run.sh seed",
+    "loadtest:down": "./load-tests/run.sh down"
   },
   "keywords": [],
   "author": "",

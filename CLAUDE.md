@@ -58,6 +58,16 @@ pnpm docker:test        # runs: docker compose -f docker-compose.yml -f docker-c
 
 This adds the `e2e` (Playwright) service on top of the dev stack, switches `postgres` to an ephemeral, unpublished test database, and waits for the e2e container to exit.
 
+### Load Tests (k6)
+
+```bash
+pnpm loadtest:up        # isolated stack (prod backend 1 CPU/1 GB on :4001, Postgres :5434, Grafana :3001) + seed
+cd load-tests && ./run.sh smoke   # or load | stress | spike | soak
+pnpm loadtest:down
+```
+
+Separate compose project (`load-tests/docker-compose.loadtest.yml`) — never touches the dev DB. See `load-tests/README.md`.
+
 ### Running Services Individually (no Docker)
 
 Each sub-app has its own `pnpm` scripts — see the sub-project CLAUDE.md files.
@@ -127,6 +137,7 @@ Chat-App/
 ├── backend/          # NestJS API + WebSocket gateway
 ├── frontend/         # Next.js client
 ├── e2e/              # Playwright tests
+├── load-tests/       # k6 workload tests + Prometheus/Grafana stack
 ├── docker-compose.yml
 ├── docker-compose.test.yml
 ├── package.json      # root scripts only (pnpm workspaces not used for apps)

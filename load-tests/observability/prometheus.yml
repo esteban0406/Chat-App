@@ -1,0 +1,12 @@
+# k6 metrics arrive via remote write (push); everything below is scraped (pull).
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: cadvisor
+    static_configs:
+      - targets: ["cadvisor:8080"]
+
+  - job_name: postgres
+    static_configs:
+      - targets: ["postgres-exporter:9187"]

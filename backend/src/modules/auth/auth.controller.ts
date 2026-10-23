@@ -23,7 +23,9 @@ export class AuthController {
   @Throttle({
     default: {
       ttl: 60_000,
-      limit: process.env.NODE_ENV === 'test' ? 1000 : 10,
+      limit:
+        Number(process.env.AUTH_THROTTLE_LIMIT) ||
+        (process.env.NODE_ENV === 'test' ? 1000 : 10),
     },
   })
   @Post('register')
@@ -34,7 +36,9 @@ export class AuthController {
   @Throttle({
     default: {
       ttl: 60_000,
-      limit: process.env.NODE_ENV === 'test' ? 1000 : 10,
+      limit:
+        Number(process.env.AUTH_THROTTLE_LIMIT) ||
+        (process.env.NODE_ENV === 'test' ? 1000 : 10),
     },
   })
   @UseGuards(LocalAuthGuard)

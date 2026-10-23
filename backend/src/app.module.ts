@@ -27,7 +27,10 @@ import { AppController } from './app.controller';
       {
         name: 'default',
         ttl: 60_000, // 1 minute window
-        limit: process.env.NODE_ENV === 'test' ? 1200 : 120,
+        // THROTTLE_LIMIT lets the load-test stack lift the cap (all k6 VUs share one IP)
+        limit:
+          Number(process.env.THROTTLE_LIMIT) ||
+          (process.env.NODE_ENV === 'test' ? 1200 : 120),
       },
     ]),
     ...(process.env.NODE_ENV === 'test' ? [TestModule] : []),

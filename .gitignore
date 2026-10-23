@@ -22,3 +22,5 @@ data/
 #skills
 .agents/
 
+# k6 load-test output (HTML reports, summaries)
+load-tests/results/
