@@ -15,5 +15,7 @@
   "offline": "Offline",
   "noResults": "No results.",
   "closeDrawer": "Close drawer",
-  "closePanel": "Close panel"
+  "closePanel": "Close panel",
+  "connectionError": "Could not connect to the server.",
+  "retry": "Retry"
 }

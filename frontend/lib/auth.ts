@@ -57,6 +57,19 @@ export function clearDemoMode(): void {
   localStorage.removeItem(DEMO_TOUR_DONE_KEY);
 }
 
+export function clearSession(): void {
+  removeToken();
+  clearDemoMode();
+}
+
+// Hard navigation so every in-memory state (contexts, socket) is dropped.
+export function redirectToLogin(): void {
+  if (typeof window === "undefined") return;
+  if (window.location.pathname !== "/login") {
+    window.location.replace("/login");
+  }
+}
+
 export function isDemoMode(): boolean {
   if (typeof window === "undefined") return false;
   return localStorage.getItem(DEMO_MODE_KEY) === "true";
@@ -114,29 +127,48 @@ export async function logout(): Promise<void> {
       },
     });
   }
-  removeToken();
-  clearDemoMode();
+  clearSession();
+}
+
+export type SessionCheck =
+  | { status: "authenticated"; user: User }
+  | { status: "unauthenticated" }
+  | { status: "unreachable" };
+
+// Responses meaning the backend rejected the session itself (bad/expired
+// token, or the user no longer exists) rather than failing to answer.
+const INVALID_SESSION_STATUSES = [401, 403, 404];
+
+export async function checkSession(): Promise<SessionCheck> {
+  const token = getToken();
+  if (!token) return { status: "unauthenticated" };
+
+  try {
+    const response = await fetch(toBackendURL("/api/auth/me"), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.ok) {
+      return { status: "authenticated", user: await response.json() };
+    }
+
+    if (INVALID_SESSION_STATUSES.includes(response.status)) {
+      clearSession();
+      return { status: "unauthenticated" };
+    }
+
+    return { status: "unreachable" };
+  } catch {
+    // Network error: keep the token, the backend may just be down.
+    return { status: "unreachable" };
+  }
 }
 
 export async function getMe(): Promise<User | null> {
-  const token = getToken();
-  if (!token) return null;
-
-  const response = await fetch(toBackendURL("/api/auth/me"), {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    if (response.status === 401) {
-      removeToken();
-      return null;
-    }
-    return null;
-  }
-
-  return response.json();
+  const session = await checkSession();
+  return session.status === "authenticated" ? session.user : null;
 }
 
 export async function updateUser(data: {

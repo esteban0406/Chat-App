@@ -24,9 +24,15 @@ const CurrentUserContext = createContext<CurrentUserState>({
   updateCurrentUser: () => {},
 });
 
-export function CurrentUserProvider({ children }: { children: ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+export function CurrentUserProvider({
+  children,
+  initialUser,
+}: {
+  children: ReactNode;
+  initialUser?: User;
+}) {
+  const [currentUser, setCurrentUser] = useState<User | null>(initialUser ?? null);
+  const [loading, setLoading] = useState(!initialUser);
 
   const refreshUser = useCallback(() => {
     setLoading(true);
@@ -37,11 +43,12 @@ export function CurrentUserProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (initialUser) return;
     getMe().then((user) => {
       setCurrentUser(user);
       setLoading(false);
     });
-  }, []);
+  }, [initialUser]);
 
   return (
     <CurrentUserContext.Provider value={{ currentUser, loading, refreshUser, updateCurrentUser: setCurrentUser }}>

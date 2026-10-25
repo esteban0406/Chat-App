@@ -9,7 +9,7 @@ import {
 } from "@/ui/layout/LayoutContext";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { isAuthenticated } from "@/lib/auth";
+import { checkSession, SessionCheck } from "@/lib/auth";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
 import { NotificationProvider } from "@/lib/context/NotificationContext";
 import { CurrentUserProvider } from "@/lib/context/CurrentUserContext";
@@ -20,21 +20,53 @@ import DemoTourLoader from "@/ui/demo/DemoTourLoader";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { t } = useTranslation();
-  const [isChecking, setIsChecking] = useState(true);
+  const [session, setSession] = useState<SessionCheck | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.replace("/login");
-    } else {
-      connectSocket();
-      setIsChecking(false); // eslint-disable-line react-hooks/set-state-in-effect
-    }
+    let cancelled = false;
+
+    // A stored token is not enough: confirm with the backend that the session
+    // is still valid. checkSession() clears it when the backend rejects it.
+    checkSession().then((result) => {
+      if (cancelled) return;
+      if (result.status === "unauthenticated") {
+        router.replace("/login");
+        return;
+      }
+      if (result.status === "authenticated") {
+        connectSocket();
+      }
+      setSession(result);
+    });
+
     return () => {
+      cancelled = true;
       disconnectSocket();
     };
-  }, [router]);
+  }, [router, attempt]);
 
-  if (isChecking) {
+  const retry = () => {
+    setSession(null);
+    setAttempt((n) => n + 1);
+  };
+
+  if (session?.status === "unreachable") {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-4 bg-deep text-white">
+        <p>{t("connectionError")}</p>
+        <button
+          type="button"
+          onClick={retry}
+          className="rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-deep transition hover:bg-gold/90"
+        >
+          {t("retry")}
+        </button>
+      </div>
+    );
+  }
+
+  if (session?.status !== "authenticated") {
     return (
       <div className="flex h-screen items-center justify-center bg-deep text-white">
         <p>{t("loading")}</p>
@@ -45,7 +77,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <LayoutContextProvider>
       <NotificationProvider>
-        <CurrentUserProvider>
+        <CurrentUserProvider initialUser={session.user}>
           <ServersProvider>
             <AppLayoutInner>{children}</AppLayoutInner>
           </ServersProvider>

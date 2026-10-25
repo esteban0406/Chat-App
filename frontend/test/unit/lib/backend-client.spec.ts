@@ -2,10 +2,14 @@ import { toBackendURL, backendFetch, unwrapList, extractErrorMessage } from '@/l
 
 jest.mock('@/lib/auth', () => ({
   getToken: jest.fn(),
+  clearSession: jest.fn(),
+  redirectToLogin: jest.fn(),
 }));
 
-import { getToken } from '@/lib/auth';
+import { clearSession, getToken, redirectToLogin } from '@/lib/auth';
 const mockGetToken = getToken as jest.MockedFunction<typeof getToken>;
+const mockClearSession = clearSession as jest.MockedFunction<typeof clearSession>;
+const mockRedirectToLogin = redirectToLogin as jest.MockedFunction<typeof redirectToLogin>;
 
 const originalFetch = global.fetch;
 
@@ -95,6 +99,39 @@ describe('backendFetch', () => {
     expect(url).toBe('http://localhost:4000/api/test');
     expect(options.method).toBe('POST');
     expect(options.body).toBe('{}');
+  });
+
+  describe('on 401', () => {
+    it('clears the session and redirects to /login when the token is rejected', async () => {
+      mockGetToken.mockReturnValue('stale-token');
+      const res = mockResponse({}, { ok: false, status: 401 });
+      (global.fetch as jest.Mock).mockResolvedValue(res);
+
+      await expect(backendFetch('/api/test')).resolves.toBe(res);
+
+      expect(mockClearSession).toHaveBeenCalled();
+      expect(mockRedirectToLogin).toHaveBeenCalled();
+    });
+
+    it('does nothing when no token was sent', async () => {
+      mockGetToken.mockReturnValue(null);
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse({}, { ok: false, status: 401 }));
+
+      await backendFetch('/api/test');
+
+      expect(mockClearSession).not.toHaveBeenCalled();
+      expect(mockRedirectToLogin).not.toHaveBeenCalled();
+    });
+
+    it.each([200, 403])('does not log out on %i', async (status) => {
+      mockGetToken.mockReturnValue('my-token');
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse({}, { ok: status < 400, status }));
+
+      await backendFetch('/api/test');
+
+      expect(mockClearSession).not.toHaveBeenCalled();
+      expect(mockRedirectToLogin).not.toHaveBeenCalled();
+    });
   });
 });
 

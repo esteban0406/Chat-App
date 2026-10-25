@@ -77,6 +77,18 @@ describe("CurrentUserContext", () => {
     expect(screen.getByTestId("user").textContent).toBe("testuser");
   });
 
+  it("uses initialUser without fetching", () => {
+    render(
+      <CurrentUserProvider initialUser={fakeUser}>
+        <TestConsumer />
+      </CurrentUserProvider>,
+    );
+
+    expect(mockGetMe).not.toHaveBeenCalled();
+    expect(screen.getByTestId("loading").textContent).toBe("false");
+    expect(screen.getByTestId("user").textContent).toBe("testuser");
+  });
+
   it("refreshUser re-fetches the user", async () => {
     mockGetMe.mockResolvedValue(fakeUser);
 

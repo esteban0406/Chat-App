@@ -1,4 +1,4 @@
-import { getToken } from "./auth";
+import { clearSession, getToken, redirectToLogin } from "./auth";
 
 const getBackendBaseURL = () => {
   const base = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -24,7 +24,7 @@ export const unwrapList = <T>(body: unknown, key: string): T[] => {
   return Array.isArray(body) ? (body as T[]) : [];
 };
 
-export const backendFetch = (path: string, options: RequestInit = {}) => {
+export const backendFetch = async (path: string, options: RequestInit = {}) => {
   const token = getToken();
   const headers = new Headers(options.headers);
 
@@ -32,10 +32,18 @@ export const backendFetch = (path: string, options: RequestInit = {}) => {
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  return fetch(toBackendURL(path), {
+  const res = await fetch(toBackendURL(path), {
     ...options,
     headers,
   });
+
+  // The token was rejected (expired or revoked mid-session): log out.
+  if (res.status === 401 && token) {
+    clearSession();
+    redirectToLogin();
+  }
+
+  return res;
 };
 
 /**

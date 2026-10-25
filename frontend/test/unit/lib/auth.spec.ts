@@ -1,4 +1,4 @@
-import { login, register, logout, getMe, updateUser, getToken, setToken, removeToken, isAuthenticated } from '@/lib/auth';
+import { login, register, logout, getMe, checkSession, updateUser, getToken, setToken, removeToken, isAuthenticated } from '@/lib/auth';
 
 jest.mock('@/lib/backend-client', () => ({
   toBackendURL: (path: string) => `http://localhost:4000${path}`,
@@ -167,7 +167,21 @@ describe('getMe', () => {
     expect(localStorage.getItem('accessToken')).toBeNull();
   });
 
-  it('returns null on non-401 error', async () => {
+  it.each([403, 404])('returns null and removes token on %i', async (status) => {
+    localStorage.setItem('accessToken', 'tok');
+    localStorage.setItem('isDemoMode', 'true');
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      status,
+    });
+
+    const result = await getMe();
+    expect(result).toBeNull();
+    expect(localStorage.getItem('accessToken')).toBeNull();
+    expect(localStorage.getItem('isDemoMode')).toBeNull();
+  });
+
+  it('returns null but keeps token on 500', async () => {
     localStorage.setItem('accessToken', 'tok');
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,
@@ -176,6 +190,46 @@ describe('getMe', () => {
 
     const result = await getMe();
     expect(result).toBeNull();
+    expect(localStorage.getItem('accessToken')).toBe('tok');
+  });
+});
+
+describe('checkSession', () => {
+  it('is unauthenticated without calling the backend when no token', async () => {
+    expect(await checkSession()).toEqual({ status: 'unauthenticated' });
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('is authenticated with the user on success', async () => {
+    localStorage.setItem('accessToken', 'tok');
+    const user = { id: '1', email: 'a@b.com', username: 'u' };
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => user });
+
+    expect(await checkSession()).toEqual({ status: 'authenticated', user });
+  });
+
+  it.each([401, 403, 404])('is unauthenticated and clears the token on %i', async (status) => {
+    localStorage.setItem('accessToken', 'tok');
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: false, status });
+
+    expect(await checkSession()).toEqual({ status: 'unauthenticated' });
+    expect(localStorage.getItem('accessToken')).toBeNull();
+  });
+
+  it.each([500, 502, 503])('is unreachable and keeps the token on %i', async (status) => {
+    localStorage.setItem('accessToken', 'tok');
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: false, status });
+
+    expect(await checkSession()).toEqual({ status: 'unreachable' });
+    expect(localStorage.getItem('accessToken')).toBe('tok');
+  });
+
+  it('is unreachable and keeps the token on a network error', async () => {
+    localStorage.setItem('accessToken', 'tok');
+    (global.fetch as jest.Mock).mockRejectedValue(new TypeError('Failed to fetch'));
+
+    expect(await checkSession()).toEqual({ status: 'unreachable' });
+    expect(localStorage.getItem('accessToken')).toBe('tok');
   });
 });
 

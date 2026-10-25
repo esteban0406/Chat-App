@@ -15,5 +15,7 @@
   "offline": "Desconectado",
   "noResults": "Sin resultados.",
   "closeDrawer": "Cerrar cajón",
-  "closePanel": "Cerrar panel"
+  "closePanel": "Cerrar panel",
+  "connectionError": "No se pudo conectar con el servidor.",
+  "retry": "Reintentar"
 }
