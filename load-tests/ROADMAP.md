@@ -8,9 +8,9 @@ before moving on. The theory is in [README.md](README.md); the results go in [FI
 | Phase | What | Status |
 |---|---|---|
 | 0 | Setup: stack, seed, throttle env vars, dashboards, docs | ✅ Done 2026-10-22 |
-| 1 | k6 Studio exploration (you: record, generate, validate) | ⏭ **Next** |
-| 2 | Shared k6 library, user journey, smoke test | ⬜ |
-| 3 | Load test (baseline) | ⬜ |
+| 1 | k6 Studio exploration (you: record, generate, validate) | ✅ Done 2026-10-25 (request count and journey decisions in FINDINGS.md) |
+| 2 | Shared k6 library, user journey, smoke test | ✅ Done 2026-10-25 (smoke passes, see FINDINGS.md) |
+| 3 | Load test (baseline) | ⏭ **Next**: redo the traffic hypothesis first (a session is ~15 s / ~138 requests) |
 | 4 | Stress test (+ breakpoint variant) | ⬜ |
 | 5 | Spike test | ⬜ |
 | 6 | Soak test | ⬜ |
@@ -67,8 +67,8 @@ Files to create:
 |---|---|
 | `lib/config.js` | `BASE_URL` (default `http://localhost:4001`), `WS_URL` |
 | `lib/thresholds.js` | Shared SLOs (below) |
-| `lib/api.js` | REST helpers. Each sets a `name` tag (e.g. `GET /api/messages/channel/:id`) so URLs with UUIDs are grouped, and runs checks. |
-| `lib/summary.js` | `handleSummary` that writes `results/<TESTID>.json` plus the normal text summary |
+| `lib/api.js` | REST helpers. Each sets a `name` tag (e.g. `GET /api/messages/channel/:id`) so URLs with UUIDs are grouped, and runs checks. The avatar helper treats 200–399 **and 404** as expected (`http.expectedStatuses`), so "no avatar yet" doesn't count in `http_req_failed`, and uses `redirects: 0` so k6 never follows a redirect to Cloudinary. |
+| ~~`lib/summary.js`~~ | Replaced by `--summary-export results/<testid>.json` in `run.sh`: same JSON, keeps k6's own summary, no remote jslib import |
 | `scenarios/chat-user.js` | The REST journey, with 1–3 s think time between steps |
 | `scenarios/login.js` | Low-rate `POST /api/auth/login` (bcrypt cost) |
 | `tests/smoke.js` | 1 VU, 1 min. Must pass with 0 errors before anything else runs. |
@@ -76,20 +76,37 @@ Files to create:
 - **`setup()`**: log in `lt_user_1..200` and return their tokens. Each VU picks one by `__VU`.
   Discover the server and channel IDs through the API (`GET /api/servers`, find
   "Load Test Server"), the same way the frontend does.
-- **Journey**:
-  1. `GET /api/servers`
-  2. `GET /api/servers/:id/channels`
-  3. `GET /api/messages/channel/:id?limit=50`, and 30% of the time the next page using
-     `nextCursor`
-  4. `POST /api/messages {content, channelId}`
-- **Starting thresholds**:
+- **Journey: one iteration = one user session.** It mirrors what the frontend does (Phase 1
+  findings), with 1–3 s of think time between steps:
+  1. **App load, once:** `GET /api/auth/me`, `GET /api/friendships` (login lands on `/home`),
+     `GET /api/servers` (the channel list comes embedded here, so there is no
+     `/servers/:id/channels` call), and the user's own avatar.
+  2. **Visit a random channel (of the 5), 3 times:**
+     1. `GET /api/messages/channel/:id`, with no query string, like the frontend.
+     2. `http.batch()` of `GET /api/users/:id/avatar` for each distinct author in the response,
+        the way the browser loads the images in parallel.
+     3. With probability `PAGINATION_RATIO` (default 0.3): the older page using `nextCursor`,
+        tagged `GET /api/messages/channel/:id (older page)`, then a batch of avatars for authors
+        not seen yet. The frontend can't do this today; the step models planned behavior and
+        its cost shows up separately.
+     4. `POST /api/messages {content, channelId}`.
+- **Seed fact:** 50 consecutive messages in a channel come from 50 distinct authors, and the
+  older page brings the other 50 (authors repeat every 100 messages). So one channel visit
+  costs ~51 requests, or ~101 with the older page. No seed user has an avatar, so all are 404s.
+- **Starting thresholds** (`lib/thresholds.js`), latency **per endpoint** (`name` tag), not
+  aggregated: in the first smoke run the aggregate p95 was 14 ms while the older page sat at
+  250 ms, because ~90% of requests are fast avatar 404s (decided 2026-10-26).
 
-  | Metric | Threshold |
-  |---|---|
-  | `http_req_failed` | rate < 1% |
-  | `http_req_duration` | p95 < 300 ms, p99 < 800 ms |
-  | `http_req_duration` on login | p95 < 1000 ms |
-  | `checks` | rate > 99% |
+  | Metric | Load, stress, spike, soak | Smoke |
+  |---|---|---|
+  | `http_req_failed` | rate < 1% | rate == 0 |
+  | `checks` | rate > 99% | rate == 1 |
+  | `http_req_duration{name:…}`, each endpoint | p95 < 300 ms, p99 < 800 ms | printed, never fails |
+  | `http_req_duration{name:POST /api/auth/login}` | p95 < 1000 ms | printed, never fails |
+
+  Smoke only answers "is the script correct?", so a known slow endpoint can't fail it. Setup
+  logins are named `POST /api/auth/login (setup)` and count against no SLO. An endpoint with no
+  requests in a run (e.g. `PAGINATION_RATIO=0`) reports 0 s and passes.
 
 ## Phases 3–6: The four tests
 
@@ -98,6 +115,10 @@ All four reuse the same scenarios and only change `options.scenarios`.
 **Working "normal traffic" hypothesis:** 200 active users each finishing a journey about every
 20 s, which is about **10 iterations/s**, plus 1 login/s. Every number below is a starting point
 that we adjust after smoke and load.
+
+⚠ These rates were set when an iteration was one short journey. Now that an iteration is a whole
+session (app load + 3 channel visits, ~150+ requests), recompute the rate with Little's law once
+the smoke test has measured how long an iteration takes.
 
 | Test | Executor and shape | Hypothesis to confirm or reject |
 |---|---|---|
@@ -128,6 +149,11 @@ that we adjust after smoke and load.
 3. Measure the cost of the request-body logger.
 4. `UV_THREADPOOL_SIZE` for bcrypt (*lesson:* useless on 1 CPU).
 5. `prom-client` `/metrics` for event-loop lag and heap.
+6. Avatars: render `author.avatarUrl` (already in every message) directly in the frontend, with a
+   fallback when it's null, instead of requesting `/api/users/:id/avatar` per author. Also decide
+   what that endpoint should return when there's no avatar, instead of 404.
+7. CORS `maxAge` on `enableCors`, so the browser stops sending a preflight before most API calls
+   (browser-side gain; k6 won't show it).
 
 ---
 
@@ -139,7 +165,9 @@ that we adjust after smoke and load.
 | JWT guard does **no DB lookup**; tokens last 7 days | `backend/src/modules/auth/strategies/jwt.strategy.ts` |
 | Message history: `GET /api/messages/channel/:id?limit&cursor` → `{ messages, nextCursor, hasMore }` (messages in chronological order). Default limit 50, **no max cap**. | `backend/src/modules/messages/messages.service.ts:58-92` |
 | REST `POST /api/messages` saves but does **not** broadcast. The UI sends messages over WebSocket. | `messages.controller.ts`, `chat.gateway.ts:123-150` |
-| `GET /api/servers` loads every member, role and channel: the heaviest read | `backend/src/modules/servers/servers.service.ts:56-86` |
+| `GET /api/servers` loads every member, role and channel: the heaviest read. The frontend takes the channel list from here. | `backend/src/modules/servers/servers.service.ts:56-86` |
+| Message history includes `author { id, username, avatarUrl, status }` for each message | `backend/src/modules/messages/messages.service.ts:69-82` |
+| `GET /api/users/:id/avatar` needs no auth: one user lookup, then 404 (no avatar) or a redirect to Cloudinary | `backend/src/modules/users/users.controller.ts:78-88` |
 | `pg` pool = 10 connections (default), no acquire timeout | `backend/src/database/prisma.service.ts` |
 | Every request and its body is logged | `backend/src/common/middleware/logger.middleware.ts` |
 

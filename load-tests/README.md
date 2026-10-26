@@ -25,6 +25,7 @@ cd load-tests
 # 3. Look at the results
 #    live while running: http://localhost:5665  (k6 web dashboard)
 #    afterwards:         results/<testid>.html  (same dashboard, saved)
+#                        results/<testid>.json  (end-of-test summary, for comparing runs)
 #    server side:        http://localhost:3001  (Grafana → "Chat-App · Load test overview")
 
 # 4. Reset the data before the next comparable run
@@ -271,3 +272,46 @@ k6 Studio is for **creating and debugging** scripts, not for charting test runs:
   and inspect every request and response.
 
 Charts of a full run come from the k6 web dashboard and Grafana.
+
+### Recording a localhost app
+
+The recorder sends the browser's traffic through a proxy, but Chrome **skips the proxy for
+`localhost`**. Record the dev stack as-is and you only capture Google's background traffic.
+
+Workaround: make the browser call the backend by its LAN IP, which does go through the proxy.
+
+1. In `frontend/.env`, set `NEXT_PUBLIC_BACKEND_URL=http://<LAN IP>:4000` (`hostname -I`).
+2. `docker compose up -d --force-recreate frontend`. `NEXT_PUBLIC_*` values are read at startup.
+3. Record with the page still at `http://localhost:3000`. Page loads aren't captured (we don't
+   want them anyway), API calls are. CORS needs no change because the page origin is the same.
+4. Set the env back to `localhost:4000` afterwards.
+
+### Generator settings, and why
+
+| Setting | What we chose | Why it matters |
+|---|---|---|
+| **Host allowlist** | Only the backend (`<LAN IP>:4000`). Static assets off. | `*.gvt1.com` and `*.google.com` are the browser's own traffic (updates, Safe Browsing). `localhost:3000` is Next.js serving pages, which isn't backend load. Anything left in becomes load you didn't mean to generate. |
+| **Correlation rule** | Extractor: response **body**, JSON path `accessToken`, filtered to `/api/auth/login`. Replacer: the default (every later occurrence of the recorded value). | Without it the script replays the token captured while recording. It looks fine until the token expires (7 days), every VU shares one identity, and the login result is thrown away. The default replacer also covers both spellings the frontend sends (`Authorization` and `authorization`). |
+| **Verification rule** | Optional here: the hand-written scripts in Phase 2 have real checks. | "Status equals the recorded value" is brittle. The second `/auth/me` replays a recorded `If-None-Match` ETag and expects 304, so it fails as soon as the user's data changes. A check that accepts a 404 still counts in `http_req_failed`. And a Validator run with **no** checks is green because nothing is asserted, which proves nothing. |
+
+How to tell the correlation worked: in the exported script, the login is followed by
+`correlation_vars["correlation_0"] = resp.json().accessToken`, and no header contains a literal
+`eyJhbGci…` token.
+
+### What a recording can't contain
+
+- **WebSocket traffic.** The UI sends chat messages over socket.io, so sending a message leaves
+  no HTTP request behind. That's why the WebSocket scenario is written by hand (Phase 7).
+- **CORS preflights (`OPTIONS`).** The browser sends one before most cross-origin API calls, and
+  the recorder doesn't show them (12 recorded requests vs 20 in the Network tab). k6 isn't a
+  browser and never sends them either.
+
+### Noise to strip before reusing a generated script
+
+| Noise | Where it comes from |
+|---|---|
+| `Proxy-Connection`, `Referer` headers | The recording proxy and the browser |
+| `If-None-Match` | The browser's cache. Replaying it turns real responses into 304s |
+| Every call twice | React Strict Mode in Next.js dev runs each effect twice. Production calls once |
+| `options.stages` (20 VUs, 5½ min) | k6 Studio's default. Never run that against the dev stack |
+| Hard-coded email and password | Whatever account you logged in with. Read them from `__ENV` |

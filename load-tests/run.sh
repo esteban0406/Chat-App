@@ -48,6 +48,7 @@ case "${1:-}" in
     echo "testid: $testid   live dashboard: http://localhost:5665   Grafana: http://localhost:3001"
 
     # Web dashboard: live charts at :5665 during the run, HTML report saved at the end.
+    # Summary export: the end-of-test numbers as JSON, for comparing runs later.
     # Prometheus remote write: latency as native histograms → correct per-window percentiles.
     K6_WEB_DASHBOARD=true \
     K6_WEB_DASHBOARD_EXPORT="results/${testid}.html" \
@@ -57,6 +58,7 @@ case "${1:-}" in
       k6 run \
         --tag testid="$testid" \
         -e TESTID="$testid" \
+        --summary-export "results/${testid}.json" \
         -o experimental-prometheus-rw \
         "$script" "$@"
     ;;
