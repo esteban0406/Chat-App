@@ -28,7 +28,8 @@ _Filled in as the tests are run._
 | Test | testid | Result | Key number |
 |---|---|---|---|
 | Smoke | `smoke-20261025-234747` | ✅ Pass, 0 errors | Older-page history read: p95 **250 ms with 1 VU** (full table scan) |
-| Load | | | |
+| Load #1 | `load-20261026-005108` | ❌ older page p95 395 ms. ⚠ Not valid as the baseline (20-identity bug) | 35 req/s, 21% backend CPU, tails 5–35× the idle values |
+| **Load #2 (baseline)** | `load-20261026-011311` | ❌ older page p95 405 ms, everything else passes | 50 sessions/min = 61 req/s. Backend 22% / Postgres 27% CPU |
 | Stress | | | |
 | Spike | | | |
 | Soak | | | |
@@ -157,6 +158,128 @@ Copy this block for each run.
   4. **Numbers for Phase 3 (Little's law):** one session takes **~15 s** (`iteration_duration
      {scenario:chat}`) and sends **~138 requests**, so the old "10 iterations/s" target would mean
      ~1,400 req/s and ~150 busy VUs. The traffic hypothesis has to be redone with these numbers.
+
+### Load (baseline) — hypothesis, written before the run
+
+- **Traffic (decided 2026-10-26):** a busy evening. 100 of the 500 members online, each doing a
+  session about every 2 min → **50 sessions/min ≈ 115 req/s**, ~14 VUs busy, plus 3 logins/min.
+  Rough capacity from the smoke numbers is ~200 sessions/min, so this is ~25% of it.
+- **Expected:**
+  1. Every endpoint meets its SLO **except the older page**. It already sat at p95 285 ms with
+     no load, and every history read is a full scan competing for Postgres's single CPU. Expect
+     it to cross 300 ms, so the test fails on that one threshold.
+  2. Backend CPU ~15–25% of its core, Postgres CPU ~20–30%. Active DB connections well below 10.
+  3. `dropped_iterations` = 0, error rate 0, memory flat.
+
+### Load #1 — `load-20261026-005108` (not valid as the baseline)
+
+- **Commit:** `b4c6b20` + `tests/load.js`
+- **Config:** `chat`: `ramping-arrival-rate` 0→50 sessions/min over 2 min, hold 10 min, ramp down
+  1 min. `login`: 3/min. 100 tokens from setup. Fresh seed, dev stack stopped.
+- **Result:** ❌ 1 threshold failed: the older page, p95 **395 ms**. 28,008 requests, 0 failed,
+  0 dropped iterations. 574 sessions (50/min, as configured). Busy VUs peaked at 16 (Little's
+  law predicted 14). One session took 16.3 s on average.
+
+  | Endpoint | p95 idle (smoke) | p95 under load | median under load |
+  |---|---|---|---|
+  | `GET /api/messages/channel/:id (older page)` | 250 ms | **395 ms** ✗ | 203 ms |
+  | `GET /api/messages/channel/:id` | 29 ms | 158 ms | 26 ms |
+  | `POST /api/messages` | 7 ms | 124 ms | 5 ms |
+  | `GET /api/auth/me` | 2 ms | 71 ms | 2 ms |
+  | `GET /api/servers` | 22 ms | 61 ms | 12 ms |
+  | `GET /api/users/:id/avatar` | 5 ms | 27 ms | 3 ms |
+  | `GET /api/friendships` | 5 ms | 9 ms | 3 ms |
+  | `POST /api/auth/login` | 71 ms | 203 ms | 58 ms |
+
+- **Server side (10-min hold):** backend CPU 0.21 core on average (max 0.25), Postgres 0.26 (max
+  0.30). Despite that, the backend was **CPU-throttled in ~12% of its 100 ms periods** and
+  Postgres in ~7%. Active DB connections peaked at 3 (sampled every 15 s). Backend memory went
+  from 207 to 255 MB.
+- **Conclusion:**
+  1. Expected results 1–3 held: only the older page fails, CPU landed in the predicted range, and
+     there were no errors or dropped iterations. Memory wasn't flat (+50 MB): warm-up or a leak,
+     which the soak test will tell apart.
+  2. **The request volume was wrong: 35 req/s, not 115.** The rate of sessions was right, but each
+     session sent ~49 requests instead of ~140, because avatars fell from ~120 to ~39 per
+     session. Two reasons:
+     - **The test changes the data it reads.** 1,722 posted messages (~340 per channel) pushed the
+       seed messages out of the latest pages. That part is realistic: in a busy server, recent
+       messages come from the users who are active.
+     - **A script bug: only 20 users ever posted.** Sessions picked their user by VU number, and the
+       arrival-rate executor only needed ~20 VUs. **In an open model, a VU is a worker, not a
+       person.** Fixed: each session now picks a random one of the 100 online users.
+  3. **Medians barely moved, but tails grew 5–35×, at only ~21% average CPU.** The likely cause is
+     throttling. A CPU limit is enforced per 100 ms period. Bursts (6 parallel avatar requests per
+     session, several sessions overlapping) use up the quota early in a period, and every other
+     request waits for the next one. A one-minute CPU average can't show saturation that lasts
+     milliseconds. Postgres adds its own bursts: each full-scan query runs as 3 processes (leader
+     + 2 parallel workers) sharing one CPU's quota.
+  4. Not valid as the baseline because of the 20-identity bug. Rerun with the fix.
+  5. **Updated capacity estimate for the stress test:** ~250 ms of backend CPU and ~310 ms of
+     Postgres CPU per session. So **Postgres should saturate first, at ~190 sessions/min**.
+
+### Load #2 — hypothesis, written before the run
+
+Same config, with the fix (each session picks a random one of the 100 online users).
+
+1. Requests per session land between run #1 (~49) and smoke (~140). With 100 identities posting,
+   the latest pages have more distinct authors, so more avatar requests: roughly 60–80 per
+   session, ~50–65 req/s.
+2. The older page still fails its threshold (it doesn't depend on avatars). Everything else
+   passes.
+3. CPU a bit above run #1 on the backend (more avatars), about the same on Postgres (same number
+   of history reads). Throttling and the gap between median and tail stay.
+
+### Load #2 — `load-20261026-011311` ⭐ baseline
+
+- **Commit:** `b4c6b20` + the fix (random online user per session) + `tests/load.js`
+- **Config:** same as run #1. Fresh seed, dev stack stopped.
+- **Result:** ❌ 1 threshold failed: the older page, p95 **405 ms**. 48,797 requests, 0 failed,
+  0 dropped iterations, **61 req/s**. 575 sessions with **~85 requests each** (~75 of them
+  avatars). 100 distinct users posted. Busy VUs ≤ 16, one session took 16.0 s.
+
+  | Endpoint | p95 | median | Response size |
+  |---|---|---|---|
+  | `GET /api/messages/channel/:id (older page)` | **405 ms** ✗ | 163 ms | ~20 KB |
+  | `GET /api/messages/channel/:id` | 154 ms | 26 ms | ~20 KB |
+  | `POST /api/messages` | 128 ms | 5 ms | |
+  | `GET /api/servers` | 69 ms | 12 ms | **270 KB** |
+  | `GET /api/auth/me` | 64 ms | 2 ms | 210 B |
+  | `GET /api/users/:id/avatar` | 39 ms | 3 ms | 65 B |
+  | `GET /api/friendships` | 9 ms | 2 ms | |
+  | `POST /api/auth/login` | 246 ms | 56 ms | |
+
+- **Server side (10-min hold):** backend CPU 0.215 core (max 0.26; ~0 when idle), Postgres 0.27
+  (max 0.29). CPU-throttled in 15% of the backend's periods and 9% of Postgres's. Active DB
+  connections peaked at 6. Memory: backend 191 → 230 MB, Postgres 190 → 213 MB.
+  `pg_stat_statements`:
+
+  | Query | Calls | Mean | Total DB time |
+  |---|---|---|---|
+  | Latest history page | 1,725 | 28 ms | 48 s |
+  | Older history page | 473 | 100 ms | 48 s |
+  | User lookup (avatars) | 43,723 | 0.03 ms | 1.5 s |
+
+- **Hypotheses:** 1 ✓ (85 requests per session, 61 req/s). 2 ✓. 3 ✗: backend CPU **did not
+  rise**, although avatar requests doubled (22k → 43k).
+- **Conclusion:**
+  1. **This is the baseline.** At expected peak traffic, every endpoint meets its SLO except the
+     older page, and the cause is known: a full table scan, no index.
+  2. **Request count isn't cost.** Avatars doubled with no change in backend CPU, and Postgres
+     spent 1.5 s on all 43,723 of them. Per request they are nearly free. Their real costs are the
+     bursts (tail latency) and, in production, the browser and network. So the Phase 8 avatar
+     change should reduce request count and bursts more than CPU. It also means the logger
+     middleware's per-request cost is small, since it logs avatars too (Phase 8 candidate #3 looks
+     low value).
+  3. **The older page is 22% of history reads but half of their DB time.** One
+     `(channelId, createdAt)` index should fix both pages.
+  4. **The backend's CPU comes from the ~10 non-avatar requests per session**, ~25 ms of CPU each
+     on average. Prime suspect: big payloads. `GET /api/servers` is 270 KB per call (it embeds all
+     500 members) and makes up ~70% of all bytes received. To confirm with profiling (Phase 8
+     candidate #5).
+  5. Memory rose in both runs (+40–50 MB over 10 min). Watch it in the soak test.
+  6. **Stress hypothesis:** ~320 ms of Postgres CPU and ~260 ms of backend CPU per session, so
+     **Postgres saturates first, at ~190 sessions/min**.
 
 <!--
 ### <Test> — <testid>

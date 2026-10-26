@@ -84,8 +84,10 @@ function loadNewAvatars(page, seen) {
 }
 
 export function chatSession(data) {
-  // Each VU is one user. More VUs than tokens wrap around and share.
-  const me = data.users[(__VU - 1) % data.users.length];
+  // In an arrival-rate test a VU is a worker, not a person: k6 only creates as many as it needs
+  // (~20 for 100 online users). Picking by VU number made only those ~20 users ever post, so
+  // each session picks one of the online users instead.
+  const me = pick(data.users);
   // The browser doesn't reload an image already on the page, so each author's avatar is
   // requested once per session.
   const seen = new Set();

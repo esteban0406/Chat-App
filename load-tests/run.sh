@@ -53,7 +53,7 @@ case "${1:-}" in
     K6_WEB_DASHBOARD=true \
     K6_WEB_DASHBOARD_EXPORT="results/${testid}.html" \
     K6_PROMETHEUS_RW_SERVER_URL="${K6_PROMETHEUS_RW_SERVER_URL:-http://localhost:9090/api/v1/write}" \
-    K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true \
+    K6_FEATURES=native-histograms \
     K6_PROMETHEUS_RW_STALE_MARKERS=true \
       k6 run \
         --tag testid="$testid" \

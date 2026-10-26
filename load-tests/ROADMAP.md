@@ -10,8 +10,8 @@ before moving on. The theory is in [README.md](README.md); the results go in [FI
 | 0 | Setup: stack, seed, throttle env vars, dashboards, docs | ✅ Done 2026-10-22 |
 | 1 | k6 Studio exploration (you: record, generate, validate) | ✅ Done 2026-10-25 (request count and journey decisions in FINDINGS.md) |
 | 2 | Shared k6 library, user journey, smoke test | ✅ Done 2026-10-25 (smoke passes, see FINDINGS.md) |
-| 3 | Load test (baseline) | ⏭ **Next**: redo the traffic hypothesis first (a session is ~15 s / ~138 requests) |
-| 4 | Stress test (+ breakpoint variant) | ⬜ |
+| 3 | Load test (baseline) | ✅ Done 2026-10-26. Baseline = `load-20261026-011311` (fails only on the older page) |
+| 4 | Stress test (+ breakpoint variant) | ⏭ **Next**: hypothesis: Postgres saturates first at ~190 sessions/min |
 | 5 | Spike test | ⬜ |
 | 6 | Soak test | ⬜ |
 | 7 | WebSocket (socket.io) scenario, then rerun load and soak mixed | ⬜ |
@@ -28,6 +28,32 @@ curl localhost:4001/api/health
 
 Grafana: http://localhost:3001 (the "Test run" dropdown also shows a `pipeline-check` run from
 setup; ignore it). Stop everything with `./run.sh down`.
+
+Before a real run (not smoke), stop the dev stack so it doesn't compete for CPU:
+`docker compose down` from the repo root (data is kept; `docker compose up -d` brings it back).
+
+⚠ If the machine restarts while the load-test stack is up, `lt-backend` comes back on its own
+(`restart: on-failure`) but `lt-postgres` doesn't, so the backend crash-loops. `./run.sh up`
+fixes it; `./run.sh down` when you finish a session avoids it.
+
+### Next session starts here (left off 2026-10-26)
+
+Phases 0–3 are done and committed. The baseline is `load-20261026-011311` (FINDINGS.md). Next is
+**Phase 4, the stress test**:
+
+1. **Decide the steps.** Proposal: 50 → 100 → 150 → 200 → 250 → 300 sessions/min, 3 min each,
+   then ramp down to watch recovery. It brackets the hypothesis below.
+2. **Write `tests/stress.js`**: same scenarios and thresholds as `tests/load.js`, with
+   `ramping-arrival-rate` steps and more headroom in `maxVUs` (busy VUs grow when responses slow
+   down). Then the **breakpoint** variant: keep ramping, `abortOnFail` on the thresholds, to find
+   the level where the SLOs break.
+3. **Write the hypothesis in FINDINGS.md before running.** From the baseline's cost per session
+   (~320 ms of Postgres CPU, ~260 ms of backend CPU): **Postgres runs out of CPU first, at
+   ~190 sessions/min**. History reads slow down first, then everything that waits on the DB.
+4. Stop the dev stack, `./run.sh up`, `./run.sh seed`, `./run.sh stress`.
+5. Read: the knee (where p95 curves up), which resource saturates first (Postgres CPU, backend
+   CPU, or DB connections stuck at 10), how it fails (slower? 5xx? timeouts? crash?), and
+   whether latency returns to baseline during the ramp-down.
 
 ---
 
@@ -73,7 +99,9 @@ Files to create:
 | `scenarios/login.js` | Low-rate `POST /api/auth/login` (bcrypt cost) |
 | `tests/smoke.js` | 1 VU, 1 min. Must pass with 0 errors before anything else runs. |
 
-- **`setup()`**: log in `lt_user_1..200` and return their tokens. Each VU picks one by `__VU`.
+- **`setup()`**: log in `lt_user_1..N` (N = online users) and return their tokens. Each
+  **session** picks one at random. Don't pick by `__VU`: with arrival-rate executors a VU is a
+  worker, and k6 creates only as many as it needs (load run #1 had 20 VUs for 100 users).
   Discover the server and channel IDs through the API (`GET /api/servers`, find
   "Load Test Server"), the same way the frontend does.
 - **Journey: one iteration = one user session.** It mirrors what the frontend does (Phase 1
@@ -116,9 +144,11 @@ All four reuse the same scenarios and only change `options.scenarios`.
 20 s, which is about **10 iterations/s**, plus 1 login/s. Every number below is a starting point
 that we adjust after smoke and load.
 
-⚠ These rates were set when an iteration was one short journey. Now that an iteration is a whole
-session (app load + 3 channel visits, ~150+ requests), recompute the rate with Little's law once
-the smoke test has measured how long an iteration takes.
+⚠ The table below was written in it/s when an iteration was one short journey. Now an iteration
+is a session (~16 s, ~85 requests under load), and the levels are in **sessions/min**: the
+baseline is **50 sessions/min** (100 online users, one session every 2 min each). From the
+baseline's per-session cost, Postgres should saturate at **~190 sessions/min**, so the stress
+steps should go around and past that, e.g. 50 → 100 → 150 → 200 → 250 → 300 sessions/min.
 
 | Test | Executor and shape | Hypothesis to confirm or reject |
 |---|---|---|
